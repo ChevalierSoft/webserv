@@ -6,14 +6,14 @@
 #    By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2021/04/12 12:55:09 by dait-atm          #+#    #+#              #
-#    Updated: 2021/09/03 06:16:20 by dait-atm         ###   ########.fr        #
+#    Updated: 2021/09/03 11:24:31 by dait-atm         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME		= webserv
 
 CC			= clang++
-FLAGS		= -I$(INC_DIR) #-std=c++98 #-Wall -Wextra -Werror
+FLAGS		= -I$(INC_DIR) -std=c++98 #-Wall -Wextra -Werror
 
 SRC_DIR 	= srcs/
 OBJ_DIR		= objs/
@@ -22,7 +22,8 @@ SOURCES		= $(wildcard $(SRC_DIR)*.cpp)
 OBJS		= $(patsubst %.cpp,objs/%.o, $(SRCS_FILES))
 DEPENDS		= $(patsubst %.cpp,objs/%.d, $(SRCS_FILES))
 SRCS_FILES	= \
-main.cpp
+main.cpp \
+Server.cpp
 
 all: $(NAME)
 
