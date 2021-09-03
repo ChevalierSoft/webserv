@@ -1,8 +1,8 @@
 #include <iostream>
-#include "../includes/Server.hpp"
+#include "Server.hpp"
 
 int main(int argc, char **argv)
 {
-    std::cout << lol << std::endl;
+    std::cout << "oui" << std::endl;
     return (0);
 }

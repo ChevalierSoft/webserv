@@ -6,12 +6,13 @@
 #    By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2021/04/12 12:55:09 by dait-atm          #+#    #+#              #
-#    Updated: 2021/09/03 05:43:55 by dait-atm         ###   ########.fr        #
+#    Updated: 2021/09/03 06:04:22 by dait-atm         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME		= webserv
 
+CC			= clang++
 FLAGS		= -I$(INC_DIR) #-std=c++98 #-Wall -Wextra -Werror
 
 INC_DIR		= includes/
@@ -25,13 +26,16 @@ main.cpp
 
 all: $(NAME)
 
-$(NAME) : $(OBJS)
-	$(CXX) -o $(NAME) $(CXXFLAGS) $^ -o $@
+$(NAME) : create_obj_folder $(OBJS)
+	$(CC) -o $(NAME) $(FLAGS) $^ -o $@
 
 -include $(DEPENDS)
 
 $(OBJ_DIR)%.o: $(SRC_DIR)%.cpp Makefile
-	$(CXX) $(CXXFLAGS) -MMD -MP -c $< -o $@
+	$(CC) $(FLAGS) -MMD -MP -c $< -o $@
+
+create_obj_folder:
+	@mkdir -p objs
 
 clean:
 	rm -f $(OBJS) $(DEPENDS)
