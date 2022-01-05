@@ -6,7 +6,7 @@
 #    By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2021/04/12 12:55:09 by dait-atm          #+#    #+#              #
-#    Updated: 2021/09/03 11:24:31 by dait-atm         ###   ########.fr        #
+#    Updated: 2022/01/05 02:55:50 by dait-atm         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -27,16 +27,17 @@ Server.cpp
 
 all: $(NAME)
 
-$(NAME) : $(create_obj_folder) $(OBJS)
+$(NAME) : $(OBJS)
 	$(CC) -o $(NAME) $(FLAGS) $^ -o $@
 
 -include $(DEPENDS)
 
-$(OBJ_DIR)%.o : $(SRC_DIR)%.cpp Makefile
+$(OBJ_DIR)%.o : $(create_obj_folder) $(SRC_DIR)%.cpp Makefile
+	@mkdir -p objs
 	$(CC) $(FLAGS) -MMD -MP -c $< -o $@
 
 $(create_obj_folder) :
-	@mkdir -p objs
+	mkdir -p objs
 
 clean :
 	rm -f $(OBJS) $(DEPENDS)
