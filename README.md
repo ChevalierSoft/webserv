@@ -29,7 +29,7 @@ http web server
 
 ## doc
 
-- poll vs epoll : https://stackoverflow.com/questions/8858328/poll-vs-epoll-insight
+- how to use epoll and why : https://www.suchprogramming.com/epoll-in-3-easy-steps/
 - in6addr\_any : https://stackoverflow.com/questions/16508685/understanding-inaddr-any-for-socket-programming
 - à l'aide : http://www.kegel.com/c10k.html#strategies
-
+- what is a CGI : https://www.geeksforgeeks.org/common-gateway-interface-cgi/
