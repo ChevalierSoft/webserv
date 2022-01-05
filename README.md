@@ -23,3 +23,13 @@ http web server
 ## rnd
 
 - no need for multi-threading for now. maybe it will be useful when multiple server configurations will have to be handled.
+
+
+
+
+## doc
+
+- poll vs epoll : https://stackoverflow.com/questions/8858328/poll-vs-epoll-insight
+- in6addr\_any : https://stackoverflow.com/questions/16508685/understanding-inaddr-any-for-socket-programming
+- à l'aide : http://www.kegel.com/c10k.html#strategies
+
