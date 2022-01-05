@@ -9,10 +9,11 @@
 #include <string.h>
 #include <unistd.h>
 
-#define SERVER_PORT  12345
+#define MAX_FDS		200
+#define SERVER_PORT	12345
 
-#define TRUE             1
-#define FALSE            0
+#define TRUE		1
+#define FALSE		0
 
 int	main (int argc, char *argv[])
 {
@@ -23,7 +24,7 @@ int	main (int argc, char *argv[])
   char   buffer[80];
   struct sockaddr_in6   addr;
   int    timeout;
-  struct pollfd fds[200];
+  struct pollfd fds[MAX_FDS];
   int    nfds = 1, current_size = 0, i, j;
 
   /*************************************************************/
@@ -95,7 +96,7 @@ int	main (int argc, char *argv[])
   memset(fds, 0 , sizeof(fds));
 
   /*************************************************************/
-  /* Set up the initial listening socket                        */
+  /* Set up the initial listening socket                       */
   /*************************************************************/
   fds[0].fd = listen_sd;
   fds[0].events = POLLIN;
