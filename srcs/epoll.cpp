@@ -11,7 +11,7 @@ int main()
 	size_t				bytes_read;
 	char				read_buffer[READ_SIZE + 1];
 	struct epoll_event	event, events[MAX_EVENTS];
-	int					epoll_fd = epoll_create1(0);
+	int					epoll_fd = epoll_create1(0);	// ? the flag EPOLL_CLOEXEC doesn't work on debian 10
 
 	if (epoll_fd == -1)
 	{
@@ -42,7 +42,7 @@ int main()
 			read_buffer[bytes_read] = '\0';
 			printf("Read '%s'\n", read_buffer);
 
-			if (!strncmp(read_buffer, "stop\n", 5))
+			if (!strncmp(read_buffer, "exit\n", 5))
 				running = 0;
 		}
 	}
