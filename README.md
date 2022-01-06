@@ -1,7 +1,6 @@
 # webserv
 http web server
 
-
 ## class management
 
 #### class Parsing / bnf :
@@ -20,16 +19,14 @@ http web server
 - respond with the right header + file or error
 - execute cgi
 
-## rnd
+## gide lines
 
 - no need for multi-threading for now. maybe it will be useful when multiple server configurations will have to be handled.
 
 
-
-
 ## doc
 
-- how to use epoll and why : https://www.suchprogramming.com/epoll-in-3-easy-steps/
+- how to use epoll ~~and why~~ : https://www.suchprogramming.com/epoll-in-3-easy-steps/
 - in6addr\_any : https://stackoverflow.com/questions/16508685/understanding-inaddr-any-for-socket-programming
 - à l'aide : http://www.kegel.com/c10k.html#strategies
 - what is a CGI : https://www.geeksforgeeks.org/common-gateway-interface-cgi/
