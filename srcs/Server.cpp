@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/07 12:31:53 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/07 20:52:06 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -294,6 +294,8 @@ int		Server::start ()
 
 	while (server_poll_loop() == true)
 		;
+
+	close(_listen_sd);
 
 	return (0);
 }
