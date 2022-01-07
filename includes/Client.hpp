@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 00:54:13 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/07 00:55:29 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/07 04:05:28 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@
 class Client // * ______________________________________________________________
 {
 	/// * Variables ____________________________________________________________
-
+public:
 	int							_id;		// it's index in Server's _fds array
 	std::vector<std::string>	_i_msg;		// the input message buffer_size by buffer_size
 

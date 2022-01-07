@@ -6,14 +6,13 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 04:55:39 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/07 01:27:14 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/07 04:02:27 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef SERVER_H
-# define SERVER_H
+#pragma once
 
-#include <list>
+# include <list>
 # include <sys/ioctl.h>
 # include <sys/socket.h>	// listen
 # include <sys/poll.h>		// poll_wait...
@@ -31,10 +30,10 @@ class Server // * ______________________________________________________________
 {
 	/// * Variables ____________________________________________________________
 private:
-	int							_port;			// soon this will be in an object sent from the conf parsing
-	int							_listen_sd;
-	struct pollfd				_fds[MAX_FDS];	// list of sockets beggining with the listening socket
-	int							_nb_fds;
+	int				_port;			// soon this will be in an object sent from the conf parsing
+	int				_listen_sd;
+	struct pollfd	_fds[MAX_FDS];	// list of sockets beggining with the listening socket
+	int				_nb_fds;
 
 	/// * Constructors & Destructors ___________________________________________
 private:
@@ -58,8 +57,9 @@ public:
 	// ? this will allow us to reload the server or set it up after using the default constructor.
 	int		init (int port);
 
-	void	start ();
+	int		start ();
+
+private:
+	int		socket_bind(struct sockaddr_in6 &addr);
 
 }; // * ________________________________________________________________________
-
-#endif

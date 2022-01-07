@@ -6,20 +6,42 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/07 02:12:14 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/07 04:11:19 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <iostream>
-# include <unistd.h>	// debug : usleep
+#include <unistd.h>			// debug : usleep
 #include "Server.hpp"
 #include "ft_print_memory.h"
 #include "color.h"
 
 Server::Server () {}
 
-// TODO split initialisation from contructor
 Server::Server (int p) : _port(p)
+{
+	init(_port);
+}
+
+int			Server::socket_bind(struct sockaddr_in6 &addr)
+{
+	int	rc;
+	memset(&addr, 0, sizeof(addr));
+	addr.sin6_family = AF_INET6;
+	// ? in6addr_any is a like 0.0.0.0 and gets any address for binding
+	memcpy(&addr.sin6_addr, &in6addr_any, sizeof(in6addr_any));
+	addr.sin6_port = htons(_port);
+	rc = bind(_listen_sd, (struct sockaddr *)&addr, sizeof(addr));
+	if (rc < 0)
+	{
+		perror("bind() failed");
+		close(_listen_sd);
+		return (4);
+	}
+	return (0);
+}
+
+int	Server::init (int p)
 {
 	int					rc;
 	int					on = 1;
@@ -30,19 +52,19 @@ Server::Server (int p) : _port(p)
 	if (_listen_sd < 0)
 	{
 		perror("socket() failed");
-		throw (-1);
+		return (1);
 	}
 
 	/*************************************************************/
 	/* Allow socket descriptor to be reuseable                   */
 	/*************************************************************/
-	rc = setsockopt(_listen_sd, SOL_SOCKET,  SO_REUSEADDR,
-                  (char *)&on, sizeof(on));
+	rc = setsockopt(_listen_sd, SOL_SOCKET, SO_REUSEADDR,
+					(char *)&on, sizeof(on));
 	if (rc < 0)
 	{
 		perror("setsockopt() failed");
 		close(_listen_sd);
-		throw (-2);
+		return (2);
 	}
 	/*************************************************************/
 	/* Set socket to be nonblocking. All of the sockets for      */
@@ -54,23 +76,12 @@ Server::Server (int p) : _port(p)
 	{
 		perror("ioctl() failed");
 		close(_listen_sd);
-		throw (-3);
+		return (3);
 	}
 	/*************************************************************/
 	/* Bind the socket                                           */
 	/*************************************************************/
-	memset(&addr, 0, sizeof(addr));
-	addr.sin6_family      = AF_INET6;
-	// ? in6addr_any is a like 0.0.0.0 and gets any address for binding
-	memcpy(&addr.sin6_addr, &in6addr_any, sizeof(in6addr_any));
-	addr.sin6_port        = htons(_port);
-	rc = bind(_listen_sd, (struct sockaddr *)&addr, sizeof(addr));
-	if (rc < 0)
-	{
-		perror("bind() failed");
-		close(_listen_sd);
-		throw (-4);
-	}
+	socket_bind(addr);
 
 	// init fd number
 	_nb_fds = 0;
@@ -79,6 +90,7 @@ Server::Server (int p) : _port(p)
 	memset(_fds, 0 , sizeof(_fds));
 	
 	std::cout << "ready to listen on port " << _port << std::endl;
+	return (0);
 }
 
 Server::~Server ()
@@ -109,7 +121,7 @@ std::ostream&	operator<<(std::ostream &o, struct pollfd &pfd)
 }
 
 // ? This function is the main loop of the server.
-void		Server::start ()
+int		Server::start ()
 {
 	bool				end_server = false;
 	bool				compress_array;
@@ -127,7 +139,7 @@ void		Server::start ()
 	{
 		perror("listen() failed");
 		close(_listen_sd);
-		throw(-5);
+		return (5);
 	}
 
 	/*************************************************************/
@@ -202,37 +214,37 @@ void		Server::start ()
 				/*******************************************************/
 				do
 				{
-				/*****************************************************/
-				/* Accept each incoming connection. If               */
-				/* accept fails with EWOULDBLOCK, then we            */
-				/* have accepted all of them. Any other              */
-				/* failure on accept will cause us to end the        */
-				/* server.                                           */
-				/*****************************************************/
-				new_sd = accept(_listen_sd, NULL, NULL);
-				if (new_sd < 0)
-				{
-					if (errno != EWOULDBLOCK)
+					/*****************************************************/
+					/* Accept each incoming connection. If               */
+					/* accept fails with EWOULDBLOCK, then we            */
+					/* have accepted all of them. Any other              */
+					/* failure on accept will cause us to end the        */
+					/* server.                                           */
+					/*****************************************************/
+					new_sd = accept(_listen_sd, NULL, NULL);
+					if (new_sd < 0)
 					{
-					perror("  accept() failed");
-					end_server = true;
+						if (errno != EWOULDBLOCK)
+						{
+							perror("  accept() failed");
+							end_server = true;
+						}
+						break;
 					}
-					break;
-				}
 
-				/*****************************************************/
-				/* Add the new incoming connection to the            */
-				/* pollfd structure                                  */
-				/*****************************************************/
-				std::cout << YEL << "  New incoming connection fd = " << RED << new_sd << RST << std::endl;
-				_fds[_nb_fds].fd = new_sd;
-				_fds[_nb_fds].events = POLLIN;
-				_nb_fds++;
+					/*****************************************************/
+					/* Add the new incoming connection to the            */
+					/* pollfd structure                                  */
+					/*****************************************************/
+					std::cout << YEL << "  New incoming connection fd = " << RED << new_sd << RST << std::endl;
+					_fds[_nb_fds].fd = new_sd;
+					_fds[_nb_fds].events = POLLIN;
+					_nb_fds++;
 
-				/*****************************************************/
-				/* Loop back up and accept another incoming          */
-				/* connection                                        */
-				/*****************************************************/
+					/*****************************************************/
+					/* Loop back up and accept another incoming          */
+					/* connection                                        */
+					/*****************************************************/
 				} while (new_sd != -1);
 			}
 
@@ -294,7 +306,10 @@ void		Server::start ()
 					/*****************************************************/
 					
 					std::string msg = "HTTP/1.1 200 OK\nDate: Tue, 24 Aug 2021 06:20:56 WEST\nServer: webser:42 (popOS)\nLast-Modified: Wed, 24 Aug 2021 06:20:56 WEST\nContent-Length: 128\nContent-Type: text/html\nConnection: Closed\n\n<html>\n<body>\n<h1>peepowidehappy</h1>\n</body>\n<img src='https://cdn.frankerfacez.com/emoticon/359928/2'/>\n</html>";
-					rc = send(_fds[i].fd, msg.c_str(), msg.size(), 0);
+					// rc = send(_fds[i].fd, msg.c_str(), msg.size(), 0);
+					rc = send(_fds[i].fd, msg.c_str(), 30, 0);
+					usleep(3 * 1000 * 1000);
+					rc = send(_fds[i].fd, msg.c_str() + 30, msg.size() - 30, 0);
 
 					if (rc < 0)
 					{
@@ -318,7 +333,7 @@ void		Server::start ()
 					compress_array = true;
 				}
 
-			}  /* End of existing connection is readable             */
+			} /* End of existing connection is readable             */
 		} /* End of loop through pollable descriptors              */
 
 		/***********************************************************/
@@ -347,4 +362,6 @@ void		Server::start ()
 		}
 
 	} while (end_server == false);
+
+	return (0);
 }
