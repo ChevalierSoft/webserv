@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/08/04 19:58:59 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/07 03:12:07 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/07 03:57:35 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@
 # define FTPM_BBLU	"\x1B[34;40m"
 # define FTPM_BYEL	"\x1B[33;40m"
 # define FTPM_BBLK	"\x1B[0;40m"
-# define FTPM_RST	"\x1B[0;0m"
+# define FTPM_RST	"\x1B[0m"
 
 void	*ft_print_memory(void *addr, size_t size);
 
