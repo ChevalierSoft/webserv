@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/07 01:30:33 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/07 02:12:14 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -170,153 +170,155 @@ void		Server::start ()
 		int	current_size = _nb_fds;
 		for (int i = 0; i < current_size; i++)
 		{
-		/*********************************************************/
-		/* Loop through to find the descriptors that returned    */
-		/* POLLIN and determine whether it's the listening       */
-		/* or the active connection.                             */
-		/*********************************************************/
-		if (_fds[i].revents == 0)
-			continue;
+			/*********************************************************/
+			/* Loop through to find the descriptors that returned    */
+			/* POLLIN and determine whether it's the listening       */
+			/* or the active connection.                             */
+			/*********************************************************/
+			if (_fds[i].revents == 0)
+				continue;
 
-		/*********************************************************/
-		/* If revents is not POLLIN, it's an unexpected result,  */
-		/* log and end the server.                               */
-		/*********************************************************/
-		if (_fds[i].revents != POLLIN)
-		{
-			std::cout << "  Error! revents = " << _fds[i].revents << std::endl;
-			end_server = true;
-			break;
-		}
-		if (_fds[i].fd == _listen_sd)
-		{
-			/*******************************************************/
-			/* Listening descriptor is readable.                   */
-			/*******************************************************/
-			std::cout << "  Listening socket is readable\n";
-
-			/*******************************************************/
-			/* Accept all incoming connections that are            */
-			/* queued up on the listening socket before we         */
-			/* loop back and call poll again.                      */
-			/*******************************************************/
-			do
+			/*********************************************************/
+			/* If revents is not POLLIN, it's an unexpected result,  */
+			/* log and end the server.                               */
+			/*********************************************************/
+			if (_fds[i].revents != POLLIN)
 			{
-			/*****************************************************/
-			/* Accept each incoming connection. If               */
-			/* accept fails with EWOULDBLOCK, then we            */
-			/* have accepted all of them. Any other              */
-			/* failure on accept will cause us to end the        */
-			/* server.                                           */
-			/*****************************************************/
-			new_sd = accept(_listen_sd, NULL, NULL);
-			if (new_sd < 0)
-			{
-				if (errno != EWOULDBLOCK)
-				{
-				perror("  accept() failed");
+				std::cout << "  Error! revents = " << _fds[i].revents << std::endl;
 				end_server = true;
-				}
 				break;
 			}
-
-			/*****************************************************/
-			/* Add the new incoming connection to the            */
-			/* pollfd structure                                  */
-			/*****************************************************/
-			std::cout << "  New incoming connection fd = " << new_sd << std::endl;
-			_fds[_nb_fds].fd = new_sd;
-			_fds[_nb_fds].events = POLLIN;
-			_nb_fds++;
-
-			/*****************************************************/
-			/* Loop back up and accept another incoming          */
-			/* connection                                        */
-			/*****************************************************/
-			} while (new_sd != -1);
-		}
-
-		/*********************************************************/
-		/* This is not the listening socket, therefore an        */
-		/* existing connection must be readable                  */
-		/*********************************************************/
-
-		else
-		{
-			std::cout << "  Descriptor " << CYN << _fds[i].fd << RST << " is readable\n";
-			close_conn = false;
-			/*******************************************************/
-			/* Receive all incoming data on this socket            */
-			/* before we loop back and call poll again.            */
-			/*******************************************************/
-
-			do
+			if (_fds[i].fd == _listen_sd)
 			{
+				/*******************************************************/
+				/* Listening descriptor is readable.                   */
+				/*******************************************************/
+				std::cout << "  Listening socket is readable\n";
+
+				/*******************************************************/
+				/* Accept all incoming connections that are            */
+				/* queued up on the listening socket before we         */
+				/* loop back and call poll again.                      */
+				/*******************************************************/
+				do
+				{
 				/*****************************************************/
-				/* Receive data on this connection until the         */
-				/* recv fails with EWOULDBLOCK. If any other         */
-				/* failure occurs, we will close the                 */
-				/* connection.                                       */
+				/* Accept each incoming connection. If               */
+				/* accept fails with EWOULDBLOCK, then we            */
+				/* have accepted all of them. Any other              */
+				/* failure on accept will cause us to end the        */
+				/* server.                                           */
 				/*****************************************************/
-				rc = recv(_fds[i].fd, buffer, sizeof(buffer), 0);
-				std::cout << buffer << std::endl;
-				if (rc < 0)
+				new_sd = accept(_listen_sd, NULL, NULL);
+				if (new_sd < 0)
 				{
 					if (errno != EWOULDBLOCK)
 					{
-						perror("  recv() failed");
-						close_conn = true;
+					perror("  accept() failed");
+					end_server = true;
 					}
 					break;
 				}
 
 				/*****************************************************/
-				/* Check to see if the connection has been           */
-				/* closed by the client                              */
+				/* Add the new incoming connection to the            */
+				/* pollfd structure                                  */
 				/*****************************************************/
-				if (rc == 0)
-				{
-					std::cout << "  Connection closed\n";
-					close_conn = true;
-					break;
-				}
+				std::cout << YEL << "  New incoming connection fd = " << RED << new_sd << RST << std::endl;
+				_fds[_nb_fds].fd = new_sd;
+				_fds[_nb_fds].events = POLLIN;
+				_nb_fds++;
 
 				/*****************************************************/
-				/* Data was received                                 */
+				/* Loop back up and accept another incoming          */
+				/* connection                                        */
 				/*****************************************************/
-				std::cout << "  " << rc << " bytes received" << std::endl;
-
-				/*****************************************************/
-				/* Echo the data back to the client                  */
-				/*****************************************************/
-				
-				std::string msg = "HTTP/1.1 200 OK\nDate: Tue, 24 Aug 2021 06:20:56 WEST\nServer: webser:42 (popOS)\nLast-Modified: Wed, 24 Aug 2021 06:20:56 WEST\nContent-Length: 128\nContent-Type: text/html\nConnection: Closed\n\n<html>\n<body>\n<h1>peepowidehappy</h1>\n</body>\n<img src='https://cdn.frankerfacez.com/emoticon/359928/2'/>\n</html>";
-				rc = send(_fds[i].fd, msg.c_str(), msg.size(), 0);
-
-				if (rc < 0)
-				{
-					perror("  send() failed");
-					close_conn = true;
-					break;
-				}
-
-			} while (true);
-
-			/*******************************************************/
-			/* If the close_conn flag was turned on, we need       */
-			/* to clean up this active connection. This            */
-			/* clean up process includes removing the              */
-			/* descriptor.                                         */
-			/*******************************************************/
-			if (close_conn)
-			{
-				close(_fds[i].fd);
-				_fds[i].fd = -1;
-				compress_array = true;
+				} while (new_sd != -1);
 			}
 
+			/*********************************************************/
+			/* This is not the listening socket, therefore an        */
+			/* existing connection must be readable                  */
+			/*********************************************************/
 
-		}  /* End of existing connection is readable             */
+			else
+			{
+				std::cout << YEL << "  Descriptor " << RED << _fds[i].fd << YEL << " is readable\n" << RST;
+				close_conn = false;
+				/*******************************************************/
+				/* Receive all incoming data on this socket            */
+				/* before we loop back and call poll again.            */
+				/*******************************************************/
+
+				do
+				{
+					/*****************************************************/
+					/* Receive data on this connection until the         */
+					/* recv fails with EWOULDBLOCK. If any other         */
+					/* failure occurs, we will close the                 */
+					/* connection.                                       */
+					/*****************************************************/
+					rc = recv(_fds[i].fd, buffer, sizeof(buffer), 0);
+					if (rc < 0)
+					{
+						if (errno != EWOULDBLOCK)
+						{
+							perror("  recv() failed");
+							close_conn = true;
+						}
+						break;
+					}
+
+					/*****************************************************/
+					/* Check to see if the connection has been           */
+					/* closed by the client                              */
+					/*****************************************************/
+					if (rc == 0)
+					{
+						std::cout << YEL << "  Connection closed\n" << RST;
+						close_conn = true;
+						break;
+					}
+
+					/*****************************************************/
+					/* Data was received                                 */
+					/*****************************************************/
+					std::cout << YEL << "  " << rc << " bytes received : " << RST << std::endl;
+
+					std::cout << "[" << GRN << buffer << RST << "]" << std::endl;
+					ft_print_memory(buffer, rc);
+					
+
+					/*****************************************************/
+					/* Echo the data back to the client                  */
+					/*****************************************************/
+					
+					std::string msg = "HTTP/1.1 200 OK\nDate: Tue, 24 Aug 2021 06:20:56 WEST\nServer: webser:42 (popOS)\nLast-Modified: Wed, 24 Aug 2021 06:20:56 WEST\nContent-Length: 128\nContent-Type: text/html\nConnection: Closed\n\n<html>\n<body>\n<h1>peepowidehappy</h1>\n</body>\n<img src='https://cdn.frankerfacez.com/emoticon/359928/2'/>\n</html>";
+					rc = send(_fds[i].fd, msg.c_str(), msg.size(), 0);
+
+					if (rc < 0)
+					{
+						perror("  send() failed");
+						close_conn = true;
+						break;
+					}
+
+				} while (true);
+
+				/*******************************************************/
+				/* If the close_conn flag was turned on, we need       */
+				/* to clean up this active connection. This            */
+				/* clean up process includes removing the              */
+				/* descriptor.                                         */
+				/*******************************************************/
+				if (close_conn)
+				{
+					close(_fds[i].fd);
+					_fds[i].fd = -1;
+					compress_array = true;
+				}
+
+			}  /* End of existing connection is readable             */
 		} /* End of loop through pollable descriptors              */
 
 		/***********************************************************/
