@@ -1,5 +1,5 @@
 # webserv
-http web server
+http 1.1 server that can handle a cgi
 
 ## class management
 
@@ -23,10 +23,11 @@ http web server
 
 - no need for multi-threading for now. maybe it will be useful when multiple server configurations will have to be handled.
 
-
 ## doc
 
-- how to use epoll ~~and why~~ : https://www.suchprogramming.com/epoll-in-3-easy-steps/
-- in6addr\_any : https://stackoverflow.com/questions/16508685/understanding-inaddr-any-for-socket-programming
-- à l'aide : http://www.kegel.com/c10k.html#strategies
-- what is a CGI : https://www.geeksforgeeks.org/common-gateway-interface-cgi/
+- [in6addr\_any](https://stackoverflow.com/questions/16508685/understanding-inaddr-any-for-socket-programming)
+- [à l'aide](http://www.kegel.com/c10k.html#strategies)
+- [what is a CGI](https://www.geeksforgeeks.org/common-gateway-interface-cgi/)
+- [how to end a telnet session on windows](https://store.chipkin.com/articles/telnet-how-do-i-end-a-telnet-session-windows-linux-mac)
+- [how to use epoll ~~and why~~ (because of the subject we can not use errno after a read/write)](https://www.suchprogramming.com/epoll-in-3-easy-steps/)
+- [ibm's poll course](https://www.ibm.com/docs/en/i/7.1?topic=designs-using-poll-instead-select)
