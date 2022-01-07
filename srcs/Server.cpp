@@ -6,17 +6,19 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/07 00:50:44 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/07 01:30:33 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <iostream>
-#include <list>
+# include <unistd.h>	// debug : usleep
 #include "Server.hpp"
 #include "ft_print_memory.h"
+#include "color.h"
 
 Server::Server () {}
 
+// TODO split initialisation from contructor
 Server::Server (int p) : _port(p)
 {
 	int					rc;
@@ -92,7 +94,7 @@ Server::Server (const Server & other)
 Server&		Server::operator= (const Server &rhs)
 {
 	_port = rhs._port;
-	_listen_sd = rhs._listen_sd;	// dup should be used
+	dup2(rhs._listen_sd, _listen_sd);
 	// _fds = rhs._fds;				// ! need a deep copy
 	return (*this);
 }
@@ -100,9 +102,9 @@ Server&		Server::operator= (const Server &rhs)
 // ? debug
 std::ostream&	operator<<(std::ostream &o, struct pollfd &pfd)
 {
-	o << "pfd.fd : " << pfd.fd << std::endl;
-	o << "pfd.events : " << pfd.events << std::endl;
-	o << "pfd.revents : " << pfd.revents << std::endl;
+	o << "pfd.fd : "		<< pfd.fd		<< std::endl;
+	o << "pfd.events : "	<< pfd.events	<< std::endl;
+	o << "pfd.revents : "	<< pfd.revents	<< std::endl;
 	return (o);
 }
 
@@ -114,7 +116,7 @@ void		Server::start ()
 	bool				close_conn;
 	int					new_sd;
 	int					rc;
-	char				buffer[BUFFER_SIZE];						// this will feed the client's _i_msg
+	char				buffer[BUFFER_SIZE];		// this will feed the client's _i_msg
 	int					timeout = 3 * 60 * 1000;	// will be 0 after debug
 
 	/*************************************************************/
@@ -133,14 +135,13 @@ void		Server::start ()
 	/*************************************************************/
 	_fds[0].fd = _listen_sd;
 	_fds[0].events = POLLIN;
-
 	_nb_fds = 1;
 
-	std::cerr << _fds[0] << std::endl;
+	// std::cerr << _fds[0] << std::endl;
 
 	do
 	{
-		printf("Waiting on poll()...\n");
+		std::cout << "Waiting on poll()...\n";
 		rc = poll(_fds, _nb_fds, timeout);
 
 		/***********************************************************/
@@ -149,6 +150,7 @@ void		Server::start ()
 		if (rc < 0)
 		{
 			perror("  poll() failed");
+			close(_listen_sd);
 			break;
 		}
 
@@ -157,7 +159,7 @@ void		Server::start ()
 		/***********************************************************/
 		if (rc == 0)
 		{
-			printf("  poll() timed out.  End program.\n");
+			std::cout << "  poll() timed out.  End program.\n";
 			break;
 		}
 
@@ -182,7 +184,7 @@ void		Server::start ()
 		/*********************************************************/
 		if (_fds[i].revents != POLLIN)
 		{
-			printf("  Error! revents = %d\n", _fds[i].revents);
+			std::cout << "  Error! revents = " << _fds[i].revents << std::endl;
 			end_server = true;
 			break;
 		}
@@ -191,7 +193,7 @@ void		Server::start ()
 			/*******************************************************/
 			/* Listening descriptor is readable.                   */
 			/*******************************************************/
-			printf("  Listening socket is readable\n");
+			std::cout << "  Listening socket is readable\n";
 
 			/*******************************************************/
 			/* Accept all incoming connections that are            */
@@ -222,7 +224,7 @@ void		Server::start ()
 			/* Add the new incoming connection to the            */
 			/* pollfd structure                                  */
 			/*****************************************************/
-			printf("  New incoming connection - %d\n", new_sd);
+			std::cout << "  New incoming connection fd = " << new_sd << std::endl;
 			_fds[_nb_fds].fd = new_sd;
 			_fds[_nb_fds].events = POLLIN;
 			_nb_fds++;
@@ -241,7 +243,7 @@ void		Server::start ()
 
 		else
 		{
-			printf("  Descriptor %d is readable\n", _fds[i].fd);
+			std::cout << "  Descriptor " << CYN << _fds[i].fd << RST << " is readable\n";
 			close_conn = false;
 			/*******************************************************/
 			/* Receive all incoming data on this socket            */
@@ -257,6 +259,7 @@ void		Server::start ()
 				/* connection.                                       */
 				/*****************************************************/
 				rc = recv(_fds[i].fd, buffer, sizeof(buffer), 0);
+				std::cout << buffer << std::endl;
 				if (rc < 0)
 				{
 					if (errno != EWOULDBLOCK)
@@ -273,7 +276,7 @@ void		Server::start ()
 				/*****************************************************/
 				if (rc == 0)
 				{
-					printf("  Connection closed\n");
+					std::cout << "  Connection closed\n";
 					close_conn = true;
 					break;
 				}
@@ -281,14 +284,14 @@ void		Server::start ()
 				/*****************************************************/
 				/* Data was received                                 */
 				/*****************************************************/
-				printf("  %d bytes received\n", rc);
+				std::cout << "  " << rc << " bytes received" << std::endl;
 
 				/*****************************************************/
 				/* Echo the data back to the client                  */
 				/*****************************************************/
 				
-				char *msg = "HTTP/1.1 200 OK\nDate: Tue, 24 Aug 2021 06:20:56 WEST\nServer: webser:42 (popOS)\nLast-Modified: Wed, 24 Aug 2021 06:20:56 WEST\nContent-Length: 128\nContent-Type: text/html\nConnection: Closed\n\n<html>\n<body>\n<h1>peepowidehappy</h1>\n</body>\n<img src='https://cdn.frankerfacez.com/emoticon/359928/2'/>\n</html>";
-				rc = send(_fds[i].fd, msg, strlen(msg), 0);
+				std::string msg = "HTTP/1.1 200 OK\nDate: Tue, 24 Aug 2021 06:20:56 WEST\nServer: webser:42 (popOS)\nLast-Modified: Wed, 24 Aug 2021 06:20:56 WEST\nContent-Length: 128\nContent-Type: text/html\nConnection: Closed\n\n<html>\n<body>\n<h1>peepowidehappy</h1>\n</body>\n<img src='https://cdn.frankerfacez.com/emoticon/359928/2'/>\n</html>";
+				rc = send(_fds[i].fd, msg.c_str(), msg.size(), 0);
 
 				if (rc < 0)
 				{
@@ -341,8 +344,5 @@ void		Server::start ()
 			}
 		}
 
-
-		
 	} while (end_server == false);
-
 }
