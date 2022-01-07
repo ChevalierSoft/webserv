@@ -6,7 +6,7 @@
 #    By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2021/04/12 12:55:09 by dait-atm          #+#    #+#              #
-#    Updated: 2022/01/05 02:55:50 by dait-atm         ###   ########.fr        #
+#    Updated: 2022/01/07 04:47:13 by dait-atm         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -22,8 +22,9 @@ SOURCES		= $(wildcard $(SRC_DIR)*.cpp)
 OBJS		= $(patsubst %.cpp,objs/%.o, $(SRCS_FILES))
 DEPENDS		= $(patsubst %.cpp,objs/%.d, $(SRCS_FILES))
 SRCS_FILES	= \
+Client.cpp \
 main.cpp \
-Server.cpp
+Server.cpp 
 
 all: $(NAME)
 

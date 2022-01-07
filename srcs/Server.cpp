@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/07 04:11:19 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/07 07:30:02 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -241,6 +241,8 @@ int		Server::start ()
 					_fds[_nb_fds].events = POLLIN;
 					_nb_fds++;
 
+					clients[new_sd] = new Client();
+
 					/*****************************************************/
 					/* Loop back up and accept another incoming          */
 					/* connection                                        */
@@ -262,23 +264,27 @@ int		Server::start ()
 				/* before we loop back and call poll again.            */
 				/*******************************************************/
 
-				do
-				{
+				// do
+				// {
 					/*****************************************************/
 					/* Receive data on this connection until the         */
 					/* recv fails with EWOULDBLOCK. If any other         */
 					/* failure occurs, we will close the                 */
 					/* connection.                                       */
 					/*****************************************************/
-					rc = recv(_fds[i].fd, buffer, sizeof(buffer), 0);
+					// rc = recv(_fds[i].fd, buffer, sizeof(buffer), 0);
+					rc = read(_fds[i].fd, buffer, sizeof(buffer));
+
+					clients[_fds[i].fd]->i_msg.push_back(buffer);
+
 					if (rc < 0)
 					{
-						if (errno != EWOULDBLOCK)
-						{
-							perror("  recv() failed");
-							close_conn = true;
-						}
-						break;
+						// if (errno != EWOULDBLOCK)	// ? no errno after a recv or a read
+						// {
+						// 	perror("  recv() failed");
+						// 	close_conn = true;
+						// }
+						break ;
 					}
 
 					/*****************************************************/
@@ -289,7 +295,7 @@ int		Server::start ()
 					{
 						std::cout << YEL << "  Connection closed\n" << RST;
 						close_conn = true;
-						break;
+						break ;
 					}
 
 					/*****************************************************/
@@ -297,28 +303,15 @@ int		Server::start ()
 					/*****************************************************/
 					std::cout << YEL << "  " << rc << " bytes received : " << RST << std::endl;
 
-					std::cout << "[" << GRN << buffer << RST << "]" << std::endl;
+					// std::cout << "[" << GRN << buffer << RST << "]" << std::endl;
 					ft_print_memory(buffer, rc);
-					
 
-					/*****************************************************/
-					/* Echo the data back to the client                  */
-					/*****************************************************/
-					
-					std::string msg = "HTTP/1.1 200 OK\nDate: Tue, 24 Aug 2021 06:20:56 WEST\nServer: webser:42 (popOS)\nLast-Modified: Wed, 24 Aug 2021 06:20:56 WEST\nContent-Length: 128\nContent-Type: text/html\nConnection: Closed\n\n<html>\n<body>\n<h1>peepowidehappy</h1>\n</body>\n<img src='https://cdn.frankerfacez.com/emoticon/359928/2'/>\n</html>";
-					// rc = send(_fds[i].fd, msg.c_str(), msg.size(), 0);
-					rc = send(_fds[i].fd, msg.c_str(), 30, 0);
-					usleep(3 * 1000 * 1000);
-					rc = send(_fds[i].fd, msg.c_str() + 30, msg.size() - 30, 0);
+					if (!clients[_fds[i].fd]->response_generated)
+						close_conn = clients[_fds[i].fd]->parse_and_generate_response();
+					else
+						close_conn = clients[_fds[i].fd]->send_response(_fds[i].fd);
 
-					if (rc < 0)
-					{
-						perror("  send() failed");
-						close_conn = true;
-						break;
-					}
-
-				} while (true);
+				// } while (true);
 
 				/*******************************************************/
 				/* If the close_conn flag was turned on, we need       */
@@ -334,6 +327,7 @@ int		Server::start ()
 				}
 
 			} /* End of existing connection is readable             */
+
 		} /* End of loop through pollable descriptors              */
 
 		/***********************************************************/
@@ -347,10 +341,11 @@ int		Server::start ()
 		if (compress_array)
 		{
 			compress_array = false;
-			for (int i = 0; i < _nb_fds; i++)
+			for (int i = 0; i < _nb_fds; i++)	// using two pointers will be way faster
 			{
 				if (_fds[i].fd == -1)
 				{
+					clients.erase(_fds[i].fd);
 					for(int j = i; j < _nb_fds; j++)
 					{
 						_fds[j].fd = _fds[j + 1].fd;
@@ -365,3 +360,15 @@ int		Server::start ()
 
 	return (0);
 }
+
+
+
+// - traiter l'input pendant qu'elle arrive
+// - si c'est \r\n (ou s'il y a un mauvais message)
+// - envoyer un message au client pour fermer la connexion
+//   - peut etre que le message peut etre envoyé par un thread pour éviter que ça prenne trop de temps ?
+//		- ( + je n'ai plus à le gerer dans la loop principale | - le bottle neck c'est plutot l'i/o du kernel)
+// - chaque client aura un compteur gettimeofday qui se reset apres que son event ai fait return poll.
+// - si le compteur dépasse 'timeout' on close la connection.
+// - si aucun event à eu lieu apres 'timeout' poll return une erreur.
+// - cette erreur va permettre de loop sur _fds pour chercher s'il y a des kick à mettre
