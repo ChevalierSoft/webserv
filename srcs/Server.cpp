@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/07 07:30:02 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/07 12:31:53 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ Server::Server (int p) : _port(p)
 
 int			Server::socket_bind(struct sockaddr_in6 &addr)
 {
-	int	rc;
+	int		rc;
 	memset(&addr, 0, sizeof(addr));
 	addr.sin6_family = AF_INET6;
 	// ? in6addr_any is a like 0.0.0.0 and gets any address for binding
@@ -47,7 +47,7 @@ int	Server::init (int p)
 	int					on = 1;
 	struct sockaddr_in6	addr;
 
-	// AF_INET6 stream socket to receive incoming connections
+	// ? AF_INET6 stream socket to receive incoming connections
 	_listen_sd = socket(AF_INET6, SOCK_STREAM, 0);
 	if (_listen_sd < 0)
 	{
@@ -55,9 +55,7 @@ int	Server::init (int p)
 		return (1);
 	}
 
-	/*************************************************************/
-	/* Allow socket descriptor to be reuseable                   */
-	/*************************************************************/
+	// ? Allow socket descriptor to be reuseable
 	rc = setsockopt(_listen_sd, SOL_SOCKET, SO_REUSEADDR,
 					(char *)&on, sizeof(on));
 	if (rc < 0)
@@ -78,15 +76,14 @@ int	Server::init (int p)
 		close(_listen_sd);
 		return (3);
 	}
-	/*************************************************************/
-	/* Bind the socket                                           */
-	/*************************************************************/
+
+	// ? Bind the socket
 	socket_bind(addr);
 
-	// init fd number
+	// ? init fd number
 	_nb_fds = 0;
 
-	// init the entier array
+	// ? init the entier array
 	memset(_fds, 0 , sizeof(_fds));
 	
 	std::cout << "ready to listen on port " << _port << std::endl;
@@ -120,246 +117,188 @@ std::ostream&	operator<<(std::ostream &o, struct pollfd &pfd)
 	return (o);
 }
 
+int		Server::add_new_client()
+{
+	int		new_sd;
+
+	std::cout << "  Listening socket is readable\n";
+
+	new_sd = accept(_listen_sd, NULL, NULL);
+	if (new_sd < 0)
+	{
+		if (errno != EWOULDBLOCK)
+		{
+			perror("  accept() failed");
+			_end_server = true;
+		}
+		return (false);
+	}
+
+	std::cout << YEL << "  New incoming connection fd : " << RED << new_sd << RST << std::endl;
+	_fds[_nb_fds].fd = new_sd;
+	_fds[_nb_fds].events = POLLIN;
+	_nb_fds++;
+
+	clients[new_sd] = new Client();
+
+	return (true);
+}
+
+int		Server::record_client_input(const int &i)
+{
+	char	buffer[BUFFER_SIZE];
+	bool	close_conn;
+	int		rc;
+	
+	std::cout << YEL << "  Descriptor " << RED << _fds[i].fd << YEL << " is readable\n" << RST;
+
+	rc = recv(_fds[i].fd, buffer, sizeof(buffer) - 1, 0);
+
+	// ? connection closed by client or error while recv
+	if (rc <= 0)
+	{
+		std::cout << YEL << "  Connection closed\n" << RST;
+		_fds[i].fd = -1;
+		clients.erase(_fds[i].fd);
+		return (true);
+	}
+
+	buffer[sizeof(buffer) - 1] = '\0';				// ? closing the array
+	clients[_fds[i].fd]->i_msg.push_back(buffer);	// ? store the buffer in the client
+
+	// ? debug
+	std::cout << YEL << "  " << rc << " bytes received : " << RST << std::endl;
+	// std::cout << "[" << GRN << buffer << RST << "]" << std::endl;
+	ft_print_memory(buffer, rc);
+
+	if (clients[_fds[i].fd]->response_generated == false)
+		close_conn = clients[_fds[i].fd]->parse_and_generate_response();
+	else
+		close_conn = clients[_fds[i].fd]->send_response(_fds[i].fd);
+
+	if (close_conn)
+	{
+		close(_fds[i].fd);
+		_fds[i].fd = -1;
+		clients.erase(_fds[i].fd);
+		return (true);
+	}
+	return (false);
+}
+
+static inline
+void	clean_fds(struct pollfd *_fds, int &_nb_fds)
+{
+	for (int i = 0; i < _nb_fds; i++)	// can be faster
+	{
+		if (_fds[i].fd == -1)
+		{
+			for(int j = i; j < _nb_fds; j++)
+			{
+				_fds[j].fd = _fds[j + 1].fd;
+			}
+			i--;
+			_nb_fds--;
+		}
+	}
+}
+
+int		Server::server_poll_loop()
+{
+	int					rc;
+	bool				need_cleaning;
+
+	std::cout << "Waiting on poll()...\n";
+	rc = poll(_fds, _nb_fds, TIMEOUT);
+	if (rc < 0)
+	{
+		perror("  poll() failed");
+		close(_listen_sd);
+		return (false) ;
+	}
+
+	// ? Check to see if the 3 minute time out expired.
+	// TODO : clean _fds of timed out fds and get back to the beggining of this function
+	if (rc == 0)
+	{
+		std::cout << "  poll() timed out.  End program.\n";
+		// ? we do not close _listen_sd here
+		return (false);
+	}
+
+	// ? Loop through to find the descriptors that returned
+	// ? POLLIN and determine whether it's the listening
+	// ? or the active connection.
+	for (int i = 0; i < _nb_fds; i++)
+	{
+		if (_fds[i].revents == 0)
+			continue;
+
+		// ? If revents is not POLLIN, it's an unexpected result,
+		// ? log and end (or restart ?) the server
+		if (_fds[i].revents != POLLIN)
+		{
+			std::cout << "  Error! revents = " << _fds[i].revents << std::endl;
+			_end_server = true;
+			break;
+		}
+
+		// ? check if it's a new client
+		if (_fds[i].fd == _listen_sd)
+		{
+			if (add_new_client() == false)
+				break ;
+		}
+		// ? else the event was triggered by a pollfd that is already in _fds
+		else
+		{
+			need_cleaning = record_client_input(i);
+			// if (need_cleaning)
+			// 	break ;
+		}
+
+	}
+
+	/***********************************************************/
+	/* If the need_cleaning flag was turned on, we need        */
+	/* to squeeze together the array and decrement the number  */
+	/* of file descriptors. We do not need to move back the    */
+	/* events and revents fields because the events will always*/
+	/* be POLLIN in this case, and revents is output.          */
+	/***********************************************************/
+	// ? it's where we will be removing clients
+	if (need_cleaning)
+		clean_fds(_fds, _nb_fds);
+
+	return (true);
+}
+
 // ? This function is the main loop of the server.
 int		Server::start ()
 {
-	bool				end_server = false;
-	bool				compress_array;
-	bool				close_conn;
-	int					new_sd;
-	int					rc;
-	char				buffer[BUFFER_SIZE];		// this will feed the client's _i_msg
-	int					timeout = 3 * 60 * 1000;	// will be 0 after debug
+	int		err;
 
-	/*************************************************************/
-	/* Set the listen back log (how many events at the same time)*/
-	/*************************************************************/
-	rc = listen(_listen_sd, BACK_LOG);
-	if (rc < 0)
+	// ? Set the listen back log (how many events at the same time)
+	err = listen(_listen_sd, BACK_LOG);
+	if (err < 0)
 	{
 		perror("listen() failed");
 		close(_listen_sd);
 		return (5);
 	}
 
-	/*************************************************************/
-	/* Set up the initial listening socket                       */
-	/*************************************************************/
+	// ? Set up the initial listening socket
 	_fds[0].fd = _listen_sd;
 	_fds[0].events = POLLIN;
 	_nb_fds = 1;
 
-	// std::cerr << _fds[0] << std::endl;
-
-	do
-	{
-		std::cout << "Waiting on poll()...\n";
-		rc = poll(_fds, _nb_fds, timeout);
-
-		/***********************************************************/
-		/* Check to see if the poll call failed.                   */
-		/***********************************************************/
-		if (rc < 0)
-		{
-			perror("  poll() failed");
-			close(_listen_sd);
-			break;
-		}
-
-		/***********************************************************/
-		/* Check to see if the 3 minute time out expired.          */
-		/***********************************************************/
-		if (rc == 0)
-		{
-			std::cout << "  poll() timed out.  End program.\n";
-			break;
-		}
-
-		/***********************************************************/
-		/* One or more descriptors are readable.  Need to          */
-		/* determine which ones they are.                          */
-		/***********************************************************/
-		int	current_size = _nb_fds;
-		for (int i = 0; i < current_size; i++)
-		{
-			/*********************************************************/
-			/* Loop through to find the descriptors that returned    */
-			/* POLLIN and determine whether it's the listening       */
-			/* or the active connection.                             */
-			/*********************************************************/
-			if (_fds[i].revents == 0)
-				continue;
-
-			/*********************************************************/
-			/* If revents is not POLLIN, it's an unexpected result,  */
-			/* log and end the server.                               */
-			/*********************************************************/
-			if (_fds[i].revents != POLLIN)
-			{
-				std::cout << "  Error! revents = " << _fds[i].revents << std::endl;
-				end_server = true;
-				break;
-			}
-			if (_fds[i].fd == _listen_sd)
-			{
-				/*******************************************************/
-				/* Listening descriptor is readable.                   */
-				/*******************************************************/
-				std::cout << "  Listening socket is readable\n";
-
-				/*******************************************************/
-				/* Accept all incoming connections that are            */
-				/* queued up on the listening socket before we         */
-				/* loop back and call poll again.                      */
-				/*******************************************************/
-				do
-				{
-					/*****************************************************/
-					/* Accept each incoming connection. If               */
-					/* accept fails with EWOULDBLOCK, then we            */
-					/* have accepted all of them. Any other              */
-					/* failure on accept will cause us to end the        */
-					/* server.                                           */
-					/*****************************************************/
-					new_sd = accept(_listen_sd, NULL, NULL);
-					if (new_sd < 0)
-					{
-						if (errno != EWOULDBLOCK)
-						{
-							perror("  accept() failed");
-							end_server = true;
-						}
-						break;
-					}
-
-					/*****************************************************/
-					/* Add the new incoming connection to the            */
-					/* pollfd structure                                  */
-					/*****************************************************/
-					std::cout << YEL << "  New incoming connection fd = " << RED << new_sd << RST << std::endl;
-					_fds[_nb_fds].fd = new_sd;
-					_fds[_nb_fds].events = POLLIN;
-					_nb_fds++;
-
-					clients[new_sd] = new Client();
-
-					/*****************************************************/
-					/* Loop back up and accept another incoming          */
-					/* connection                                        */
-					/*****************************************************/
-				} while (new_sd != -1);
-			}
-
-			/*********************************************************/
-			/* This is not the listening socket, therefore an        */
-			/* existing connection must be readable                  */
-			/*********************************************************/
-
-			else
-			{
-				std::cout << YEL << "  Descriptor " << RED << _fds[i].fd << YEL << " is readable\n" << RST;
-				close_conn = false;
-				/*******************************************************/
-				/* Receive all incoming data on this socket            */
-				/* before we loop back and call poll again.            */
-				/*******************************************************/
-
-				// do
-				// {
-					/*****************************************************/
-					/* Receive data on this connection until the         */
-					/* recv fails with EWOULDBLOCK. If any other         */
-					/* failure occurs, we will close the                 */
-					/* connection.                                       */
-					/*****************************************************/
-					// rc = recv(_fds[i].fd, buffer, sizeof(buffer), 0);
-					rc = read(_fds[i].fd, buffer, sizeof(buffer));
-
-					clients[_fds[i].fd]->i_msg.push_back(buffer);
-
-					if (rc < 0)
-					{
-						// if (errno != EWOULDBLOCK)	// ? no errno after a recv or a read
-						// {
-						// 	perror("  recv() failed");
-						// 	close_conn = true;
-						// }
-						break ;
-					}
-
-					/*****************************************************/
-					/* Check to see if the connection has been           */
-					/* closed by the client                              */
-					/*****************************************************/
-					if (rc == 0)
-					{
-						std::cout << YEL << "  Connection closed\n" << RST;
-						close_conn = true;
-						break ;
-					}
-
-					/*****************************************************/
-					/* Data was received                                 */
-					/*****************************************************/
-					std::cout << YEL << "  " << rc << " bytes received : " << RST << std::endl;
-
-					// std::cout << "[" << GRN << buffer << RST << "]" << std::endl;
-					ft_print_memory(buffer, rc);
-
-					if (!clients[_fds[i].fd]->response_generated)
-						close_conn = clients[_fds[i].fd]->parse_and_generate_response();
-					else
-						close_conn = clients[_fds[i].fd]->send_response(_fds[i].fd);
-
-				// } while (true);
-
-				/*******************************************************/
-				/* If the close_conn flag was turned on, we need       */
-				/* to clean up this active connection. This            */
-				/* clean up process includes removing the              */
-				/* descriptor.                                         */
-				/*******************************************************/
-				if (close_conn)
-				{
-					close(_fds[i].fd);
-					_fds[i].fd = -1;
-					compress_array = true;
-				}
-
-			} /* End of existing connection is readable             */
-
-		} /* End of loop through pollable descriptors              */
-
-		/***********************************************************/
-		/* If the compress_array flag was turned on, we need       */
-		/* to squeeze together the array and decrement the number  */
-		/* of file descriptors. We do not need to move back the    */
-		/* events and revents fields because the events will always*/
-		/* be POLLIN in this case, and revents is output.          */
-		/***********************************************************/
-		// ? it's where we will be removing clients and move the others
-		if (compress_array)
-		{
-			compress_array = false;
-			for (int i = 0; i < _nb_fds; i++)	// using two pointers will be way faster
-			{
-				if (_fds[i].fd == -1)
-				{
-					clients.erase(_fds[i].fd);
-					for(int j = i; j < _nb_fds; j++)
-					{
-						_fds[j].fd = _fds[j + 1].fd;
-					}
-					i--;
-					_nb_fds--;
-				}
-			}
-		}
-
-	} while (end_server == false);
+	while (server_poll_loop() == true)
+		;
 
 	return (0);
 }
+
+
 
 
 

@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/07 08:01:00 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/07 12:01:51 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,7 +46,7 @@ bool		Client::parse_and_generate_response()
 	// TODO parse the input and generate the message for the client
 	// ? exemple :
 
-	std::cout << YEL << "parse_and_generate_response" << RST << std::endl;
+	std::cout << GRN << "  parse_and_generate_response" << RST << std::endl;
 	
 	this->o_msg.push_back("HTTP/1.1 200 OK\r\nDate: Tue, 24 Aug 2021 06:20:56 WEST\r\nServer: webser:42 (popOS)\r\nLast-Modified: Wed, 24 Aug 2021 06:20:56 WEST\r\nContent-Length: 120\r\nContent-Type: text/html\r\nConnection: Closed\r\n\r\n<html>\r\n<body>\r\n<h1>peepowidehappy</h1>\r\n</body>\r\n<img src='https://cdn.frankerfacez.com/emoticon/359928/2'/>\r\n</html>\r\n");
 	this->response_generated = true;
@@ -60,7 +60,7 @@ bool		Client::send_response(int sd_out)
 {
 	int											rc;
 
-	std::cout << YEL << "sending response" << RST << std::endl;
+	std::cout << GRN << "  sending response" << RST << std::endl;
 
 	rc = send(sd_out, this->it_chunk->c_str(), this->it_chunk->size(), 0);
 	if (rc < 0)

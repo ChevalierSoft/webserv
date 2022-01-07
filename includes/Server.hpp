@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 04:55:39 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/07 04:43:02 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/07 11:23:21 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,16 +27,18 @@
 # define BUFFER_SIZE	64
 # define MAX_FDS		2		// ? must be > 1 for the listening socket
 
+# define TIMEOUT		3 * 60 * 1000
+
 // ? a http/1.1 server working for one config
 class Server // * ______________________________________________________________
 {
 	/// * Variables ____________________________________________________________
 private:
-	int						_port;			// soon this will be in an object sent from the conf parsing
+	bool					_end_server;
 	int						_listen_sd;
-	struct pollfd			_fds[MAX_FDS];	// list of sockets beggining with the listening socket
 	int						_nb_fds;
-
+	int						_port;			// soon this will be in an object sent from the conf parsing
+	struct pollfd			_fds[MAX_FDS];	// list of sockets beggining with the listening socket
 	std::map<int, Client*>	clients;
 
 	/// * Constructors & Destructors ___________________________________________
@@ -61,9 +63,17 @@ public:
 	// ? this will allow us to reload the server or set it up after using the default constructor.
 	int		init (int port);
 
+	// ? Server's main loop
 	int		start ();
 
 private:
+	// ? binding the listening socket
 	int		socket_bind(struct sockaddr_in6 &addr);
+
+	int		server_poll_loop();
+
+	int		add_new_client();
+
+	int		record_client_input(const int &i);
 
 }; // * ________________________________________________________________________
