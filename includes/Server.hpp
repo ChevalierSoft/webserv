@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 04:55:39 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/07 11:23:21 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/07 20:53:42 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@
 # define BUFFER_SIZE	64
 # define MAX_FDS		2		// ? must be > 1 for the listening socket
 
-# define TIMEOUT		3 * 60 * 1000
+# define TIMEOUT		1 * 60 * 1000
 
 // ? a http/1.1 server working for one config
 class Server // * ______________________________________________________________
