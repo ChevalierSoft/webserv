@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/10 14:24:37 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/10 14:28:26 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -102,7 +102,7 @@ bool		Client::send_response (int sd_out)
 
 	// ? get to the next output message chunk
 	++this->it_chunk;
-	if (it_chunk == this->o_msg.end())
+	if (this->it_chunk == this->o_msg.end())
 		return (true);
 
 	return (false);
@@ -113,7 +113,7 @@ bool		Client::send_response (int sd_out)
  */
 void		Client::update ()
 {
-	gettimeofday(&life_time, NULL);
+	gettimeofday(&this->life_time, NULL);
 }
 
 /**
@@ -139,8 +139,13 @@ bool		Client::is_timed_out ()
 
 	// TODO make this cleaner without gettimeofday
 	gettimeofday(&tv_now, NULL);
-	if (tv_now.tv_sec - life_time.tv_sec > CLIENT_TIMEOUT
-		|| (tv_now.tv_sec < life_time.tv_sec && tv_now.tv_sec > CLIENT_TIMEOUT))
+	if (tv_now.tv_sec - this->life_time.tv_sec > CLIENT_TIMEOUT
+		|| (tv_now.tv_sec < this->life_time.tv_sec && tv_now.tv_sec > CLIENT_TIMEOUT))
 		return (true);
 	return (false);
+}
+
+bool		Client::is_output_ready ()
+{
+	return (this->response_generated);
 }

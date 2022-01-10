@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 00:54:13 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/10 14:24:13 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/10 14:26:41 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@
 class Client // * ______________________________________________________________
 {
 	/// * Variables ____________________________________________________________
-public:
+private:
 	// TODO i_msg and o_msg may be changed to vectors of char * to handle \0 in the message
 	// ? i_msg and o_msg might be ported to std::list
 	std::list<std::string>						i_msg;				// the input message buffer_size by buffer_size
@@ -64,5 +64,7 @@ public:
 	bool	is_timed_out ();
 
 	void	add_input_buffer (const char *buffer, int len);
+
+	bool	is_output_ready ();
 
 }; // * ________________________________________________________________________

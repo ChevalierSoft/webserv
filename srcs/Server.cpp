@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/10 14:04:38 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/10 14:28:41 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -184,10 +184,10 @@ int		Server::record_client_input(const int &i)
 	// std::cout << "[" << GRN << buffer << RST << "]" << std::endl;
 	ft_print_memory(buffer, rc);
 
-	if (clients[_fds[i].fd].response_generated == false)
+	if (clients[_fds[i].fd].is_output_ready() == false)
 		close_conn = clients[_fds[i].fd].parse_and_generate_response();
 
-	if (clients[_fds[i].fd].response_generated == true)
+	if (clients[_fds[i].fd].is_output_ready() == true)
 		close_conn = clients[_fds[i].fd].send_response(_fds[i].fd);
 
 	if (close_conn)
