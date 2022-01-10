@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/10 12:25:14 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/10 13:05:25 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,6 +92,7 @@ int	Server::init (int p)
 
 Server::~Server ()
 {
+	clients.clear();
 	// close every fd / sd ?
 	close(_listen_sd);
 }
@@ -142,7 +143,7 @@ int		Server::add_new_client()
 	_fds[_nb_fds].events = POLLIN;
 	_nb_fds++;
 
-	clients[new_sd] = new Client();
+	clients[new_sd] = Client();
 
 	return (true);
 }
@@ -155,8 +156,8 @@ int		Server::record_client_input(const int &i)
 	
 	std::cout << YEL << "  Descriptor " << RED << _fds[i].fd << YEL << " is readable\n" << RST;
 
-	// ? update client's life_time
-	clients[_fds[i].fd]->update();
+	// ? update client's life_timej
+	clients[_fds[i].fd].update();
 
 	rc = recv(_fds[i].fd, buffer, sizeof(buffer) - 1, 0); // MSG_DONTWAIT | MSG_ERRQUEUE);	// ? errors number can be checked with the flag MSG_ERRQUEUE (man recv)
 
@@ -171,21 +172,22 @@ int		Server::record_client_input(const int &i)
 	}
 
 	buffer[rc] = '\0';								// ? closing the array
-	clients[_fds[i].fd]->i_msg.push_back(buffer);	// ? store the buffer in the client
+	clients[_fds[i].fd].i_msg.push_back(buffer);	// ? store the buffer in the client
 
 	// ? debug
 	std::cout << YEL << "  " << rc << " bytes received : " << RST << std::endl;
 	// std::cout << "[" << GRN << buffer << RST << "]" << std::endl;
 	ft_print_memory(buffer, rc);
 
-	if (clients[_fds[i].fd]->response_generated == false)
-		close_conn = clients[_fds[i].fd]->parse_and_generate_response();
+	if (clients[_fds[i].fd].response_generated == false)
+		close_conn = clients[_fds[i].fd].parse_and_generate_response();
 
-	if (clients[_fds[i].fd]->response_generated == true)
-		close_conn = clients[_fds[i].fd]->send_response(_fds[i].fd);
+	if (clients[_fds[i].fd].response_generated == true)
+		close_conn = clients[_fds[i].fd].send_response(_fds[i].fd);
 
 	if (close_conn)
 	{
+		std::cerr <<MAG<< "close_conn" <<RST<< std::endl;
 		close(_fds[i].fd);
 		_fds[i].fd = -1;
 		clients.erase(_fds[i].fd);
@@ -213,7 +215,7 @@ void	clean_fds(struct pollfd *_fds, int &_nb_fds)
 
 void	Server::check_timed_out_client(const int i)
 {
-	if (_fds[i].fd >= 0 && clients[_fds[i].fd]->is_timed_out() == true)
+	if (_fds[i].fd >= 0 && clients[_fds[i].fd].is_timed_out() == true)
 	{
 		std::cerr << "kicked fd : " << RED << _fds[i].fd <<RST<< std::endl;
 		close(_fds[i].fd);
@@ -319,7 +321,7 @@ int		Server::start ()
 		;
 
 	clients.clear();
-	close(_listen_sd);
+	// close(_listen_sd);
 
 	return (0);
 }

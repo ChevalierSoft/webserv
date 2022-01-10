@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 04:55:39 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/10 12:24:18 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/10 13:04:22 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,7 @@ private:
 	int						_nb_fds;
 	int						_port;			// soon this will be in an object sent from the conf parsing
 	struct pollfd			_fds[MAX_FDS];	// list of sockets beggining with the listening socket
-	std::map<int, Client*>	clients;
+	std::map<int, Client>	clients;
 
 	/// * Constructors & Destructors ___________________________________________
 private:
