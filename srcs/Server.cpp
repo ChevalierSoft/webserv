@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/10 13:05:25 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/10 13:45:39 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -171,8 +171,8 @@ int		Server::record_client_input(const int &i)
 		return (true);
 	}
 
-	buffer[rc] = '\0';								// ? closing the array
-	clients[_fds[i].fd].i_msg.push_back(buffer);	// ? store the buffer in the client
+	buffer[rc] = '\0';	// ? closing the array
+	clients[_fds[i].fd].i_msg.push_back(std::string(buffer, rc + 1));	// ? store the buffer in the client
 
 	// ? debug
 	std::cout << YEL << "  " << rc << " bytes received : " << RST << std::endl;
