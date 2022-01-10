@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/10 13:45:39 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/10 14:04:38 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -148,6 +148,13 @@ int		Server::add_new_client()
 	return (true);
 }
 
+void	Server::remove_client (int i)
+{
+	close(_fds[i].fd);
+	_fds[i].fd = -1;
+	clients.erase(_fds[i].fd);
+}
+
 int		Server::record_client_input(const int &i)
 {
 	char	buffer[BUFFER_SIZE];
@@ -165,14 +172,12 @@ int		Server::record_client_input(const int &i)
 	if (rc <= 0)
 	{
 		std::cout << YEL << "  Connection closed\n" << RST;
-		close(_fds[i].fd);
-		_fds[i].fd = -1;
-		clients.erase(_fds[i].fd);
+		remove_client(i);
 		return (true);
 	}
 
-	buffer[rc] = '\0';	// ? closing the array
-	clients[_fds[i].fd].i_msg.push_back(std::string(buffer, rc + 1));	// ? store the buffer in the client
+	buffer[rc] = '\0';										// ? closing the char array
+	clients[_fds[i].fd].add_input_buffer(buffer, rc + 1);	// ? store the buffer
 
 	// ? debug
 	std::cout << YEL << "  " << rc << " bytes received : " << RST << std::endl;
@@ -188,9 +193,7 @@ int		Server::record_client_input(const int &i)
 	if (close_conn)
 	{
 		std::cerr <<MAG<< "close_conn" <<RST<< std::endl;
-		close(_fds[i].fd);
-		_fds[i].fd = -1;
-		clients.erase(_fds[i].fd);
+		remove_client(i);
 		return (true);
 	}
 	return (false);
@@ -218,9 +221,7 @@ void	Server::check_timed_out_client(const int i)
 	if (_fds[i].fd >= 0 && clients[_fds[i].fd].is_timed_out() == true)
 	{
 		std::cerr << "kicked fd : " << RED << _fds[i].fd <<RST<< std::endl;
-		close(_fds[i].fd);
-		_fds[i].fd = -1;
-		clients.erase(i);
+		remove_client(i);
 	}
 }
 

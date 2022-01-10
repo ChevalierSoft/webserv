@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 04:55:39 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/10 13:04:22 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/10 14:02:00 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,5 +77,7 @@ private:
 	int		record_client_input(const int &i);
 
 	void	check_timed_out_client(const int i);
+
+	void	remove_client (int i);	// i beeing the index in the main for loop
 
 }; // * ________________________________________________________________________

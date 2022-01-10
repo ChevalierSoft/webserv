@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/10 11:59:49 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/10 14:06:59 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,6 +95,17 @@ bool		Client::send_response(int sd_out)
 void		Client::update()
 {
 	gettimeofday(&life_time, NULL);
+}
+
+/**
+ * @brief store a buffer in i_msg
+ * 
+ * @param buffer an input buffer
+ * @param len the lenght of 'buffer'
+ */
+void		Client::add_input_buffer (const char *buffer, int len)
+{
+	this->i_msg.push_back(std::string(buffer, len));
 }
 
 bool		Client::is_timed_out()
