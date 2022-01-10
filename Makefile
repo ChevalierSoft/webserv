@@ -6,14 +6,14 @@
 #    By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2021/04/12 12:55:09 by dait-atm          #+#    #+#              #
-#    Updated: 2022/01/07 04:47:13 by dait-atm         ###   ########.fr        #
+#    Updated: 2022/01/10 13:02:54 by dait-atm         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME		= webserv
 
 CC			= clang++
-FLAGS		= -I$(INC_DIR) -std=c++98 #-Wall -Wextra -Werror
+FLAGS		= -I$(INC_DIR) -std=c++98 -g #-Wall -Wextra -Werror
 
 SRC_DIR 	= srcs/
 OBJ_DIR		= objs/
