@@ -2,19 +2,19 @@
 #include <signal.h>			// signal,sigaction
 #include "webserv.hpp"
 
-bool	run = true;
+static bool	run = true;
 
 void	sighandler(int signum)
 {
-	// if (signum == SIGINT)
-		run = false;
+	run = false;
 }
 
 int main(int argc, char **argv)
 {
 	int	err;
 
-	signal(SIGINT, &sighandler); // making easy to close the program
+	signal(SIGINT, &sighandler);	// making it easy to close the program
+	signal(SIGQUIT, &sighandler);
 
 	if (run)
 	{
@@ -27,6 +27,6 @@ int main(int argc, char **argv)
 		err = s.start();
 	}
 
-    std::cout << "done " << RED << err <<RST << std::endl;
+    std::cout << "exit code : " << RED << err <<RST << std::endl;
     return (err);
 }
