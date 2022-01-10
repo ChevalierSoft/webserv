@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/10 14:28:41 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/10 14:38:20 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@ Server::Server (int p) : _port(p)
 	init(_port);
 }
 
-int			Server::socket_bind(struct sockaddr_in6 &addr)
+int			Server::socket_bind (struct sockaddr_in6 &addr)
 {
 	int		rc;
 	memset(&addr, 0, sizeof(addr));
@@ -119,7 +119,7 @@ std::ostream&	operator<<(std::ostream &o, struct pollfd &pfd)
 	return (o);
 }
 
-int		Server::add_new_client()
+int		Server::add_new_client ()
 {
 	int		new_sd;
 
@@ -155,7 +155,7 @@ void	Server::remove_client (int i)
 	clients.erase(_fds[i].fd);
 }
 
-int		Server::record_client_input(const int &i)
+int		Server::record_client_input (const int &i)
 {
 	char	buffer[BUFFER_SIZE];
 	bool	close_conn;
@@ -199,8 +199,13 @@ int		Server::record_client_input(const int &i)
 	return (false);
 }
 
-static inline
-void	clean_fds(struct pollfd *_fds, int &_nb_fds)
+/**
+ * @brief squeeze _fds when a fd is -1.
+ * 
+ * @param _fds array of pollfd
+ * @param _nb_fds Size of _fds
+ */
+void	Server::squeeze_fds_array ()
 {
 	for (int i = 0; i < _nb_fds; i++)	// can be faster
 	{
@@ -216,7 +221,7 @@ void	clean_fds(struct pollfd *_fds, int &_nb_fds)
 	}
 }
 
-void	Server::check_timed_out_client(const int i)
+void	Server::check_timed_out_client (const int i)
 {
 	if (_fds[i].fd >= 0 && clients[_fds[i].fd].is_timed_out() == true)
 	{
@@ -225,7 +230,7 @@ void	Server::check_timed_out_client(const int i)
 	}
 }
 
-int		Server::server_poll_loop()
+int		Server::server_poll_loop ()
 {
 	int					rc;
 	bool				need_cleaning = 0;
@@ -249,7 +254,7 @@ int		Server::server_poll_loop()
 		// ? clean _fds of timed out fds and get back to the beggining of this function
 		for (int i = 1; i < _nb_fds; ++i)
 			check_timed_out_client(i);
-		clean_fds(_fds, _nb_fds);
+		squeeze_fds_array();
 
 		return (true);
 	}
@@ -294,7 +299,7 @@ int		Server::server_poll_loop()
 
 	// ? it's where we will be removing clients and squeeze the array
 	if (need_cleaning)
-		clean_fds(_fds, _nb_fds);
+		squeeze_fds_array();
 
 	return (true);
 }

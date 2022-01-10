@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/10 14:28:26 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/10 14:32:06 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -145,6 +145,12 @@ bool		Client::is_timed_out ()
 	return (false);
 }
 
+/**
+ * @brief Getter on response_generated.
+ * 
+ * @return true o_msg is ready to be sent to the client.
+ * @return false o_msg is still beeing made.
+ */
 bool		Client::is_output_ready ()
 {
 	return (this->response_generated);
