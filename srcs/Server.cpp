@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/10 12:20:58 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/10 12:25:14 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -319,6 +319,7 @@ int		Server::start ()
 		;
 
 	clients.clear();
+	close(_listen_sd);
 
 	return (0);
 }
