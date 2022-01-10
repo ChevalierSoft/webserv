@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/10 14:38:20 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/10 14:50:37 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,7 @@ int			Server::socket_bind (struct sockaddr_in6 &addr)
 	return (0);
 }
 
-int	Server::init (int p)
+int				Server::init (int p)
 {
 	int					rc;
 	int					on = 1;
@@ -102,7 +102,7 @@ Server::Server (const Server & other)
 	*this = other;
 }
 
-Server&		Server::operator= (const Server &rhs)
+Server&			Server::operator= (const Server &rhs)
 {
 	_port = rhs._port;
 	dup2(rhs._listen_sd, _listen_sd);
@@ -119,7 +119,7 @@ std::ostream&	operator<<(std::ostream &o, struct pollfd &pfd)
 	return (o);
 }
 
-int		Server::add_new_client ()
+int				Server::add_new_client ()
 {
 	int		new_sd;
 
@@ -148,14 +148,27 @@ int		Server::add_new_client ()
 	return (true);
 }
 
-void	Server::remove_client (int i)
+/**
+ * @brief remove a client of clients and close it's linked fd
+ * 
+ * @param i index from server_poll_loop's for loop.
+ */
+void			Server::remove_client (int i)
 {
 	close(_fds[i].fd);
 	_fds[i].fd = -1;
 	clients.erase(_fds[i].fd);
 }
 
-int		Server::record_client_input (const int &i)
+/**
+ * @brief Record the client's inputs non blockingly.
+ * 
+ * @param i index from server_poll_loop's for loop.
+ * 
+ * @return true connection to the client must be closed because of an error or we don't need more data to generate the output.
+ * @return false the client has to send more data to generate the return message
+ */
+bool			Server::record_client_input (const int &i)
 {
 	char	buffer[BUFFER_SIZE];
 	bool	close_conn;
@@ -205,7 +218,7 @@ int		Server::record_client_input (const int &i)
  * @param _fds array of pollfd
  * @param _nb_fds Size of _fds
  */
-void	Server::squeeze_fds_array ()
+void			Server::squeeze_fds_array ()
 {
 	for (int i = 0; i < _nb_fds; i++)	// can be faster
 	{
@@ -221,7 +234,12 @@ void	Server::squeeze_fds_array ()
 	}
 }
 
-void	Server::check_timed_out_client (const int i)
+/**
+ * @brief check if a specific client is waiting for too long, then decide if it should be timed out.
+ * 
+ * @param i index from server_poll_loop's for loop
+ */
+void			Server::check_timed_out_client (const int i)
 {
 	if (_fds[i].fd >= 0 && clients[_fds[i].fd].is_timed_out() == true)
 	{
@@ -230,7 +248,7 @@ void	Server::check_timed_out_client (const int i)
 	}
 }
 
-int		Server::server_poll_loop ()
+int				Server::server_poll_loop ()
 {
 	int					rc;
 	bool				need_cleaning = 0;
@@ -305,7 +323,7 @@ int		Server::server_poll_loop ()
 }
 
 // ? This function is the main loop of the server.
-int		Server::start ()
+int				Server::start ()
 {
 	int		err;
 

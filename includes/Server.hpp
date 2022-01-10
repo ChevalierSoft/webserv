@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 04:55:39 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/10 14:37:07 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/10 14:42:09 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,7 +74,7 @@ private:
 
 	int		add_new_client ();
 
-	int		record_client_input (const int &i);
+	bool	record_client_input (const int &i);
 
 	void	check_timed_out_client (const int i);
 
