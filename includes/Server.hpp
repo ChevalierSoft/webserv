@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 04:55:39 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/10 14:02:00 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/10 14:15:57 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,15 +68,15 @@ public:
 
 private:
 	// ? binding the listening socket
-	int		socket_bind(struct sockaddr_in6 &addr);
+	int		socket_bind (struct sockaddr_in6 &addr);
 
-	int		server_poll_loop();
+	int		server_poll_loop ();
 
-	int		add_new_client();
+	int		add_new_client ();
 
-	int		record_client_input(const int &i);
+	int		record_client_input (const int &i);
 
-	void	check_timed_out_client(const int i);
+	void	check_timed_out_client (const int i);
 
 	void	remove_client (int i);	// i beeing the index in the main for loop
 

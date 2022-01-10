@@ -6,29 +6,48 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/10 14:06:59 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/10 14:24:37 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Client.hpp"
 #include <sys/time.h>
 
-Client::Client(void) : response_generated(false)
+/**
+ * @brief Construct a new Client:: Client object
+ * 
+ */
+Client::Client () : response_generated(false)
 {
 	gettimeofday(&life_time, NULL);
 }
 
-Client::~Client(void)
+/**
+ * @brief Destroy the Client:: Client object
+ * 
+ */
+Client::~Client ()
 {
 }
 
-Client::Client(const Client & copy)
+/**
+ * @brief Construct a new Client by copy
+ * 
+ * @param copy 
+ */
+Client::Client (const Client & copy)
 {
 	*this = copy;
 	return ;
 }
 
-Client&		Client::operator=(const Client& copy)
+/**
+ * @brief overload of operator=
+ * 
+ * @param copy 
+ * @return Client& 
+ */
+Client&		Client::operator= (const Client& copy)
 {
 	if (this != &copy)
 	{
@@ -43,12 +62,12 @@ Client&		Client::operator=(const Client& copy)
 /**
  * @brief This is where the client input is parsed and where the response is generated.
  * 
- * @details if o_msg is ready response_generated is set to true and it_chunk to o_bsg.begin()
+ * @details If o_msg is ready response_generated is set to true and it_chunk to o_bsg.begin()
  * 
- * @return true the response has an error and nothing has to be sent to client
- * @return false to get the rest of the input, or if o_msg is ready. 
+ * @return true The response has an error and nothing has to be sent to client
+ * @return false To get the rest of the input, or if o_msg is ready. 
  */
-bool		Client::parse_and_generate_response()
+bool		Client::parse_and_generate_response ()
 {
 	// TODO parse the input and generate the message for the client
 	// ? exemple :
@@ -62,15 +81,15 @@ bool		Client::parse_and_generate_response()
 }
 
 /**
- * @brief 
+ * @brief Send the content of o_msg to the client.
  * 
- * @param sd_out file descriptor on wish the return message will be sent
- * @return true the message has been fully sent or there is an error
- * @return false the message is not completly sent
+ * @param sd_out File descriptor on wish the return message will be sent
+ * @return true The message has been fully sent or there is an error
+ * @return false The message is not completly sent
  */
-bool		Client::send_response(int sd_out)
+bool		Client::send_response (int sd_out)
 {
-	int											rc;
+	int	rc;
 
 	std::cout << GRN << "  sending response" << RST << std::endl;
 
@@ -92,13 +111,13 @@ bool		Client::send_response(int sd_out)
 /**
  * @brief Update life_time counter.
  */
-void		Client::update()
+void		Client::update ()
 {
 	gettimeofday(&life_time, NULL);
 }
 
 /**
- * @brief store a buffer in i_msg
+ * @brief store a buffer in i_msg.
  * 
  * @param buffer an input buffer
  * @param len the lenght of 'buffer'
@@ -108,7 +127,13 @@ void		Client::add_input_buffer (const char *buffer, int len)
 	this->i_msg.push_back(std::string(buffer, len));
 }
 
-bool		Client::is_timed_out()
+/**
+ * @brief check if life_time is greater than CLIENT_TIMEOUT.
+ * 
+ * @return true last event was before CLIENT_TIMEOUT.
+ * @return false last event was close enough.
+ */
+bool		Client::is_timed_out ()
 {
 	struct timeval	tv_now;
 
