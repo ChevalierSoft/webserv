@@ -6,14 +6,16 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/07 12:01:51 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/10 11:59:49 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Client.hpp"
+#include <sys/time.h>
 
-Client::Client(void)
+Client::Client(void) : response_generated(false)
 {
+	gettimeofday(&life_time, NULL);
 }
 
 Client::~Client(void)
@@ -38,9 +40,14 @@ Client&		Client::operator=(const Client& copy)
 	return (*this);
 }
 
-// ? return true if the response has an error and nothing has to be sent to client
-// ? else return false to get the rest of the input,
-// ?   or if o_msg is ready (also set response_generated to true and it_chunk to o_bsg.begin())
+/**
+ * @brief This is where the client input is parsed and where the response is generated.
+ * 
+ * @details if o_msg is ready response_generated is set to true and it_chunk to o_bsg.begin()
+ * 
+ * @return true the response has an error and nothing has to be sent to client
+ * @return false to get the rest of the input, or if o_msg is ready. 
+ */
 bool		Client::parse_and_generate_response()
 {
 	// TODO parse the input and generate the message for the client
@@ -54,8 +61,13 @@ bool		Client::parse_and_generate_response()
 	return (false);
 }
 
-// ? return true if the message has been fully sent or if there is an error
-// ? return false if the message is not completly sent
+/**
+ * @brief 
+ * 
+ * @param sd_out file descriptor on wish the return message will be sent
+ * @return true the message has been fully sent or there is an error
+ * @return false the message is not completly sent
+ */
 bool		Client::send_response(int sd_out)
 {
 	int											rc;
@@ -74,5 +86,25 @@ bool		Client::send_response(int sd_out)
 	if (it_chunk == this->o_msg.end())
 		return (true);
 
+	return (false);
+}
+
+/**
+ * @brief Update life_time counter.
+ */
+void		Client::update()
+{
+	gettimeofday(&life_time, NULL);
+}
+
+bool		Client::is_timed_out()
+{
+	struct timeval	tv_now;
+
+	// TODO make this cleaner without gettimeofday
+	gettimeofday(&tv_now, NULL);
+	if (tv_now.tv_sec - life_time.tv_sec > CLIENT_TIMEOUT
+		|| (tv_now.tv_sec < life_time.tv_sec && tv_now.tv_sec > CLIENT_TIMEOUT))
+		return (true);
 	return (false);
 }
