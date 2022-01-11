@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/11 06:15:28 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/11 06:28:26 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -321,7 +321,7 @@ bool			Server::server_poll_loop ()
 	// ? Loop through to find the descriptors that returned
 	// ? POLLIN and determine whether it's the listening
 	// ? or the active connection.
-	for (int i = 0, nb_events_waiting = rc; i < _nb_fds && nb_events_waiting > 0; i++)
+	for (int i = 0; i <= _nb_fds; i++)
 	{
 		// ? if there is no event on the socket the loop continues
 		if (_fds[i].revents == 0)
