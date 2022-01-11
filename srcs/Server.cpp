@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/10 14:50:37 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/11 06:15:28 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,16 +16,65 @@
 #include "ft_print_memory.h"
 #include "color.h"
 
+/**
+ * @brief Default Constructor for a new Server:: Server object.
+ */
 Server::Server () {}
 
+/**
+ * @brief Construct a new Server:: Server object and initialise it.
+ * 
+ * @param p Port on which the socket will listen.
+ */
 Server::Server (int p) : _port(p)
 {
 	init(_port);
 }
 
-int			Server::socket_bind (struct sockaddr_in6 &addr)
+/**
+ * @brief Destroy the Server:: Server object.
+ */
+Server::~Server ()
 {
-	int		rc;
+	clients.clear();
+	close(_listen_sd);
+}
+
+/**
+ * @brief Construct a new Server:: Server object.
+ * 
+ * @param other Another instance of Server object to copy from.
+ */
+Server::Server (const Server & other)
+{
+	*this = other;
+}
+
+/**
+ * @brief Overload of the operator= for Server::.
+ * 
+ * @param rhs Another instance of Server object to deep copy from.
+ * @return Server& A reference to this object.
+ */
+Server&			Server::operator= (const Server &rhs)
+{
+	_port = rhs._port;
+	dup2(rhs._listen_sd, _listen_sd);
+	// _fds = rhs._fds;				// ! need a deep copy
+	return (*this);
+}
+
+/**
+ * @brief Bind the listening socket
+ * 
+ * @return true sucess.
+ * @return false bind() failed.
+ */
+bool			Server::socket_bind ()
+{
+	struct sockaddr_in6	addr;
+	int					rc;
+
 	memset(&addr, 0, sizeof(addr));
 	addr.sin6_family = AF_INET6;
 	// ? in6addr_any is a like 0.0.0.0 and gets any address for binding
@@ -36,16 +85,22 @@ int			Server::socket_bind (struct sockaddr_in6 &addr)
 	{
 		perror("bind() failed");
 		close(_listen_sd);
-		return (4);
+		return (false);
 	}
-	return (0);
+	return (true);
 }
 
+/**
+ * @brief Initialise the server.
+ * 
+ * @param p Port on which the socket will listen.
+ * @return int On success returns 0.
+ *         A positive number is returned in case of error.
+ */
 int				Server::init (int p)
 {
 	int					rc;
 	int					on = 1;
-	struct sockaddr_in6	addr;
 
 	// ? AF_INET6 stream socket to receive incoming connections
 	_listen_sd = socket(AF_INET6, SOCK_STREAM, 0);
@@ -64,11 +119,7 @@ int				Server::init (int p)
 		close(_listen_sd);
 		return (2);
 	}
-	/*************************************************************/
-	/* Set socket to be nonblocking. All of the sockets for      */
-	/* the incoming connections will also be nonblocking since   */
-	/* they will inherit that state from the listening socket.   */
-	/*************************************************************/
+	// ? Set _listen_sd (and incoming accepted sockets from it) to be nonblocking
 	rc = ioctl(_listen_sd, FIONBIO, (char *)&on);
 	if (rc < 0)
 	{
@@ -78,10 +129,11 @@ int				Server::init (int p)
 	}
 
 	// ? Bind the socket
-	socket_bind(addr);
+	if (this->socket_bind() == false)
+		return (4);
 
 	// ? init fd number
-	_nb_fds = 0;
+	this->_nb_fds = 0;
 
 	// ? init the entier array
 	memset(_fds, 0 , sizeof(_fds));
@@ -90,36 +142,13 @@ int				Server::init (int p)
 	return (0);
 }
 
-Server::~Server ()
-{
-	clients.clear();
-	// close every fd / sd ?
-	close(_listen_sd);
-}
-
-Server::Server (const Server & other)
-{
-	*this = other;
-}
-
-Server&			Server::operator= (const Server &rhs)
-{
-	_port = rhs._port;
-	dup2(rhs._listen_sd, _listen_sd);
-	// _fds = rhs._fds;				// ! need a deep copy
-	return (*this);
-}
-
-// ? debug
-std::ostream&	operator<<(std::ostream &o, struct pollfd &pfd)
-{
-	o << "pfd.fd : "		<< pfd.fd		<< std::endl;
-	o << "pfd.events : "	<< pfd.events	<< std::endl;
-	o << "pfd.revents : "	<< pfd.revents	<< std::endl;
-	return (o);
-}
-
-int				Server::add_new_client ()
+/**
+ * @brief Add a new client 
+ * 
+ * @return true On success.
+ * @return false client's connection can not be handled.
+ */
+bool			Server::add_new_client ()
 {
 	int		new_sd;
 
@@ -151,7 +180,7 @@ int				Server::add_new_client ()
 /**
  * @brief remove a client of clients and close it's linked fd
  * 
- * @param i index from server_poll_loop's for loop.
+ * @param i Index from server_poll_loop's for loop.
  */
 void			Server::remove_client (int i)
 {
@@ -163,10 +192,11 @@ void			Server::remove_client (int i)
 /**
  * @brief Record the client's inputs non blockingly.
  * 
- * @param i index from server_poll_loop's for loop.
+ * @param i Index from server_poll_loop's for loop.
  * 
- * @return true connection to the client must be closed because of an error or we don't need more data to generate the output.
- * @return false the client has to send more data to generate the return message
+ * @return true connection to the client must be closed because of an error
+ *         or we don't need more data to generate the output.
+ * @return false the client has to send more data to generate the return message.
  */
 bool			Server::record_client_input (const int &i)
 {
@@ -235,9 +265,12 @@ void			Server::squeeze_fds_array ()
 }
 
 /**
- * @brief check if a specific client is waiting for too long, then decide if it should be timed out.
+ * @brief Kick out a client if there life_time is too long.
  * 
- * @param i index from server_poll_loop's for loop
+ * @details Check if a specific client not sending event since too long,
+ *          then decide if it should be timed out.
+ * 
+ * @param i Index from server_poll_loop's for loop.
  */
 void			Server::check_timed_out_client (const int i)
 {
@@ -248,7 +281,19 @@ void			Server::check_timed_out_client (const int i)
 	}
 }
 
-int				Server::server_poll_loop ()
+/**
+ * @brief This function handles the poll loop
+ *        and call functions according to the events.
+ * 
+ * Loop over _fds each time a envent is registered.
+ * Kick timed out connections.
+ * Accept incomimg clients.
+ * If poll is timed out Kick timed out connections and return;
+ * 
+ * @return true On success.
+ * @return false An error occured while using poll. 
+ */
+bool			Server::server_poll_loop ()
 {
 	int					rc;
 	bool				need_cleaning = 0;
@@ -265,15 +310,11 @@ int				Server::server_poll_loop ()
 	// ? Check to see if the 3 minute time out expired.
 	if (rc == 0)
 	{
-		// ? we do not close _listen_sd here
 		std::cout << "  poll() timed out." << std::endl;
-		// return (false);	// * for testing it's usefull to end webserv after poll's timeout
-
-		// ? clean _fds of timed out fds and get back to the beggining of this function
+		// ? clean _fds of timed out fds, and return true too loop again.
 		for (int i = 1; i < _nb_fds; ++i)
 			check_timed_out_client(i);
 		squeeze_fds_array();
-
 		return (true);
 	}
 
@@ -309,9 +350,7 @@ int				Server::server_poll_loop ()
 		}
 		// ? else the event was triggered by a pollfd that is already in _fds
 		else
-		{
 			need_cleaning |= record_client_input(i);
-		}
 
 	}
 
@@ -323,9 +362,14 @@ int				Server::server_poll_loop ()
 }
 
 // ? This function is the main loop of the server.
+/**
+ * @brief This function starts the Server
+ * 
+ * @return int returns 0 on success, else a error code is returned.
+ */
 int				Server::start ()
 {
-	int		err;
+	int		err = 0;
 
 	// ? Set the listen back log (how many events at the same time)
 	err = listen(_listen_sd, BACK_LOG);
@@ -353,13 +397,15 @@ int				Server::start ()
 
 
 
+// ?fonctionnement de la boucle principale
 
-// - traiter l'input pendant qu'elle arrive
-// - si c'est \r\n (ou s'il y a un mauvais message)
-// - envoyer un message au client pour fermer la connexion
-//   - peut etre que le message peut etre envoyé par un thread pour éviter que ça prenne trop de temps ?
-//		- ( + je n'ai plus à le gerer dans la loop principale | - le bottle neck c'est plutot l'i/o du kernel)
-// - chaque client aura un compteur gettimeofday qui se reset apres que son event ai fait return poll.
-// - si le compteur dépasse 'timeout' on close la connection.
-// - si aucun event à eu lieu apres 'timeout' poll return une erreur.
-// - cette erreur va permettre de loop sur _fds pour chercher s'il y a des kick à mettre
+// ? traiter l'input pendant qu'elle arrive
+// ? si c'est \r\n (ou s'il y a un mauvais message)
+// ? envoyer un message au client pour fermer la connexion
+// ?   peut etre que le message peut etre envoyé par un thread pour éviter que ça prenne trop de temps ?
+// ?		( + je n'ai plus à le gerer dans la loop principale | - le bottle neck c'est plutot l'i/o du kernel)
+// ? chaque client aura un compteur gettimeofday qui se reset apres que son event ai fait return poll.
+// ? si le compteur dépasse 'timeout' on close la connection.
+// ? si aucun event à eu lieu apres 'timeout' poll ferme les clients trop long
+// ? server_poll_loop return true pour recommencer la boucle.
+// ? s'il y a une erreur

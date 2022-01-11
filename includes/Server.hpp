@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 04:55:39 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/10 14:42:09 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/11 06:11:54 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,9 @@
 
 # define TIMEOUT		20 * 1000	// 2 * 60 * 1000
 
-// ? a http/1.1 server working for one config
+/**
+ * @brief a http/1.1 server working for one config
+ */
 class Server // * ______________________________________________________________
 {
 	/// * Variables ____________________________________________________________
@@ -47,7 +49,7 @@ private:
 	Server ();
 public:
 	// ? Constructor (2) taking a port in argument.
-	// ? After the parsing of a conf file an object will be passed to it
+	// TODO After the parsing of a conf file an object will be passed to it
 	Server (int p);
 
 	// ? Constructor (3) by copy
@@ -67,18 +69,17 @@ public:
 	int		start ();
 
 private:
-	// ? binding the listening socket
-	int		socket_bind (struct sockaddr_in6 &addr);
+	bool	socket_bind ();
 
-	int		server_poll_loop ();
+	bool	server_poll_loop ();
 
-	int		add_new_client ();
+	bool	add_new_client ();
 
 	bool	record_client_input (const int &i);
 
 	void	check_timed_out_client (const int i);
 
-	void	remove_client (int i);	// i beeing the index in the main for loop
+	void	remove_client (int i);	// 'i' beeing the index in the main for loop
 
 	void	squeeze_fds_array ();
 

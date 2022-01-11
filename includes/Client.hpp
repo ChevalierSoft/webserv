@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 00:54:13 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/10 14:26:41 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/11 05:26:49 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,8 @@
 /**
  * @brief Client will store inputs and outputs
  * 
- * @details This class need to call a parser every time an input is added in i_msg. at the same time a response will be generated.
+ * @details This class need to call a parser every time an input is added
+ *          in i_msg. at the same time a response will be generated.
  * 
  */
 class Client // * ______________________________________________________________
