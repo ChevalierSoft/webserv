@@ -31,3 +31,5 @@ http 1.1 server that can handle a cgi
 - [how to end a telnet session on windows](https://store.chipkin.com/articles/telnet-how-do-i-end-a-telnet-session-windows-linux-mac)
 - [how to use epoll ~~and why~~ (because of the subject we can not use errno after a read/write)](https://www.suchprogramming.com/epoll-in-3-easy-steps/)
 - [ibm's poll course](https://www.ibm.com/docs/en/i/7.1?topic=designs-using-poll-instead-select)
+- [rfc3875 for CGI/1.1](https://datatracker.ietf.org/doc/html/rfc3875)
+- [Web CGI with Bash scripts](http://www.yolinux.com/TUTORIALS/BashShellCgi.html)
