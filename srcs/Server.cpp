@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/11 06:28:26 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/12 21:41:37 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,8 @@
 #include "Server.hpp"
 #include "ft_print_memory.h"
 #include "color.h"
+
+#define __DEB(s)	std::cerr << MAG << s << RST << std::endl; 
 
 /**
  * @brief Default Constructor for a new Server:: Server object.
@@ -150,9 +152,16 @@ int				Server::init (int p)
  */
 bool			Server::add_new_client ()
 {
-	int		new_sd;
+	int	new_sd;
 
 	std::cout << "  Listening socket is readable\n";
+
+	// ? if there is too much ppl on the server, decide to kick the new commers ?
+	// if (_nb_fds >= MAX_FDS - 1)
+	// {
+	// 	std::cerr << MAG << "(_nb_fds >= MAX_FDS)" << RST<< std::endl;
+	// 	return (false);
+	// }
 
 	new_sd = accept(_listen_sd, NULL, NULL);
 	if (new_sd < 0)
@@ -274,9 +283,11 @@ void			Server::squeeze_fds_array ()
  */
 void			Server::check_timed_out_client (const int i)
 {
-	if (_fds[i].fd >= 0 && clients[_fds[i].fd].is_timed_out() == true)
+	if (i < 0 || i == 0)
+		return ;
+	if (clients[_fds[i].fd].is_timed_out() == true)
 	{
-		std::cerr << "kicked fd : " << RED << _fds[i].fd <<RST<< std::endl;
+		std::cerr << "kicked fd : " << RED << _fds[i].fd << RST << std::endl;
 		remove_client(i);
 	}
 }
@@ -300,6 +311,7 @@ bool			Server::server_poll_loop ()
 
 	std::cout << "Waiting on poll()...\n";
 	rc = poll(_fds, _nb_fds, TIMEOUT);
+
 	if (rc < 0)
 	{
 		perror("  poll() failed.");
@@ -315,14 +327,16 @@ bool			Server::server_poll_loop ()
 		for (int i = 1; i < _nb_fds; ++i)
 			check_timed_out_client(i);
 		squeeze_fds_array();
+		aff_fds();
 		return (true);
 	}
 
 	// ? Loop through to find the descriptors that returned
 	// ? POLLIN and determine whether it's the listening
 	// ? or the active connection.
-	for (int i = 0; i <= _nb_fds; i++)
+	for (int i = 0; i < _nb_fds; i++)
 	{
+		aff_fds();
 		// ? if there is no event on the socket the loop continues
 		if (_fds[i].revents == 0)
 		{
@@ -337,15 +351,15 @@ bool			Server::server_poll_loop ()
 		{
 			std::cout << "  Error! revents = " << _fds[i].revents << std::endl;
 			_end_server = true;
+			// ! fermer le client
 			break;
 		}
-
-		--nb_events_waiting;
 
 		// ? check if it's a new client
 		if (_fds[i].fd == _listen_sd)
 		{
 			if (add_new_client() == false)
+				// continue ;
 				break ;
 		}
 		// ? else the event was triggered by a pollfd that is already in _fds
@@ -385,6 +399,8 @@ int				Server::start ()
 	_fds[0].events = POLLIN;
 	_nb_fds = 1;
 
+	__DEB(_listen_sd)
+
 	while (server_poll_loop() == true)
 		;
 
@@ -394,8 +410,14 @@ int				Server::start ()
 	return (0);
 }
 
-
-
+void	Server::aff_fds()
+{
+	std::cout << "_nb_fds : " << _nb_fds << std::endl;
+	for (int i = 0; i < _nb_fds; ++i)
+	{
+		std::cout << i << " : " << _fds[i].fd << std::endl;
+	}
+}
 
 // ?fonctionnement de la boucle principale
 

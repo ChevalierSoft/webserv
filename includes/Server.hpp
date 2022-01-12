@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 04:55:39 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/11 06:11:54 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/12 21:30:46 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,5 +82,9 @@ private:
 	void	remove_client (int i);	// 'i' beeing the index in the main for loop
 
 	void	squeeze_fds_array ();
+
+	// * debug
+
+	void	aff_fds();
 
 }; // * ________________________________________________________________________
