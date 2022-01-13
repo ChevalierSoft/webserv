@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/13 02:54:43 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/13 03:50:21 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -156,15 +156,6 @@ bool			Server::add_new_client ()
 
 	std::cout << "  Listening socket is readable\n";
 
-	// ? if there is too much ppl on the server, decide to kick the new commers ?
-	if (_nb_fds == MAX_FDS)
-	{
-		std::cerr << "error: too much clients connected" << std::endl;
-		// this->aff_fds();
-		// usleep(1 * 1000000);
-		return (false);
-	}
-
 	new_sd = accept(_listen_sd, NULL, NULL);
 	if (new_sd < 0)
 	{
@@ -217,14 +208,18 @@ bool			Server::record_client_input (const int &i)
 
 	rc = recv(_fds[i].fd, buffer, sizeof(buffer) - 1, 0); // MSG_DONTWAIT | MSG_ERRQUEUE);	// ? errors number can be checked with the flag MSG_ERRQUEUE (man recv)
 
-	// ? connection closed by client or error while recv
-	if (rc <= 0)
-	{
-		std::cout << YEL << "  Connection closed\n" << RST;
-		remove_client(i);
-		this->aff_fds();
-		return (true);
-	}
+	// ? connection closed by client or error while recv.
+	// ? EAGAIN would tell us if this was the end of the client's message or ...
+	// ? if there is an error. because we can not use errno in this project,
+	// ? we will handle this while parsing the input in the client's parsing.
+	// if (rc <= 0)
+	// {
+	//	 if (errno == EAGAIN)
+	//		 break ;
+	// 	std::cout << YEL << "  Connection closed\n" << RST;
+	// 	remove_client(i);
+	// 	return (true);
+	// }
 
 	buffer[rc] = '\0';										// ? closing the char array
 	clients[_fds[i].fd].add_input_buffer(buffer, rc + 1);	// ? store the buffer
@@ -341,18 +336,21 @@ bool			Server::server_poll_loop ()
 		}
  
 		// ? If revents is not POLLIN, it's an unexpected result,
-		// ? end (or restart ?) the server
+		// ? so it will be cleaned
 		if (_fds[i].revents != POLLIN)
 		{
-			std::cout << "  Error! revents = " << _fds[i].revents << std::endl;
-			_end_server = true;
-			// ! fermer le client
+			std::cout << "  error: revents = " << _fds[i].revents << std::endl;
+			close(_fds[i].fd);
+			_fds[i].fd = -1;
 			break;
 		}
 
 		// ? check if it's a new client
 		if (_fds[i].fd == _listen_sd)
-			add_new_client();
+		{
+			if (_nb_fds < MAX_FDS)
+				add_new_client();
+		}
 		// ? else the event was triggered by a pollfd that is already in _fds
 		else
 			need_cleaning |= record_client_input(i);
