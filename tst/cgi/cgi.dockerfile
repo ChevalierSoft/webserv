@@ -6,7 +6,7 @@
 #    By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/01/12 04:20:34 by dait-atm          #+#    #+#              #
-#    Updated: 2022/01/12 06:39:37 by dait-atm         ###   ########.fr        #
+#    Updated: 2022/01/12 07:44:03 by dait-atm         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -37,3 +37,5 @@ CMD /etc/init.d/apache2 start && /bin/bash
 EXPOSE 80
 
 # ? CGI is accessible throgh : http://localhost:4040/cgi-bin/cgi_just_print.sh
+
+# ? install php7 cgi https://stackoverflow.com/questions/60751761/install-php7-4-cgi-in-debian-10
