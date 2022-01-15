@@ -340,8 +340,6 @@ bool			Server::server_poll_loop ()
 			break;
 		}
 
-		--nb_events_waiting;
-
 		// ? check if it's a new client
 		if (_fds[i].fd == _listen_sd)
 		{

@@ -15,7 +15,7 @@ int main(int argc, char **argv)
 
 	signal(SIGINT, &sighandler);	// making it easy to close the program
 	signal(SIGQUIT, &sighandler);
-
+	
 	if (run)
 	{
 		// TODO (1) parse the config file (default or provided) and feed a list of object with the configurations

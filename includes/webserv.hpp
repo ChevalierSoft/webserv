@@ -15,3 +15,4 @@
 // # include <sys/time.h>		// gettimeofday
 # include "Server.hpp"
 # include "color.h"
+# include "Conf.hpp"
