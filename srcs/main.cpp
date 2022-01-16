@@ -16,6 +16,8 @@ int main(int argc, char **argv)
 	signal(SIGINT, &sighandler);	// making it easy to close the program
 	signal(SIGQUIT, &sighandler);
 	
+	Conf	c("tst/conf/webserv.conf");
+	run = false;
 	if (run)
 	{
 		// TODO (1) parse the config file (default or provided) and feed a list of object with the configurations

@@ -24,7 +24,8 @@ DEPENDS		= $(patsubst %.cpp,objs/%.d, $(SRCS_FILES))
 SRCS_FILES	= \
 Client.cpp \
 main.cpp \
-Server.cpp 
+Server.cpp \
+Conf.cpp
 
 all: $(NAME)
 
