@@ -22,11 +22,11 @@
 		<div class="outer-div">
 			<div class="inner-div">
 
-				<form action="/cgi-bin/print_env.cgi">
+				<form action="/cgi-bin/print_post_content.cgi" method="POST">
 					<label for="val_a">val_a : </label>
-					<input type="text" id="val_a" name="val_a"> <br>
+					<input type="text" id="val_a" name="val_a" value="1"> <br>
 					<label for="val_b">val_b : </label>
-					<input type="text" id="val_b" name="val_b"> <br> <br> <br>
+					<input type="text" id="val_b" name="val_b" value="2"> <br> <br> <br>
 					<input type="submit" value="Submit"> <br/>
 				</form>
 			</div>
