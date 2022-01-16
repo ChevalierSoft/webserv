@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>tst_cgi</title>
+		<style>
+			.outer-div
+			{
+				padding: 5%;
+			}
+			.inner-div
+			{
+				margin: auto;
+				width: 100px;
+				height: 100px;  
+			}
+			body {
+				font-family: sans-serif;
+			}
+		</style>
+	</head>
+	<body style="background: #000; color: bisque;">
+		<div class="outer-div">
+			<div class="inner-div">
+
+				<form action="/cgi-bin/print_env.cgi">
+					<label for="val_a">val_a : </label>
+					<input type="text" id="val_a" name="val_a"> <br>
+					<label for="val_b">val_b : </label>
+					<input type="text" id="val_b" name="val_b"> <br> <br> <br>
+					<input type="submit" value="Submit"> <br/>
+				</form>
+			</div>
+		</div>
+
+	</body>
+</html>
