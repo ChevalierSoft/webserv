@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
+/*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/12 21:44:38 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/17 18:28:30 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,8 +51,10 @@ Client&		Client::operator= (const Client& copy)
 {
 	if (this != &copy)
 	{
-		i_msg = copy.i_msg;
-		o_msg = copy.o_msg;
+		// i_msg = copy.i_msg;
+		// o_msg = copy.o_msg;
+		_response = copy._response;
+		_request = copy._request;
 		response_generated = copy.response_generated;
 		life_time = copy.life_time;
 		// TODO finish this copy
@@ -74,10 +76,11 @@ bool		Client::parse_and_generate_response ()
 	// ? exemple :
 
 	std::cout << GRN << "  parse_and_generate_response" << RST << std::endl;
-	
-	this->o_msg.push_back("HTTP/1.1 200 OK\r\nDate: Tue, 24 Aug 2021 06:20:56 WEST\r\nServer: webser:42 (popOS)\r\nLast-Modified: Wed, 24 Aug 2021 06:20:56 WEST\r\nContent-Length: 120\r\nContent-Type: text/html\r\nConnection: Closed\r\n\r\n<html>\r\n<body>\r\n<h1>peepowidehappy</h1>\r\n</body>\r\n<img src='https://cdn.frankerfacez.com/emoticon/359928/2'/>\r\n</html>\r\n");
+
+	this->_response.append_buffer("HTTP/1.1 200 OK\r\nDate: Tue, 24 Aug 2021 06:20:56 WEST\r\nServer: webser:42 (popOS)\r\nLast-Modified: Wed, 24 Aug 2021 06:20:56 WEST\r\nContent-Length: 120\r\nContent-Type: text/html\r\nConnection: Closed\r\n\r\n<html>\r\n<body>\r\n<h1>peepowidehappy</h1>\r\n</body>\r\n<img src='https://cdn.frankerfacez.com/emoticon/359928/2'/>\r\n</html>\r\n");
+	this->_response.update_header();
 	this->response_generated = true;
-	this->it_chunk = this->o_msg.begin();
+	this->_it_chunk = this->_response.begin_header();
 	return (false);
 }
 
@@ -94,7 +97,7 @@ bool		Client::send_response (int sd_out)
 
 	std::cout << GRN << "  sending response" << RST << std::endl;
 
-	rc = send(sd_out, this->it_chunk->c_str(), this->it_chunk->size(), 0);
+	rc = send(sd_out, ((*(this->_it_chunk)).second).c_str(), ((*(this->_it_chunk)).second).size(), 0);
 	if (rc < 0)
 	{
 		perror("  send() failed");
@@ -102,8 +105,8 @@ bool		Client::send_response (int sd_out)
 	}
 
 	// ? get to the next output message chunk
-	++this->it_chunk;
-	if (this->it_chunk == this->o_msg.end())
+	++this->_it_chunk;
+	if (this->_it_chunk == this->_response.end_header())
 		return (true);
 
 	return (false);
@@ -125,7 +128,8 @@ void		Client::update ()
  */
 void		Client::add_input_buffer (const char *buffer, int len)
 {
-	this->i_msg.push_back(std::string(buffer, len));
+	this->_request.append_buffer(std::string(buffer, len));
+	this->_request.update_header();
 }
 
 /**
