@@ -6,7 +6,7 @@
 /*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/17 18:28:30 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/01/18 00:38:48 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,8 +77,9 @@ bool		Client::parse_and_generate_response ()
 
 	std::cout << GRN << "  parse_and_generate_response" << RST << std::endl;
 
-	this->_response.append_buffer("HTTP/1.1 200 OK\r\nDate: Tue, 24 Aug 2021 06:20:56 WEST\r\nServer: webser:42 (popOS)\r\nLast-Modified: Wed, 24 Aug 2021 06:20:56 WEST\r\nContent-Length: 120\r\nContent-Type: text/html\r\nConnection: Closed\r\n\r\n<html>\r\n<body>\r\n<h1>peepowidehappy</h1>\r\n</body>\r\n<img src='https://cdn.frankerfacez.com/emoticon/359928/2'/>\r\n</html>\r\n");
-	this->_response.update_header();
+	this->_response.append_buffer("HTTP/1.1 200 OK\r\nDate: Tue, 24 Aug 2021 06:20:56 WEST\r\nServer: webserv:42 (popOS)\r\nLast-Modified: Wed, 24 Aug 2021 06:20:56 WEST\r\nContent-Length: 120\r\nContent-Type: text/html\r\nConnection: Closed\r\n\r\n<html>\r\n<body>\r\n<h1>peepowidehappy</h1>\r\n</body>\r\n<img src='https://cdn.frankerfacez.com/emoticon/359928/2'/>\r\n</html>\r\n");
+	// while (!this->_response.update_header());
+	// while (this->_response.update_body());
 	this->response_generated = true;
 	this->_it_chunk = this->_response.begin_header();
 	return (false);
@@ -129,7 +130,8 @@ void		Client::update ()
 void		Client::add_input_buffer (const char *buffer, int len)
 {
 	this->_request.append_buffer(std::string(buffer, len));
-	this->_request.update_header();
+	while (!this->_request.update_header());
+	while (this->_request.update_body());
 }
 
 /**
