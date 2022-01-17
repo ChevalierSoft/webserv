@@ -13,10 +13,11 @@ int main(int argc, char **argv)
 {
 	int	err;
 
-	signal(SIGINT, &sighandler);	// making it easy to close the program
-	signal(SIGQUIT, &sighandler);
+	// signal(SIGINT, &sighandler);	// making it easy to close the program
+	// signal(SIGQUIT, &sighandler);
 	
 	Conf	c("tst/conf/webserv.conf");
+	c.print();
 	run = false;
 	if (run)
 	{
