@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/18 15:31:48 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/18 15:54:58 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/18 17:01:10 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,13 +18,15 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#include "ft_to_string.hpp"
+
 bool	send_403 (int fd)
 {
-	std::cout << "send 403 page" << std::endl;
+	std::cerr << "send 403 page" << std::endl;
 	std::string	page;
 
 	page = "HTTP/1.1 403 OK\r\n";
-	page += "webser:42\r\n\r\nContent-Length: 120\r\nContent-Type: text/html\r\nConnection: Closed\r\n\r\n";
+	page += "webser:42\r\n\r\nContent-Length: 20\r\nContent-Type: text/html\r\nConnection: Closed\r\n\r\n";
 	page += "<html><h1>403</h1>\r\n";
 	write(fd, page.c_str(), page.size());
 	return (false);
@@ -53,6 +55,8 @@ bool	directory_listing (int fd, const char *path, const char *client_path)
 	while ((entry = readdir(dir)) != NULL)
 	{
 		body += "<p><li><a href=\"";
+		body += path;				// ? when used localy
+		// body += client_path;		// ? when used through webserv to hide the real location
 		body += entry->d_name;
 		body += "\">";
 		body += entry->d_name;
@@ -62,12 +66,13 @@ bool	directory_listing (int fd, const char *path, const char *client_path)
 	body += "<p>Webserv 42 oui</p>";
 
 	header = "HTTP/1.1 200 OK\r\n";
-	header += "webser:42\r\n\r\nContent-Length: ";
-	header += body.size();
+	header += "webser:42\r\nContent-Length: ";
+	header += ft_to_string(body.size());
 	header += "\r\nContent-Type: text/html\r\nConnection: Closed\r\n\r\n";
 	header += body;
 
-	write (fd, header.c_str(), header.size());
+	write (fd, body.c_str(), body.size());			// ? when opening the html localy
+	// write (fd, header.c_str(), header.size());	// ? when opening the html through webserv
 
 	closedir(dir);
 
