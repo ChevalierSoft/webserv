@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 04:55:39 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/11 06:11:54 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/18 13:27:39 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 
 # include <list>
 # include <map>
+# include <vector>
 # include <sys/ioctl.h>
 # include <sys/socket.h>	// listen
 # include <sys/poll.h>		// poll_wait...
@@ -25,9 +26,8 @@
 
 # define BACK_LOG		123
 # define BUFFER_SIZE	64
-# define MAX_FDS		1 + 2		// ? must be > 1 for the listening socket
 
-# define TIMEOUT		20 * 1000	// 2 * 60 * 1000
+# define TIMEOUT		10 * 1000
 
 /**
  * @brief a http/1.1 server working for one config
@@ -38,10 +38,12 @@ class Server // * ______________________________________________________________
 private:
 	bool					_end_server;
 	int						_listen_sd;
-	int						_nb_fds;
+	// int						_nb_fds;
 	int						_port;			// soon this will be in an object sent from the conf parsing
-	struct pollfd			_fds[MAX_FDS];	// list of sockets beggining with the listening socket
+	// struct pollfd			_fds[MAX_FDS];	// list of sockets beggining with the listening socket
+	std::vector<struct pollfd>	_fds;
 	std::map<int, Client>	clients;
+
 
 	/// * Constructors & Destructors ___________________________________________
 private:
@@ -82,5 +84,9 @@ private:
 	void	remove_client (int i);	// 'i' beeing the index in the main for loop
 
 	void	squeeze_fds_array ();
+
+	// * debug
+
+	void	aff_fds();
 
 }; // * ________________________________________________________________________

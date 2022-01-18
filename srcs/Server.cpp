@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/11 06:28:26 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/18 13:25:28 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,8 @@
 #include "Server.hpp"
 #include "ft_print_memory.h"
 #include "color.h"
+
+#define __DEB(s)	std::cerr << MAG << s << RST << std::endl; 
 
 /**
  * @brief Default Constructor for a new Server:: Server object.
@@ -37,7 +39,8 @@ Server::Server (int p) : _port(p)
 Server::~Server ()
 {
 	clients.clear();
-	close(_listen_sd);
+	for (std::vector<struct pollfd>::iterator it = _fds.begin(); it != _fds.end(); ++it)
+		close(it->fd);
 }
 
 /**
@@ -132,11 +135,11 @@ int				Server::init (int p)
 	if (this->socket_bind() == false)
 		return (4);
 
-	// ? init fd number
-	this->_nb_fds = 0;
+	// // ? init fd number
+	// this->_nb_fds = 0;
 
-	// ? init the entier array
-	memset(_fds, 0 , sizeof(_fds));
+	// // ? init the entier array
+	// memset(_fds, 0 , sizeof(_fds));
 	
 	std::cout << "ready to listen on port " << _port << std::endl;
 	return (0);
@@ -150,27 +153,23 @@ int				Server::init (int p)
  */
 bool			Server::add_new_client ()
 {
-	int		new_sd;
+	int				new_sd;
+	struct pollfd	tmp;
 
 	std::cout << "  Listening socket is readable\n";
 
 	new_sd = accept(_listen_sd, NULL, NULL);
 	if (new_sd < 0)
 	{
-		// ? we will avoid errno for now 
-		// if (errno != EWOULDBLOCK)
-		// {
-			// perror("  accept() failed");
-			// _end_server = true;
-		// }
 		std::cerr << "error: can't accept client: " << new_sd << std::endl;
 		return (false);
 	}
 
 	std::cout << YEL << "  New incoming connection fd : " << RED << new_sd << RST << std::endl;
-	_fds[_nb_fds].fd = new_sd;
-	_fds[_nb_fds].events = POLLIN;
-	_nb_fds++;
+	tmp.fd = new_sd;
+	tmp.events = POLLIN;
+	tmp.revents = 0;
+	_fds.push_back(tmp);
 
 	clients[new_sd] = Client();
 
@@ -186,7 +185,9 @@ void			Server::remove_client (int i)
 {
 	close(_fds[i].fd);
 	_fds[i].fd = -1;
+	_fds.erase(_fds.begin() + i);
 	clients.erase(_fds[i].fd);
+	squeeze_fds_array();
 }
 
 /**
@@ -203,29 +204,34 @@ bool			Server::record_client_input (const int &i)
 	char	buffer[BUFFER_SIZE];
 	bool	close_conn;
 	int		rc;
-	
-	std::cout << YEL << "  Descriptor " << RED << _fds[i].fd << YEL << " is readable\n" << RST;
 
-	// ? update client's life_timej
+	std::cout << YEL << "  Descriptor " << RED << _fds[i].fd << YEL << " is readable\n" << RST << std::endl;
+
+	// ? update client's life_time
 	clients[_fds[i].fd].update();
 
 	rc = recv(_fds[i].fd, buffer, sizeof(buffer) - 1, 0); // MSG_DONTWAIT | MSG_ERRQUEUE);	// ? errors number can be checked with the flag MSG_ERRQUEUE (man recv)
 
-	// ? connection closed by client or error while recv
-	if (rc <= 0)
-	{
-		std::cout << YEL << "  Connection closed\n" << RST;
-		remove_client(i);
-		return (true);
-	}
+	// ? connection closed by client or error while recv.
+	// ? EAGAIN would tell us if this was the end of the client's message or ...
+	// ? if there is an error. because we can not use errno in this project,
+	// ? we will handle this while parsing the input in the client's parsing.
+	// if (rc <= 0)
+	// {
+	//	 if (errno == EAGAIN)
+	//		 break ;
+	// 	std::cout << YEL << "  Connection closed\n" << RST;
+	// 	remove_client(i);
+	// 	return (true);
+	// }
 
 	buffer[rc] = '\0';										// ? closing the char array
 	clients[_fds[i].fd].add_input_buffer(buffer, rc + 1);	// ? store the buffer
 
 	// ? debug
 	std::cout << YEL << "  " << rc << " bytes received : " << RST << std::endl;
-	// std::cout << "[" << GRN << buffer << RST << "]" << std::endl;
 	ft_print_memory(buffer, rc);
+	// std::cout << "[" << GRN << buffer << RST << "]" << std::endl;
 
 	if (clients[_fds[i].fd].is_output_ready() == false)
 		close_conn = clients[_fds[i].fd].parse_and_generate_response();
@@ -250,18 +256,22 @@ bool			Server::record_client_input (const int &i)
  */
 void			Server::squeeze_fds_array ()
 {
-	for (int i = 0; i < _nb_fds; i++)	// can be faster
+	for (std::vector<struct pollfd>::iterator it = _fds.begin(); it != _fds.end(); ++it)
 	{
-		if (_fds[i].fd == -1)
-		{
-			for(int j = i; j < _nb_fds; j++)
-			{
-				_fds[j].fd = _fds[j + 1].fd;
-			}
-			i--;
-			_nb_fds--;
-		}
+		if (it->fd == -1)
+			std::cout << "should of rm position " << _fds.begin() - it << " in _fds" << std::endl;
 	}
+	// for (int i = 0; i < _fds.size(); i++)	// can be faster
+	// {
+	// 	// if (_fds[i].fd == -1)
+	// 	// {
+	// 	// 	for(int j = i; j < _fds.size(); j++)
+	// 	// 	{
+	// 	// 		_fds[j].fd = _fds[j + 1].fd;
+	// 	// 	}
+	// 	// 	i--;
+	// 	// }
+	// }
 }
 
 /**
@@ -274,9 +284,11 @@ void			Server::squeeze_fds_array ()
  */
 void			Server::check_timed_out_client (const int i)
 {
-	if (_fds[i].fd >= 0 && clients[_fds[i].fd].is_timed_out() == true)
+	if (i < 0 || i == 0)
+		return ;
+	if (clients[_fds[i].fd].is_timed_out() == true)
 	{
-		std::cerr << "kicked fd : " << RED << _fds[i].fd <<RST<< std::endl;
+		std::cerr << "kicked fd : " << RED << _fds[i].fd << RST << std::endl;
 		remove_client(i);
 	}
 }
@@ -299,7 +311,8 @@ bool			Server::server_poll_loop ()
 	bool				need_cleaning = 0;
 
 	std::cout << "Waiting on poll()...\n";
-	rc = poll(_fds, _nb_fds, TIMEOUT);
+	rc = poll(&_fds.front(), _fds.size(), TIMEOUT);
+
 	if (rc < 0)
 	{
 		perror("  poll() failed.");
@@ -312,18 +325,17 @@ bool			Server::server_poll_loop ()
 	{
 		std::cout << "  poll() timed out." << std::endl;
 		// ? clean _fds of timed out fds, and return true too loop again.
-		for (int i = 1; i < _nb_fds; ++i)
+		for (int i = 1; i < _fds.size(); ++i)
 			check_timed_out_client(i);
-		squeeze_fds_array();
 		return (true);
 	}
 
 	// ? Loop through to find the descriptors that returned
 	// ? POLLIN and determine whether it's the listening
 	// ? or the active connection.
-	for (int i = 0; i <= _nb_fds; i++)
+	for (int i = 0; i < _fds.size(); i++)
 	{
-		// ? if there is no event on the socket the loop continues
+		// ? if there is no event on this index the loop continues
 		if (_fds[i].revents == 0)
 		{
 			if (i != 0)	// ? not the listening socket
@@ -332,19 +344,21 @@ bool			Server::server_poll_loop ()
 		}
  
 		// ? If revents is not POLLIN, it's an unexpected result,
-		// ? end (or restart ?) the server
+		// ? so it will be cleaned
 		if (_fds[i].revents != POLLIN)
 		{
-			std::cout << "  Error! revents = " << _fds[i].revents << std::endl;
-			_end_server = true;
+			std::cout << "  error: revents = " << _fds[i].revents << std::endl;
+			close(_fds[i].fd);
+			_fds[i].fd = -1;
+			_fds.erase(_fds.begin() + i);
 			break;
 		}
 
 		// ? check if it's a new client
 		if (_fds[i].fd == _listen_sd)
 		{
-			if (add_new_client() == false)
-				break ;
+			// if (_fds.size() < MAX_FDS)	// ? now using vector #stonks
+				add_new_client();
 		}
 		// ? else the event was triggered by a pollfd that is already in _fds
 		else
@@ -367,7 +381,8 @@ bool			Server::server_poll_loop ()
  */
 int				Server::start ()
 {
-	int		err = 0;
+	int				err = 0;
+	struct pollfd	tmp;
 
 	// ? Set the listen back log (how many events at the same time)
 	err = listen(_listen_sd, BACK_LOG);
@@ -379,9 +394,10 @@ int				Server::start ()
 	}
 
 	// ? Set up the initial listening socket
-	_fds[0].fd = _listen_sd;
-	_fds[0].events = POLLIN;
-	_nb_fds = 1;
+	tmp.fd = _listen_sd;
+	tmp.events = POLLIN;
+	tmp.revents = 0;
+	_fds.push_back(tmp);
 
 	while (server_poll_loop() == true)
 		;
@@ -392,8 +408,12 @@ int				Server::start ()
 	return (0);
 }
 
-
-
+void	Server::aff_fds()
+{
+	std::cout << "nb fds : " << _fds.size() << std::endl;
+	for (int i = 0; i < _fds.size(); ++i)
+		std::cout << i << " : " << _fds[i].fd << std::endl;
+}
 
 // ?fonctionnement de la boucle principale
 

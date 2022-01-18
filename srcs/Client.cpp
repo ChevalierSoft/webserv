@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/10 14:32:06 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/12 21:44:38 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,6 +54,7 @@ Client&		Client::operator= (const Client& copy)
 		i_msg = copy.i_msg;
 		o_msg = copy.o_msg;
 		response_generated = copy.response_generated;
+		life_time = copy.life_time;
 		// TODO finish this copy
 	}
 	return (*this);
@@ -136,9 +137,11 @@ void		Client::add_input_buffer (const char *buffer, int len)
 bool		Client::is_timed_out ()
 {
 	struct timeval	tv_now;
+	struct timezone	tv_zone;
 
 	// TODO make this cleaner without gettimeofday
-	gettimeofday(&tv_now, NULL);
+	gettimeofday(&tv_now, &tv_zone);
+	
 	if (tv_now.tv_sec - this->life_time.tv_sec > CLIENT_TIMEOUT
 		|| (tv_now.tv_sec < this->life_time.tv_sec && tv_now.tv_sec > CLIENT_TIMEOUT))
 		return (true);

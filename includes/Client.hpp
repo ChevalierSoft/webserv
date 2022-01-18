@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 00:54:13 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/11 05:26:49 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/12 21:43:59 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@
 #include <iostream>
 #include "color.h"
 
-#define CLIENT_TIMEOUT 10		// time (s) after which the client connection will be closed if there is no event
+#define CLIENT_TIMEOUT 10 		// time (s) after which the client connection will be closed if there is no event
 
 /**
  * @brief Client will store inputs and outputs
