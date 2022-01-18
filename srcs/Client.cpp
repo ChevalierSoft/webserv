@@ -6,7 +6,7 @@
 /*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/18 00:38:48 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/01/18 18:40:51 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,14 +74,22 @@ bool		Client::parse_and_generate_response ()
 {
 	// TODO parse the input and generate the message for the client
 	// ? exemple :
+	int	end_of_response;
 
 	std::cout << GRN << "  parse_and_generate_response" << RST << std::endl;
 
 	this->_response.append_buffer("HTTP/1.1 200 OK\r\nDate: Tue, 24 Aug 2021 06:20:56 WEST\r\nServer: webserv:42 (popOS)\r\nLast-Modified: Wed, 24 Aug 2021 06:20:56 WEST\r\nContent-Length: 120\r\nContent-Type: text/html\r\nConnection: Closed\r\n\r\n<html>\r\n<body>\r\n<h1>peepowidehappy</h1>\r\n</body>\r\n<img src='https://cdn.frankerfacez.com/emoticon/359928/2'/>\r\n</html>\r\n");
-	// while (!this->_response.update_header());
-	// while (this->_response.update_body());
-	this->response_generated = true;
+	// ? response if for the time being default
+	// while ((end_of_response = this->_response.update_header()) == 0);
+	// if (end_of_response == 2)
+	// 	this->response_generated = true;
+	// if (!this->response_generated){
+		// while ((end_of_response = this->_response.update_body()) == 1);
+		// if (end_of_response == 2)
+		// 	this->response_generated = true;
+	// }
 	this->_it_chunk = this->_response.begin_header();
+	// std::cout << RED << "TEST :" << (*(this->_it_chunk)).second << std::endl;
 	return (false);
 }
 
@@ -98,12 +106,16 @@ bool		Client::send_response (int sd_out)
 
 	std::cout << GRN << "  sending response" << RST << std::endl;
 
-	rc = send(sd_out, ((*(this->_it_chunk)).second).c_str(), ((*(this->_it_chunk)).second).size(), 0);
+	// rc = send(sd_out, ((*(this->_it_chunk)).second).c_str(), ((*(this->_it_chunk)).second).size(), 0);
+	// ? For now, sending default response in one go
+	rc = send(sd_out, this->_response.get_buffer().c_str(), this->_response.get_buffer().size(), 0);
 	if (rc < 0)
 	{
 		perror("  send() failed");
 		return (true);
 	}
+	// ? Setting generated response to false after each send for now
+	this->response_generated = false;
 
 	// ? get to the next output message chunk
 	++this->_it_chunk;
@@ -129,9 +141,27 @@ void		Client::update ()
  */
 void		Client::add_input_buffer (const char *buffer, int len)
 {
+	int	end_of_request;
+
 	this->_request.append_buffer(std::string(buffer, len));
-	while (!this->_request.update_header());
-	while (this->_request.update_body());
+	while ((end_of_request = this->_request.update_header()) == 0);
+	if (end_of_request == 2) {
+		// ? to output contents of map header
+		this->_it_chunk = this->_request.begin_header();
+		std::cout << RED << "Method: " << (this->_request._method == GET ? "GET" : "POST/DELETE") << RST << std::endl;
+		std::cout << RED << "path: " << this->_request._path << RST << std::endl;
+		std::cout << RED << "http-version: " << this->_request._http_version << RST << std::endl;
+		for (; _it_chunk != this->_request.end_header(); _it_chunk++)
+			std::cout << RED << (*(_it_chunk)).first << ": " << (*(_it_chunk)).second << RST << std::endl;
+		this->response_generated = true;
+	}
+
+	if (!this->response_generated){
+		while ((end_of_request = this->_request.update_body()) == 1);
+		if (end_of_request == 2)
+			this->response_generated = true;
+	}
+	
 }
 
 /**
