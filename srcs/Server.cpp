@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/13 03:50:21 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/18 12:04:19 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -166,6 +166,7 @@ bool			Server::add_new_client ()
 	std::cout << YEL << "  New incoming connection fd : " << RED << new_sd << RST << std::endl;
 	_fds[_nb_fds].fd = new_sd;
 	_fds[_nb_fds].events = POLLIN;
+	_fds[_nb_fds].revents = 0;
 	_nb_fds++;
 
 	clients[new_sd] = Client();
