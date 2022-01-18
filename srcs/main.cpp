@@ -17,6 +17,8 @@ int main(int argc, char **argv)
 	// signal(SIGQUIT, &sighandler);
 	
 	Conf	c("tst/conf/webserv.conf");
+	if (c._errno)
+		std::cerr << "Error: " << c._error_message << std::endl;
 	c.print();
 	run = false;
 	if (run)

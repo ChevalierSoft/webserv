@@ -18,42 +18,11 @@
 # include <vector>
 # include <fstream>
 
+# include "typing.hpp"
+# include "Route.hpp"
+
 class Conf {
 	public:
-		typedef std::string                     name_type;
-		typedef std::string                     host_type;
-		typedef short                           port_type;
-		typedef std::string                     file_type;
-		typedef size_t                          code_type;
-		typedef std::pair<code_type, file_type> error_type;
-		typedef	std::map<code_type, file_type>	error_list;
-		typedef size_t                          size_type;
-		typedef std::string						method_type;
-		typedef std::vector<method_type>		method_list;
-		typedef short                           dir_listing_type;
-		typedef std::string                     path_type;
-		typedef class Route {
-			friend class Conf;
-			private:
-				Route();
-			public:
-				typedef std::pair<code_type, path_type>	redir_type;
-				typedef std::pair<name_type, path_type> cgi_type;
-				typedef std::map<name_type, path_type>	cgi_list;
-
-				const path_type		_path;
-				method_list			_methods;
-				redir_type			_redir;
-				path_type			_root;
-				file_type			_file;
-				dir_listing_type	_dir_listing;
-				path_type			_upload_path;
-				cgi_list			_cgis;
-	
-				Route(const path_type);
-		}                       route_type;
-		typedef std::vector<route_type>			route_list;
-
 		name_type			_name;
 		host_type			_host;
 		port_type			_port;
@@ -63,15 +32,22 @@ class Conf {
 		dir_listing_type	_dir_listing;
 		path_type			_upload_path;
 		route_list			_routes;
-		
+
+		std::string			_error_message;
+		bool				_errno;
+
 	private:
 		Conf();
 
 		bool                            parse_file(std::ifstream &ifs);
 		std::string                     parse_param(std::string &line, const char sep);
 		std::string                     parse_value(std::string &line,std::string param);
-		bool                            set_param(std::string &line, std::vector<std::string> params, size_t indent);
-		// bool							set_param_indent1(std::string &line, std::string param);
+		bool                            set_param(std::string &line, std::vector<std::string> param, size_t indent);
+
+		bool							zero_indent(std::string	param, std::string value);
+		bool							one_indent(std::vector<std::string> params, std::string value);
+		bool							two_indent(std::vector<std::string> params, std::string value);
+		bool							three_indent(std::vector<std::string> params, std::string value);
 
 		std::string						remove_comments(std::string &line, const char sep);
 		std::string						remove_whitespaces(std::string line);
@@ -83,7 +59,7 @@ class Conf {
 		size_type                       string_to_client_body_size(std::string value);
 		method_list						string_to_methods(std::string value);
 		dir_listing_type				string_to_dir_listing(std::string value);
-
+		route_type    					string_to_route(std::string value);
 		
 	public:
 		Conf(file_type  conf_file);
@@ -98,9 +74,11 @@ class Conf {
 		bool		set_methods(method_list methods);
 		bool        set_dir_listing(dir_listing_type dir_listing);
 		bool        set_upload_path(path_type upload_path);
-		bool        set_routes(std::vector<route_type> routes);
+		bool        add_route(route_type route);
 
 		void		print();
+
+		bool		set_error_message(std::string error_message);
 };
 
 #endif

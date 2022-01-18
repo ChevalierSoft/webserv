@@ -5,16 +5,18 @@
 #include <utility>
 #include <iostream>
 #include <algorithm>
+#include <stdlib.h>
 
 Conf::Conf(){}
 
-Conf::Conf(file_type conf_file){
+Conf::Conf(file_type conf_file): _errno(0) {
 	std::ifstream ifs(conf_file.c_str(), std::ifstream::in);
 
-	if (ifs.is_open())
-		parse_file(ifs);
+	_errno |= !(ifs.is_open());
+	if (!_errno)
+		_errno |= !parse_file(ifs);
 	else
-		std::cerr << "File not found" << std::endl;
+		_error_message = "File not found";
 }
 
 Conf::~Conf() {}
@@ -27,23 +29,18 @@ bool    Conf::parse_file(std::ifstream &ifs) {
 	std::vector<std::string> params;
 	size_t		indent;
 	
+	
 	while (std::getline(ifs, line).good() && line != "")
 	{
 		line = remove_comments(line, comment_sep);
-		indent = line.find(indent_sep);
+		indent = 0;
+		while (line[indent] == indent_sep)
+			indent++;;
 		line = remove_whitespaces(line);
-		if (indent == std::string::npos)
-			indent = -1;
-		if ((params[indent + 1] = parse_param(line, sep)) == "error")
+		if (*(params.insert(params.begin() + indent, parse_param(line, sep))) == "error")
 			return (false);
 		else if (!(set_param(line, params, indent)))
 			return (false);
-
-		// else if (indent == 0)
-		// {
-		// 	if (!(set_param_indent1(line, param)))
-		// 		return (false);
-		// }
 	}
 	return (true);
 }
@@ -53,6 +50,7 @@ std::string Conf::parse_param(std::string &line, const char sep) {
 
 	if ((found = line.find(sep)) != std::string::npos)
 		return (remove_whitespaces(line.substr(0, found)));
+	_error_message = "Missing separator";
 	return ("error");
 }
 
@@ -63,35 +61,17 @@ std::string Conf::parse_value(std::string &line, std::string param) {
 bool    Conf::set_param(std::string &line, std::vector<std::string> params, size_t indent) {
 	std::string value(parse_value(line, params[indent]));
 
-	if (params[0] == "server_name")
-		return (set_name(value));
-	else if (params[0] == "host")
-		return (set_host(value));
-	else if (params[0] == "port")
-		return (set_port(string_to_port(value)));
-	else if (params[0] == "error_pages")
-		return (true);
-	else if (params[0] == "client_body_size")
-		return (set_client_body_size(string_to_client_body_size(value)));
-	else if (params[0] == "methods")
-		return (set_methods(string_to_methods(value)));
-	else if (params[0] == "directory_listing")
-		return (set_dir_listing(string_to_dir_listing(value)));
-	else if (params[0] == "uploads")
-		return (set_upload_path(value));
-	else
-		return (false);
+	if (indent ==  0)
+		return (zero_indent(params[0], value));
+	else if (indent == 1)
+		return (one_indent(params, value));
+	else if (indent == 2)
+		return (two_indent(params, value));
+	else if (indent == 3)
+		return (three_indent(params, value));
+	_error_message = "Bad indentation";
+	return (false);
 }
-
-// bool	Conf::set_param_indent1(std::string &line, std::string param)
-// {
-// 	if (param == "error_pages")
-// 		return (add_error(string_to_error(line)));
-// 	else if (param == "routes")
-// 		return (true);
-// 	else
-// 		return (false);
-// }
 
 std::string	Conf::remove_comments(std::string &line, const char sep) {
 	size_t      found;
@@ -100,6 +80,77 @@ std::string	Conf::remove_comments(std::string &line, const char sep) {
 		return (line.substr(0, found));
 	else
 		return (line);
+}
+
+bool	Conf::zero_indent(std::string param, std::string value)
+{
+	if (param == "server_name")
+		return (set_name(value));
+	else if (param == "host")
+		return (set_host(value));
+	else if (param == "port")
+		return (set_port(string_to_port(value)));
+	else if (param == "client_body_size")
+		return (set_client_body_size(string_to_client_body_size(value)));
+	else if (param == "methods")
+		return (set_methods(string_to_methods(value)));
+	else if (param == "directory_listing")
+		return (set_dir_listing(string_to_dir_listing(value)));
+	else if (param == "uploads")
+		return (set_upload_path(value));
+	else if (param == "error_pages")
+		return (true);
+	else if (param == "routes")
+		return (true);
+	_error_message = "Invalid parameter";
+	return (false);
+}
+
+bool	Conf::one_indent(std::vector<std::string> params, std::string value)
+{
+	if (params[0] == "error_pages")
+		return (add_error(std::make_pair(string_to_code(params[1]), value)));
+	else if (params[0] == "routes")
+		return (add_route(string_to_route(params[1])));
+	_error_message = "Invalid parameter";
+	return (false);
+}
+
+bool	Conf::two_indent(std::vector<std::string> params, std::string value)
+{
+	if (params[0] == "routes")
+	{
+		Route	&target = _routes.back();
+		if (params[2] == "methods")
+			return (target.set_methods(string_to_methods(value)));
+		else if (params[2] == "root")
+			return (target.set_root(value));
+		else if (params[2] == "directory_listing")
+			return (target.set_dir_listing(string_to_dir_listing(value)));
+		else if (params[2] == "file")
+			return (target.set_file(value));
+		else if (params[2] == "uploads")
+			return (target.set_upload_path(value));
+		else if (params[2] == "redirections")
+			return (true);
+		else if (params[2] == "cgi")
+			return (true);
+	}
+	_error_message = "Invalid parameter";
+	return (false);
+}
+
+bool	Conf::three_indent(std::vector<std::string> params, std::string value) {
+	if (params[0] == "routes")
+	{
+		Route	&target = _routes.back();
+		if (params[2] == "redirections")
+			return (target.set_redir(std::make_pair(string_to_code(params[3]), value)));
+		else if (params[2] == "cgi")
+			return  (target.add_cgi(std::make_pair(params[3], value)));
+	}
+	_error_message = "Invalid parameter";
+	return (false);
 }
 
 bool is_whitespace (const char c) { 
@@ -114,26 +165,27 @@ std::string	Conf::remove_whitespaces(std::string s) {
 	return (s);
 }
 
-Conf::port_type   Conf::string_to_port(std::string value) {
+port_type   Conf::string_to_port(std::string value) {
+	if (value == "")
+		return (-1);
 	return (atoi(value.c_str()));
 }
 
-Conf::code_type     Conf::string_to_code(std::string value) {
+code_type     Conf::string_to_code(std::string value) {
+	if (value == "")
+		return (-1);
 	return (atoi(value.c_str()));
 }
 
-Conf::error_type    Conf::string_to_error(std::string value) {
-	const char  sep = ':';
-	std::string param(parse_param(value, sep));
-
-	return (std::make_pair(string_to_code(param), parse_value(value, param)));
+route_type    Conf::string_to_route(std::string value) {
+	return (Route(value, _methods, _dir_listing, _upload_path));
 }
 
 bool	isnotdigit(int c) {
 	return (!(std::isdigit(c)));
 }
 
-Conf::size_type		Conf::string_to_client_body_size(std::string value) {
+size_type		Conf::string_to_client_body_size(std::string value) {
 	std::string	scale = "MB";
 
 	std::string::iterator	end_pos = std::find_if(value.begin(), value.end(), isnotdigit);
@@ -148,7 +200,7 @@ Conf::size_type		Conf::string_to_client_body_size(std::string value) {
 	return (-1);
 }
 
-Conf::method_list	Conf::string_to_methods(std::string value) {
+method_list		Conf::string_to_methods(std::string value) {
 	const char	sep = ',';
 	size_t		start = 0;
 	size_t		end;
@@ -164,42 +216,54 @@ Conf::method_list	Conf::string_to_methods(std::string value) {
 	return (methods);
 }
 
-Conf::dir_listing_type	Conf::string_to_dir_listing(std::string value) {
+dir_listing_type	Conf::string_to_dir_listing(std::string value) {
 	if (value == "off")
 		return (0);
 	else if (value == "on")
 		return (1);
-	else
-		return (-1);
+	return (-1);
 }
 
 bool    Conf::set_name(name_type name) {
+	if (name == "")
+		return (set_error_message("Invalid value: name"));
 	_name = name;
-	return (true);
+	return (false);
 }
 
 bool    Conf::set_host(host_type host) {
+	if (host == "")
+		return (set_error_message("Invalid value: host"));
 	_host = host;
 	return (true);
 }
 
 bool        Conf::set_port(port_type port) {
+	if (port < 0)
+		return (set_error_message("Invalid value: port"));
 	_port = port;
 	return (true);
 }
+
 bool    Conf::add_error(error_type  error) {
+	if (error.first < 0)
+		return (set_error_message("Invalid parameter"));
+	else if (error.second == "")
+		return (set_error_message("Invaild value: error_pages"));
 	_error_pages.insert(error);
 	return (true);
 }
 
 bool	Conf::set_client_body_size(size_type client_body_size) {
 	if (client_body_size < 0)
-		return (false);
+		return (set_error_message("Invalid value: client_body_size"));
 	_client_body_size = client_body_size;
 	return (true);
 }
 
 bool	Conf::add_method(method_type method) {
+	if (!(method == "GET" || method == "POST" || method == "DELETE"))
+		return (set_error_message("Invalid value: methods"));
 	_methods.push_back(method);
 	return (true);
 }
@@ -213,13 +277,22 @@ bool	Conf::set_methods(method_list methods) {
 
 bool	Conf::set_dir_listing(dir_listing_type dir_listing) {
 	if (dir_listing < 0)
-		return (false);
+		return (set_error_message("Invalid value: directory_listing"));
 	_dir_listing = dir_listing;
 	return (true);
 }
 
 bool	Conf::set_upload_path(path_type upload_path) {
+	if (upload_path == "")
+		return(set_error_message("Invalid value: uploads"));
 	_upload_path = upload_path;
+	return (true);
+}
+
+bool	Conf::add_route(route_type route) {
+	if (route._errno)
+		return (set_error_message(route._error_message));
+	_routes.push_back(route);
 	return (true);
 }
 
@@ -241,5 +314,12 @@ void	Conf::print() {
 	std::cout << std::endl;
 	std::cout << "directory listing = " << _dir_listing << std::endl;
 	std::cout << "uploads = " << _upload_path << std::endl;
+	std::cout << "routes:" << std::endl;
+	for (route_list::iterator it = _routes.begin(); it != _routes.end(); it++)
+		(*it).print();
+}
 
+bool		Conf::set_error_message(std::string error_message) {
+	_error_message = error_message;
+	return (false);
 }

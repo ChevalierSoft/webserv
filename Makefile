@@ -25,7 +25,8 @@ SRCS_FILES	= \
 Client.cpp \
 main.cpp \
 Server.cpp \
-Conf.cpp
+Conf.cpp \
+Route.cpp
 
 all: $(NAME)
 
