@@ -1,14 +1,17 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ft_print_memory.h                                  :+:      :+:    :+:   */
+/*   ft_print_memory.hpp                                :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
+/*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/08/04 19:58:59 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/07 03:57:35 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/18 17:58:50 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
+#ifndef _FT_PRINT_MEMORY_HPP
+# define _FT_PRINT_MEMORY_HPP
 
 #pragma once
 
@@ -23,7 +26,7 @@
 # define FTPM_BBLK	"\x1B[0;40m"
 # define FTPM_RST	"\x1B[0m"
 
-void	*ft_print_memory(void *addr, size_t size);
+// void	*ft_print_memory(void *addr, size_t size);
 
 static
 void	ft_pm_print_color(std::string &mem, const char *color, std::string content)
@@ -176,3 +179,5 @@ void	*ft_print_memory(void *addr, size_t size)
 	std::cout << mem;
 	return (addr);
 }
+
+#endif
