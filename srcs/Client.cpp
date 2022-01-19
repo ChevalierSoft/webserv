@@ -3,14 +3,15 @@
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
+/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/18 18:40:51 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/01/19 15:55:43 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Client.hpp"
+#include "webserv.hpp"
 #include <sys/time.h>
 
 /**
@@ -78,7 +79,14 @@ bool		Client::parse_and_generate_response ()
 
 	std::cout << GRN << "  parse_and_generate_response" << RST << std::endl;
 
-	this->_response.append_buffer("HTTP/1.1 200 OK\r\nDate: Tue, 24 Aug 2021 06:20:56 WEST\r\nServer: webserv:42 (popOS)\r\nLast-Modified: Wed, 24 Aug 2021 06:20:56 WEST\r\nContent-Length: 120\r\nContent-Type: text/html\r\nConnection: Closed\r\n\r\n<html>\r\n<body>\r\n<h1>peepowidehappy</h1>\r\n</body>\r\n<img src='https://cdn.frankerfacez.com/emoticon/359928/2'/>\r\n</html>\r\n");
+
+	// std::cout <<CYN << this->_request._path <<RST<< std::endl;
+
+	std::string	root = "/mnt/nfs/homes/dait-atm/Git/webserv/";
+	this->_response.append_buffer(directory_listing(root, this->_request._path).c_str());
+
+
+	// this->_response.append_buffer("HTTP/1.1 200 OK\r\nDate: Tue, 24 Aug 2021 06:20:56 WEST\r\nServer: webserv:42 (popOS)\r\nLast-Modified: Wed, 24 Aug 2021 06:20:56 WEST\r\nContent-Length: 120\r\nContent-Type: text/html\r\nConnection: Closed\r\n\r\n<html>\r\n<body>\r\n<h1>peepowidehappy</h1>\r\n</body>\r\n<img src='https://cdn.frankerfacez.com/emoticon/359928/2'/>\r\n</html>\r\n");
 	// ? response if for the time being default
 	// while ((end_of_response = this->_response.update_header()) == 0);
 	// if (end_of_response == 2)
@@ -86,11 +94,11 @@ bool		Client::parse_and_generate_response ()
 	// if (!this->response_generated){
 		// while ((end_of_response = this->_response.update_body()) == 1);
 		// if (end_of_response == 2)
-		// 	this->response_generated = true;
+	this->response_generated = true;
 	// }
 	this->_it_chunk = this->_response.begin_header();
 	// std::cout << RED << "TEST :" << (*(this->_it_chunk)).second << std::endl;
-	return (false);
+	return (true);
 }
 
 /**
@@ -115,14 +123,14 @@ bool		Client::send_response (int sd_out)
 		return (true);
 	}
 	// ? Setting generated response to false after each send for now
-	this->response_generated = false;
+	this->response_generated = true;
 
-	// ? get to the next output message chunk
-	++this->_it_chunk;
-	if (this->_it_chunk == this->_response.end_header())
-		return (true);
+	// // ? get to the next output message chunk
+	// ++this->_it_chunk;
+	// if (this->_it_chunk == this->_response.end_header())
+	// 	return (true);
 
-	return (false);
+	return (true);
 }
 
 /**
