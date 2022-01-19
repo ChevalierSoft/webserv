@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/18 15:31:48 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/18 17:01:10 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/19 06:09:59 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,15 +17,23 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <string>
+#include <cstring>
 
 #include "ft_to_string.hpp"
 
+/**
+ * @brief generic response for error 403
+ * 
+ * @param fd client fd
+ * @return false 
+ */
 bool	send_403 (int fd)
 {
 	std::cerr << "send 403 page" << std::endl;
 	std::string	page;
 
-	page = "HTTP/1.1 403 OK\r\n";
+	page = "HTTP/1.1 403 Forbiden\r\n";
 	page += "webser:42\r\n\r\nContent-Length: 20\r\nContent-Type: text/html\r\nConnection: Closed\r\n\r\n";
 	page += "<html><h1>403</h1>\r\n";
 	write(fd, page.c_str(), page.size());
@@ -51,16 +59,46 @@ bool	directory_listing (int fd, const char *path, const char *client_path)
 	if (dir == NULL)
 		return (send_403(fd));
 
-
 	while ((entry = readdir(dir)) != NULL)
 	{
-		body += "<p><li><a href=\"";
-		body += path;				// ? when used localy
-		// body += client_path;		// ? when used through webserv to hide the real location
-		body += entry->d_name;
-		body += "\">";
-		body += entry->d_name;
-		body += "</a></p>";
+		if (!strcmp(entry->d_name, "."))
+			;
+		else if (!strcmp(entry->d_name, ".."))
+		{
+			body += "<p><li><a href=\"";
+			body += path;				// ? when used localy
+			// body += client_path;		// ? when used through webserv to hide the real location
+			body += "/..\">⬆️ Parent directory</a></li></p>";
+		}
+		else
+		{
+			body += "<p><li><a href=\"";
+			body += path;				// ? when used localy
+			// body += client_path;		// ? when used through webserv to hide the real location
+			body += entry->d_name;
+			body += "\">";
+
+			if (entry->d_type == DT_REG)
+				body += "📄 ";
+			else if (entry->d_type == DT_DIR)
+				body += "📂 ";
+			else if (entry->d_type == DT_BLK)
+				body += "💿 ";
+			else if (entry->d_type == DT_CHR)
+				body += "⌨️ ";
+			else if (entry->d_type == DT_FIFO)
+				body += "🧪 ";
+			else if (entry->d_type == DT_LNK)
+				body += "↪️ ";
+			else if (entry->d_type == DT_SOCK)
+				body += "⚗️ ";
+			else
+				body += "❔ ";
+			body += entry->d_name;
+
+			body += "</a></p>";
+		}
+		
 	}
 
 	body += "<p>Webserv 42 oui</p>";
