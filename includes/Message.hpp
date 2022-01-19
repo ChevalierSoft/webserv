@@ -22,7 +22,6 @@ protected:
 
 	std::string							_buffer; // internal buffer to keep track of packets
 	size_t								_line_index; // index that lets me know current line in request
-	bool								_empty_line;
 
 public:
 	std::string							_method; // from header first line
@@ -33,7 +32,7 @@ public:
 	typedef std::pair<std::string, std::string>					value_type;
 	typedef std::map<std::string, std::string>::const_iterator	it_chunk;
 	
-	Message(void) : _line_index(0), _empty_line(false), _in_header(true) {}
+	Message(void) : _line_index(0), _in_header(true) {}
 
 	virtual ~Message(void) {}
 	
@@ -98,12 +97,8 @@ public:
 		else if (found_newline != _buffer.npos) {
 			_buffer.erase(_buffer.begin(), _buffer.begin() + found_newline + 2);
 			_line_index++;
-			if (_buffer.size() == 0) {
-				// _empty_line = false;
+			if (_buffer.empty())
 				_in_header = false;
-			}
-			else if (_buffer.size() == 0)
-				_empty_line = true;
 		}
 		return (1);
 	}
@@ -116,7 +111,6 @@ public:
 		_path.clear();
 		_http_version.clear();
 		_line_index = 0;
-		_empty_line = false;
 		_in_header = true;
 	}
 
@@ -129,19 +123,9 @@ public:
 	 */
 	int		update_body() {
 		int			found_newline;
-		int			found_eof;
 		std::string	new_str;
 
 		found_newline = _buffer.find("\r\n");
-		found_eof = _buffer.find("\r\n\r\n");
-		std::cout << "checking body" << std::endl;
-		// if (found_eof != _buffer.npos && found_eof <= found_newline) {
-		// 	new_str = std::string(_buffer.begin(), _buffer.begin() + found_eof);
-		// 	_body.push_back(new_str);
-		// 	_line_index = 0;
-		// 	_buffer.clear();
-		// 	return (2);
-		// }
 		if (found_newline != _buffer.npos && found_newline > 0) {
 			new_str = std::string(_buffer.begin(), _buffer.begin() + found_newline);
 			_body.push_back(new_str);
@@ -149,9 +133,8 @@ public:
 			_line_index++;
 			return (1);
 		}
-		else if (found_newline != _buffer.npos) {
+		else if (found_newline != _buffer.npos)
 			return (2);
-		}
 		return (0);
 	}
 
@@ -177,9 +160,6 @@ public:
 		_path = std::string(it_begin_path, it_end_path);
 		_http_version = std::string(it_end_path + 1, _buffer.begin() + found_newline);
 		_buffer.erase(_buffer.begin(), _buffer.begin() + found_newline + 2);
-		// std::cout << "method : " << GRN << _method << RST << std::endl;
-		// std::cout << "path : " << GRN << _path << RST << std::endl;
-		// std::cout << "http_version : " << GRN << _http_version << RST << std::endl;
 		_line_index++;
 		return (0);
 	}

@@ -6,7 +6,7 @@
 /*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/19 17:59:24 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/01/19 18:46:22 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -151,9 +151,12 @@ void		Client::add_input_buffer (const char *buffer, int len)
 	this->_request.append_buffer(std::string(buffer, len));
 	std::cout << GRN << "AFTER APPEND" << std::endl;
 	ft_print_memory((void *)(_request.get_buffer().c_str()), _request.get_buffer().size());
-	std::cout << (_request._in_header == true ? "In header" : "In body") << std::endl;
 	while (this->_request._in_header && (end_of_request = this->_request.update_header()) == 0);
 
+	if (!this->_request._in_header && this->_request._method != "POST") {
+		this->response_generated = true;
+		end_of_request = 2;
+	}
 	if (!this->response_generated && !this->_request._in_header)
 		while ((end_of_request = this->_request.update_body()) == 1);
 	
