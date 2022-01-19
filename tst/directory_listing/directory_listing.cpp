@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/18 15:31:48 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/19 13:58:18 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/19 14:03:29 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,6 +64,7 @@ bool	directory_listing (int fd, const char *path, const char *client_path)
 	body += "<style>\r\n";
 	body += "	header { width: 100%; background-color: #000; display: inline-block; color: #fff; text-align: center; position: relative; top:0px; overflow: hidden!important;}\r\n";
 	body += "	body   { width: 100%; background-color: #222; color: #fff; margin: 0; }\r\n";
+	body += "	ul     { margin-top: 5%; }";
 	body += "	li     { margin-left: 20%; }\r\n";
 	body += "	a      { color: cyan; }\r\n";
 	body += "	footer { width: 100%; background-color: #000; color: #fff; height: 50px; position:absolute; bottom: 0; text-align: center; display: inline-block;}\r\n";
