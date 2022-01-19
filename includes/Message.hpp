@@ -28,17 +28,18 @@ public:
 	std::string							_method; // from header first line
 	std::string							_path; // from header first line
 	std::string							_http_version; // from header first line
+	bool								_in_header;
 	
 	typedef std::pair<std::string, std::string>					value_type;
 	typedef std::map<std::string, std::string>::const_iterator	it_chunk;
 	
-	Message(void) : _line_index(0), _empty_line(false) {}
+	Message(void) : _line_index(0), _empty_line(false), _in_header(true) {}
 
 	virtual ~Message(void) {}
 	
-	Message(const Message & src) {}
+	Message(const Message & src) {} // !
 	
-	Message &	operator=(const Message & src) {
+	Message &	operator=(const Message & src) { // !
 		return *this;
 	}
 
@@ -81,15 +82,10 @@ public:
 	 * @return -1 for errors
 	 */
 	int		update_header() {
-		size_t		found_body;
 		size_t		found_newline;
 		std::string	new_str;
 
-		found_body = _buffer.find("\r\n\r\n");
 		found_newline = _buffer.find("\r\n");
-		// std::cout << GRN << "header" << RST << std::endl;
-		// ft_print_memory((void *)(_buffer.c_str()), _buffer.size());
-		// std::cout << std::endl;
 		if (_line_index == 0 && found_newline != _buffer.npos && found_newline > 0)
 			return (get_first_line(found_newline));
 		else if (found_newline != _buffer.npos && found_newline > 0) {
@@ -102,11 +98,12 @@ public:
 		else if (found_newline != _buffer.npos) {
 			_buffer.erase(_buffer.begin(), _buffer.begin() + found_newline + 2);
 			_line_index++;
-			if (_buffer.size() == 0 && _empty_line == true)
-				return (2);
+			if (_buffer.size() == 0) {
+				// _empty_line = false;
+				_in_header = false;
+			}
 			else if (_buffer.size() == 0)
 				_empty_line = true;
-			return (1);
 		}
 		return (1);
 	}
@@ -120,6 +117,7 @@ public:
 		_http_version.clear();
 		_line_index = 0;
 		_empty_line = false;
+		_in_header = true;
 	}
 
 	/**
@@ -136,23 +134,23 @@ public:
 
 		found_newline = _buffer.find("\r\n");
 		found_eof = _buffer.find("\r\n\r\n");
-		// std::cout << GRN << "body" << RST << std::endl;
-		// ft_print_memory((void *)(_buffer.c_str()), _buffer.size());
-		// std::cout << std::endl;
-		// std::cout << RED << (found_eof == _buffer.npos ? "eof not found" : "found") << RST << std::endl;
-		if (found_eof != _buffer.npos && found_eof <= found_newline) {
-			new_str = std::string(_buffer.begin(), _buffer.begin() + found_eof);
-			_body.push_back(new_str);
-			_line_index = 0;
-			_buffer.clear();
-			return (2);
-		}
-		else if (found_newline != _buffer.npos && found_newline > 0) {
+		std::cout << "checking body" << std::endl;
+		// if (found_eof != _buffer.npos && found_eof <= found_newline) {
+		// 	new_str = std::string(_buffer.begin(), _buffer.begin() + found_eof);
+		// 	_body.push_back(new_str);
+		// 	_line_index = 0;
+		// 	_buffer.clear();
+		// 	return (2);
+		// }
+		if (found_newline != _buffer.npos && found_newline > 0) {
 			new_str = std::string(_buffer.begin(), _buffer.begin() + found_newline);
 			_body.push_back(new_str);
-			_buffer.erase(_buffer.begin(), _buffer.begin() + found_newline);
+			_buffer.erase(_buffer.begin(), _buffer.begin() + found_newline + 2);
 			_line_index++;
 			return (1);
+		}
+		else if (found_newline != _buffer.npos) {
+			return (2);
 		}
 		return (0);
 	}
@@ -197,6 +195,10 @@ public:
 
 	std::vector<std::string>::iterator	begin_body() {
 		return (_body.begin());
+	}
+
+	std::vector<std::string>::iterator	end_body() {
+		return (_body.end());
 	}
 
 	/**

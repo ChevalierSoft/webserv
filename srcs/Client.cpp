@@ -6,7 +6,7 @@
 /*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/19 17:16:00 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/01/19 17:59:24 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -151,22 +151,26 @@ void		Client::add_input_buffer (const char *buffer, int len)
 	this->_request.append_buffer(std::string(buffer, len));
 	std::cout << GRN << "AFTER APPEND" << std::endl;
 	ft_print_memory((void *)(_request.get_buffer().c_str()), _request.get_buffer().size());
-	while ((end_of_request = this->_request.update_header()) == 0);
+	std::cout << (_request._in_header == true ? "In header" : "In body") << std::endl;
+	while (this->_request._in_header && (end_of_request = this->_request.update_header()) == 0);
+
+	if (!this->response_generated && !this->_request._in_header)
+		while ((end_of_request = this->_request.update_body()) == 1);
+	
 	if (end_of_request == 2) {
 		// ? to output contents of map header
 		this->_it_chunk = this->_request.begin_header();
+		std::cout << GRN << "HEADER" << RST << std::endl;
 		std::cout << RED << "Method: " << this->_request._method << RST << std::endl;
 		std::cout << RED << "path: " << this->_request._path << RST << std::endl;
 		std::cout << RED << "http-version: " << this->_request._http_version << RST << std::endl;
 		for (; _it_chunk != this->_request.end_header(); _it_chunk++)
 			std::cout << RED << (*(_it_chunk)).first << ": " << (*(_it_chunk)).second << RST << std::endl;
+		std::vector<std::string>::iterator it_test = this->_request.begin_body();
+		std::cout << GRN << "BODY" << RST << std::endl;
+		for (; it_test != this->_request.end_body(); it_test++)
+			std::cout << RED << *it_test << RST << std::endl;
 		this->response_generated = true;
-	}
-
-	if (!this->response_generated){
-		while ((end_of_request = this->_request.update_body()) == 1);
-		if (end_of_request == 2)
-			this->response_generated = true;
 	}
 }
 
