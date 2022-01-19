@@ -8,14 +8,11 @@
 
 void	*ft_print_memory(void *addr, size_t size);
 
-enum methods {
-	GET,
-	POST,
-	DELETE
-};
-
 // TODO handle errors from requests
 // TODO is a line correct ? (first line is method, path, and http version ; rest of header is "key: value")
+// ? Message syntax
+// ? http-version : two digits separated by a period '.'
+// 
 
 class Message {
 
@@ -27,20 +24,21 @@ protected:
 	size_t								_line_index; // index that lets me know current line in request
 
 public:
-	int									_method; // from header first line
+	std::string							_method; // from header first line
 	std::string							_path; // from header first line
 	std::string							_http_version; // from header first line
+	bool								_in_header;
 	
 	typedef std::pair<std::string, std::string>					value_type;
 	typedef std::map<std::string, std::string>::const_iterator	it_chunk;
 	
-	Message(void) : _line_index(0) {}
+	Message(void) : _line_index(0), _in_header(true) {}
 
 	virtual ~Message(void) {}
 	
-	Message(const Message & src) {}
+	Message(const Message & src) {} // !
 	
-	Message &	operator=(const Message & src) {
+	Message &	operator=(const Message & src) { // !
 		return *this;
 	}
 
@@ -66,7 +64,6 @@ public:
 
 		if ((found = str.find(":")) != str.npos) {
 			ret = value_type(std::string(str.begin(), str.begin() + found), std::string(str.begin() + found + 2, str.end()));
-			// std::cout << "header : " << GRN << ret.first << ": " << ret.second << RST << std::endl;
 		}
 		return ret;
 	}
@@ -84,34 +81,37 @@ public:
 	 * @return -1 for errors
 	 */
 	int		update_header() {
-		size_t		found_body;
 		size_t		found_newline;
 		std::string	new_str;
 
-		found_body = _buffer.find("\r\n\r\n");
 		found_newline = _buffer.find("\r\n");
-		// std::cout << GRN << "header" << RST << std::endl;
-		// ft_print_memory((void *)(_buffer.c_str()), _buffer.size());
-		// std::cout << std::endl;
-		if (_line_index == 0 && found_newline != _buffer.npos)
+		if (_line_index == 0 && found_newline != _buffer.npos && found_newline > 0)
 			return (get_first_line(found_newline));
-		else if (found_body != _buffer.npos && found_body <= found_newline) {
-			new_str = std::string(_buffer.begin(), _buffer.begin() + found_body);
-			_header.insert(split_buffer(new_str));
-			_buffer.erase(_buffer.begin(), _buffer.begin() + found_body + 4);
-			_line_index += 2;
-			if (_buffer.at(0) == '\0')
-				return (2);
-			return (1);
-		}
-		else if (found_newline != _buffer.npos) {
+		else if (found_newline != _buffer.npos && found_newline > 0) {
 			new_str = std::string(_buffer.begin(), _buffer.begin() + found_newline);
 			_header.insert(split_buffer(new_str));
 			_buffer.erase(_buffer.begin(), _buffer.begin() + found_newline + 2);
 			_line_index++;
 			return (0);
 		}
+		else if (found_newline != _buffer.npos) {
+			_buffer.erase(_buffer.begin(), _buffer.begin() + found_newline + 2);
+			_line_index++;
+			if (_buffer.empty())
+				_in_header = false;
+		}
 		return (1);
+	}
+
+	void	clear() {
+		_header.clear();
+		_body.clear();
+		_buffer.clear();
+		_method.clear();
+		_path.clear();
+		_http_version.clear();
+		_line_index = 0;
+		_in_header = true;
 	}
 
 	/**
@@ -123,29 +123,18 @@ public:
 	 */
 	int		update_body() {
 		int			found_newline;
-		int			found_eof;
 		std::string	new_str;
 
 		found_newline = _buffer.find("\r\n");
-		found_eof = _buffer.find("\r\n\r\n");
-		// std::cout << GRN << "body" << RST << std::endl;
-		// ft_print_memory((void *)(_buffer.c_str()), _buffer.size());
-		// std::cout << std::endl;
-		// std::cout << RED << (found_eof == _buffer.npos ? "eof not found" : "found") << RST << std::endl;
-		if (found_eof != _buffer.npos && found_eof <= found_newline) {
-			new_str = std::string(_buffer.begin(), _buffer.begin() + found_eof);
-			_body.push_back(new_str);
-			_line_index = 0;
-			_buffer.clear();
-			return (2);
-		}
-		else if (found_newline != _buffer.npos) {
+		if (found_newline != _buffer.npos && found_newline > 0) {
 			new_str = std::string(_buffer.begin(), _buffer.begin() + found_newline);
 			_body.push_back(new_str);
 			_buffer.erase(_buffer.begin(), _buffer.begin() + found_newline + 2);
 			_line_index++;
 			return (1);
 		}
+		else if (found_newline != _buffer.npos)
+			return (2);
 		return (0);
 	}
 
@@ -153,11 +142,11 @@ public:
 		size_t		found_info;
 
 		if ((found_info = _buffer.find("GET") != _buffer.npos))
-			_method = GET;
+			_method = "GET";
 		else if ((found_info = _buffer.find("POST")) != _buffer.npos)
-			_method = POST;
+			_method = "POST";
 		else if ((found_info = _buffer.find("DELETE")) != _buffer.npos)
-			_method = DELETE;
+			_method = "DELETE";
 		else
 			return (-1);
 		// need to get path by splitting line by spaces
@@ -171,9 +160,6 @@ public:
 		_path = std::string(it_begin_path, it_end_path);
 		_http_version = std::string(it_end_path + 1, _buffer.begin() + found_newline);
 		_buffer.erase(_buffer.begin(), _buffer.begin() + found_newline + 2);
-		// std::cout << "method : " << GRN << _method << RST << std::endl;
-		// std::cout << "path : " << GRN << _path << RST << std::endl;
-		// std::cout << "http_version : " << GRN << _http_version << RST << std::endl;
 		_line_index++;
 		return (0);
 	}
@@ -185,6 +171,14 @@ public:
 	 */
 	it_chunk	begin_header() {
 		return (_header.begin());
+	}
+
+	std::vector<std::string>::iterator	begin_body() {
+		return (_body.begin());
+	}
+
+	std::vector<std::string>::iterator	end_body() {
+		return (_body.end());
 	}
 
 	/**

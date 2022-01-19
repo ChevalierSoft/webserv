@@ -6,7 +6,7 @@
 /*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/18 17:58:29 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/01/19 17:06:13 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -226,11 +226,12 @@ bool			Server::record_client_input (const int &i)
 	// }
 
 	buffer[rc] = '\0';										// ? closing the char array
-	clients[_fds[i].fd].add_input_buffer(buffer, rc + 1);	// ? store the buffer
-
 	// ? debug
 	std::cout << YEL << "  " << rc << " bytes received : " << RST << std::endl;
 	ft_print_memory(buffer, rc);
+	
+	clients[_fds[i].fd].add_input_buffer(buffer, rc);	// ? store the buffer
+
 	// std::cout << "[" << GRN << buffer << RST << "]" << std::endl;
 
 	if (clients[_fds[i].fd].is_output_ready() == false)
