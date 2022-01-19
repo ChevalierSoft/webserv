@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/18 15:31:48 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/19 06:09:59 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/19 13:58:18 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,6 +59,20 @@ bool	directory_listing (int fd, const char *path, const char *client_path)
 	if (dir == NULL)
 		return (send_403(fd));
 
+	body += "<!DOCTYPE html>\r\n";
+	body += "<html>";
+	body += "<style>\r\n";
+	body += "	header { width: 100%; background-color: #000; display: inline-block; color: #fff; text-align: center; position: relative; top:0px; overflow: hidden!important;}\r\n";
+	body += "	body   { width: 100%; background-color: #222; color: #fff; margin: 0; }\r\n";
+	body += "	li     { margin-left: 20%; }\r\n";
+	body += "	a      { color: cyan; }\r\n";
+	body += "	footer { width: 100%; background-color: #000; color: #fff; height: 50px; position:absolute; bottom: 0; text-align: center; display: inline-block;}\r\n";
+	body += "</style>\r\n";
+	body += "<body>\r\n";
+	body += "<header>\r\n	<h2>Index of ";
+	body += client_path;
+	body += "</h2>\r\n</header>\r\n<ul>";
+
 	while ((entry = readdir(dir)) != NULL)
 	{
 		if (!strcmp(entry->d_name, "."))
@@ -96,12 +110,11 @@ bool	directory_listing (int fd, const char *path, const char *client_path)
 				body += "❔ ";
 			body += entry->d_name;
 
-			body += "</a></p>";
-		}
-		
+			body += "</a></li></p>\r\n";
+		}	
 	}
 
-	body += "<p>Webserv 42 oui</p>";
+	body += "</ul><footer>Webserv 42 oui</footer>\r\n</body>\r\n</html>\r\n";	// ? footer + </html>
 
 	header = "HTTP/1.1 200 OK\r\n";
 	header += "webser:42\r\nContent-Length: ";
@@ -119,8 +132,11 @@ bool	directory_listing (int fd, const char *path, const char *client_path)
 
 int main (void)
 {
-	int fd;
+	int		fd;
+	bool	err;
 
 	fd = open("index.html", O_CREAT | O_WRONLY, 0666);
-	return (directory_listing(fd, "../../", "/"));
+	err = directory_listing(fd, "../../", "/");
+	close(fd);
+	return (err);
 }
