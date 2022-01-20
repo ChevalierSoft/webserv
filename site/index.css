@@ -1,0 +1,17 @@
+html
+{
+	background-color: black;
+	color: blanchedalmond;
+	width: 100%;
+	text-align: center;
+}
+
+table, th, td
+{
+	border:1px solid pink;
+}
+
+a
+{
+	color:rgb(255, 0, 0);
+}
