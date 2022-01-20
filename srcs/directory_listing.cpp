@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/19 15:02:13 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/20 08:38:23 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/20 09:05:35 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,20 +52,21 @@ std::string		send_403 ()
  */
 std::string		directory_listing (std::string root, std::string root_path)	// , const char *client_path)
 {
-	struct dirent	*entry = 0;
-	DIR				*dir = 0;
+	struct dirent	*entry;
+	DIR				*dir;
 	std::string		page = "";
 	std::string		body = "";
-
-
-	std::cout << "root : " << root << std::endl;
-	std::cout << "path : " << root_path << std::endl;
-	std::cout << (root + root_path).c_str() << std::endl;
+	std::string		tmp;
 
 	// TODO : check if the given root in the config file have a '/' at the end 
 
 	if (root_path[root_path.length() - 1] != '/')			// ? ensuring there is a '/' at the end
 		root_path += "/";
+
+	// ? DEBUG
+	// std::cout << "root : " << root << std::endl;
+	// std::cout << "path : " << root_path << std::endl;
+	// std::cout << (root + root_path).c_str() << std::endl;
 
 	dir = opendir((root + root_path).c_str());
 
@@ -95,15 +96,20 @@ std::string		directory_listing (std::string root, std::string root_path)	// , co
 			;
 		else if (!strcmp(entry->d_name, ".."))
 		{
-			body += "<li><a href=\"";
-			body += root_path;				// ? client_path should be used 
-			body += "/..\">⬆️ Parent directory</a></li>";
+			body += "<li><a href=\"";			
+			// body += std::filesystem::path("foo/bar").remove_filename();	// ? c++17
+			tmp = root_path;				// TODO : client_path should be used
+			tmp[tmp.rfind('/')] = '\0';
+			tmp[tmp.rfind('/')] = '\0';
+			if (tmp.empty() || tmp[0] == '\0')
+				tmp = "/";
+			body += tmp.c_str();
+			body += "\">⬆️ Parent directory</a></li>";
 		}
 		else
 		{
 			body += "<li><a href=\"";
-			body += root_path;				// ? should use client friendly path
-			// body += "/";
+			body += root_path;				// TODO : client_path should be used
 			body += entry->d_name;
 			body += "\">";
 
