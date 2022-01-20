@@ -6,6 +6,7 @@
 # include <vector>
 # include "Conf.hpp"
 
+class Conf;
 /* Conf Class*/
 typedef std::string                     name_type;
 typedef std::string                     host_type;

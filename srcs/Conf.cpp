@@ -9,17 +9,27 @@
 
 Conf::Conf(): _err(0) {}
 
-Conf::Conf(file_type conf_file): _err(0) {
-	std::ifstream ifs(conf_file.c_str(), std::ifstream::in);
+Conf::~Conf() {}
 
-	_err |= !(ifs.is_open());
-	if (!_err)
-		_err |= !parse_file(ifs);
-	else
-		_error_message = "File not found";
+Conf	&Conf::operator=(Conf const &rhs) {
+	_name = rhs._name;
+	_host = rhs._host;
+	_port = rhs._port;
+	_error_pages = rhs._error_pages;
+	_client_body_size = rhs._client_body_size;
+	_methods = rhs._methods;
+	_dir_listing = rhs._dir_listing;
+	_upload_path = rhs._upload_path;
+	_routes = rhs._routes;
+	_error_message = rhs._error_message;
+	_err = rhs._err;
+
+	return (*this);
 }
 
-Conf::~Conf() {}
+Conf::Conf(Conf const &copy) {
+	*this = copy;
+}
 
 port_type   Conf::string_to_port(std::string value) {
 	if (value == "")

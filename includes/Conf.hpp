@@ -36,21 +36,11 @@ class Conf {
 		std::string			_error_message;
 		bool				_err;
 
-	private:
-
-		bool                            parse_file(std::ifstream &ifs);
-		std::string                     parse_param(std::string &line, const char sep);
-		std::string                     parse_value(std::string &line,std::string param);
-		bool                            set_param(std::string &line, std::vector<std::string> param, size_t indent);
-
-		bool							zero_indent(std::string	param, std::string value);
-		bool							one_indent(std::vector<std::string> params, std::string value);
-		bool							two_indent(std::vector<std::string> params, std::string value);
-		bool							three_indent(std::vector<std::string> params, std::string value);
-
-		std::string						remove_comments(std::string &line, const char sep);
-		std::string						remove_whitespaces(std::string line);
-
+		Conf();
+		Conf(file_type  conf_file);
+		Conf(Conf const &copy);
+		Conf &operator=(Conf const & rhs);
+		~Conf();
 
 		port_type                       string_to_port(std::string value);
 		code_type                       string_to_code(std::string value);
@@ -59,14 +49,7 @@ class Conf {
 		method_list						string_to_methods(std::string value);
 		dir_listing_type				string_to_dir_listing(std::string value);
 		route_type    					string_to_route(std::string value);
-		
-	public:
-		Conf();
-		Conf(file_type  conf_file);
-		Conf(Conf &copy);
-		Conf &operator=(Conf & rhs) const;
-		~Conf();
-
+	
 		bool        set_name(name_type name);
 		bool        set_host(host_type host);
 		bool        set_port(port_type port);

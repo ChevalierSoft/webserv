@@ -11,6 +11,8 @@ Parser::Parser(file_type conf_file): _err(0) {
 		    _error_message = "File not found";
 }
 
+Parser::~Parser() {}
+
 bool    Parser::parse_file(std::ifstream &ifs) {
 	sep_type  		sep = ':', comment_sep = '#', indent_sep = '\t';
 	line_type		line;
@@ -18,12 +20,14 @@ bool    Parser::parse_file(std::ifstream &ifs) {
 	indent_type		indent;
 	bool			b = 1;
 	
-	while (std::getline(ifs, line).good())
+	while (b)
 	{
 		Conf	c;
 		_confs.push_back(c);
-		while (line != "" && std::getline(ifs, line).good())
+		b = std::getline(ifs, line).good();
+		while (line != "" && b)
 		{
+			// std::cout << "line = " << std::endl;
 			line = remove_comments(line, comment_sep);
 			indent = 0;
 			while (line[indent] == indent_sep)
@@ -36,6 +40,7 @@ bool    Parser::parse_file(std::ifstream &ifs) {
 				_error_message = c._error_message;
 				return (false);
 			}
+			b = std::getline(ifs, line).good();
 		}
 	}
 	return (true);
@@ -157,7 +162,7 @@ bool	Parser::three_indent(std::vector<std::string> params, std::string value) {
 	return (false);
 }
 
-bool	Parser::is_whitespace (const char c) { 
+bool	is_whitespace (const char c) { 
 	return (c == ' ' || c == '\t'); 
 }
 

@@ -23,10 +23,11 @@ OBJS		= $(patsubst %.cpp,objs/%.o, $(SRCS_FILES))
 DEPENDS		= $(patsubst %.cpp,objs/%.d, $(SRCS_FILES))
 SRCS_FILES	= \
 Client.cpp \
-main.cpp \
-Server.cpp \
 Conf.cpp \
-Route.cpp
+main.cpp \
+Parser.cpp \
+Route.cpp \
+Server.cpp
 
 all: $(NAME)
 

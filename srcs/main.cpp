@@ -16,10 +16,13 @@ int main(int argc, char **argv)
 	// signal(SIGINT, &sighandler);	// making it easy to close the program
 	// signal(SIGQUIT, &sighandler);
 	
-	
-	run = !c._err;
+	Parser	p("tst/conf/webserv.conf");
+	run = !p._err;
+	// for (conf_list::iterator it = p._confs.begin(); it != p._confs.end(); it++)
+	// 	(*it).print();
 	if (run == false)
-		std::cerr << "Error: " << c._error_message << std::endl;
+		std::cerr << "Error: " << p._error_message << std::endl;
+
 	else
 	{
 		// TODO (1) parse the config file (default or provided) and feed a list of object with the configurations
