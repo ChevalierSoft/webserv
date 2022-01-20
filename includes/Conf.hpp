@@ -34,10 +34,9 @@ class Conf {
 		route_list			_routes;
 
 		std::string			_error_message;
-		bool				_errno;
+		bool				_err;
 
 	private:
-		Conf();
 
 		bool                            parse_file(std::ifstream &ifs);
 		std::string                     parse_param(std::string &line, const char sep);
@@ -62,7 +61,10 @@ class Conf {
 		route_type    					string_to_route(std::string value);
 		
 	public:
+		Conf();
 		Conf(file_type  conf_file);
+		Conf(Conf &copy);
+		Conf &operator=(Conf & rhs) const;
 		~Conf();
 
 		bool        set_name(name_type name);

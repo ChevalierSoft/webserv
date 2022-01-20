@@ -23,7 +23,7 @@ class Route {
         cgi_list			_cgis;
 
 		std::string			_error_message;
-		bool				_errno;
+		bool				_err;
 
         Route(const path_type path, method_list methods, dir_listing_type dir_listing, path_type upload_path);
         Route(Route const &copy);

@@ -4,6 +4,7 @@
 # include <string>
 # include <map>
 # include <vector>
+# include "Conf.hpp"
 
 /* Conf Class*/
 typedef std::string                     name_type;
@@ -27,5 +28,14 @@ typedef std::string                      error_message_type;
 typedef std::pair<code_type, path_type>	redir_type;
 typedef std::pair<name_type, path_type> cgi_type;
 typedef std::map<name_type, path_type>	cgi_list;
+
+/*Parser Class*/
+typedef const char                  sep_type;
+typedef std::string                 line_type;
+typedef std::string                 param_type;
+typedef std::vector<std::string>    param_list;
+typedef size_t                      indent_type;
+typedef Conf                        conf_type;
+typedef std::vector<Conf>            conf_list;
 
 #endif
