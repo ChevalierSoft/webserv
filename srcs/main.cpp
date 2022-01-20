@@ -13,8 +13,8 @@ int main(int argc, char **argv)
 {
 	int	err;
 
-	// signal(SIGINT, &sighandler);	// making it easy to close the program
-	// signal(SIGQUIT, &sighandler);
+	signal(SIGINT, &sighandler);	// making it easy to close the program
+	signal(SIGQUIT, &sighandler);
 	
 	Parser	p("tst/conf/webserv.conf");
 	run = !p._err;
