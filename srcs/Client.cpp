@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/20 05:21:12 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/20 08:04:44 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,7 +82,8 @@ bool		Client::parse_and_generate_response ()
 
 	// std::cout <<CYN << this->_request._path <<RST<< std::endl;
 
-	std::string	root = "/mnt/nfs/homes/dait-atm/Git/webserv/";
+	std::string	root = ".";
+	this->_response.clear();
 	this->_response.append_buffer(directory_listing(root, this->_request._path).c_str());
 
 

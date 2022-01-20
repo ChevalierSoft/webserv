@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/19 15:02:13 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/19 16:05:20 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/20 08:08:42 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,8 @@
 #include <fcntl.h>
 #include <string>
 #include <cstring>
-
+#include <stdio.h>
+#include "color.h"
 #include "ft_to_string.hpp"
 
 /**
@@ -43,6 +44,7 @@ std::string		send_403 ()
  * @brief send to the client a html file containing the listing of the path dir
  * 
  * @param fd the client fd
+ * @param root where is located the site
  * @param root_path where the listing should be done
  * //@param client_path the root_path to give to the client (avoiding to give them the real path)
  * @return true listing done
@@ -50,14 +52,17 @@ std::string		send_403 ()
  */
 std::string		directory_listing (std::string root, std::string root_path)	// , const char *client_path)
 {
-	struct dirent	*entry;
-	DIR				*dir = opendir((root + root_path).c_str());
+	struct dirent	*entry = 0;
+	DIR				*dir = 0;
 	std::string		page = "";
 	std::string		body = "";
 
-	std::cout << "root : " << root << std::endl;
-	std::cout << "path : " << root_path << std::endl;
-	
+	// std::cout << "root : " << root << std::endl;
+	// std::cout << "path : " << root_path << std::endl;
+	// std::cout << (root + root_path).c_str() << std::endl;
+
+	dir = opendir((root + root_path).c_str());
+
 	if (dir == NULL)
 		return (send_403());
 
@@ -84,8 +89,7 @@ std::string		directory_listing (std::string root, std::string root_path)	// , co
 		else if (!strcmp(entry->d_name, ".."))
 		{
 			body += "<p><li><a href=\"";
-			body += root_path;				// ? when used localy
-			// body += client_path;		// ? when used through webserv to hide the real location
+			body += root_path;				// ? client_path should be used 
 			body += "/..\">⬆️ Parent directory</a></li></p>";
 		}
 		else
@@ -111,12 +115,13 @@ std::string		directory_listing (std::string root, std::string root_path)	// , co
 				body += "⚗️ ";
 			else
 				body += "❔ ";
-			body += entry->d_name;
 
+			body += entry->d_name;
 			body += "</a></li></p>\r\n";
 		}	
 	}
 	closedir(dir);
+	dir = 0;
 
 	body += "</ul><footer>Webserv 42 oui</footer>\r\n</body>\r\n</html>\r\n";	// ? footer + </html>
 
