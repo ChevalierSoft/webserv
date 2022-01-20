@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/19 15:55:43 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/20 05:21:12 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,9 +75,9 @@ bool		Client::parse_and_generate_response ()
 {
 	// TODO parse the input and generate the message for the client
 	// ? exemple :
-	int	end_of_response;
+	// int	end_of_response;
 
-	std::cout << GRN << "  parse_and_generate_response" << RST << std::endl;
+	// std::cout << GRN << "  parse_and_generate_response" << RST << std::endl;
 
 
 	// std::cout <<CYN << this->_request._path <<RST<< std::endl;
@@ -90,7 +90,7 @@ bool		Client::parse_and_generate_response ()
 	// ? response if for the time being default
 	// while ((end_of_response = this->_response.update_header()) == 0);
 	// if (end_of_response == 2)
-	// 	this->response_generated = true;
+	// this->response_generated = true;
 	// if (!this->response_generated){
 		// while ((end_of_response = this->_response.update_body()) == 1);
 		// if (end_of_response == 2)
@@ -114,6 +114,8 @@ bool		Client::send_response (int sd_out)
 
 	std::cout << GRN << "  sending response" << RST << std::endl;
 
+	// ? clear request since response is generated
+	this->_request.clear();
 	// rc = send(sd_out, ((*(this->_it_chunk)).second).c_str(), ((*(this->_it_chunk)).second).size(), 0);
 	// ? For now, sending default response in one go
 	rc = send(sd_out, this->_response.get_buffer().c_str(), this->_response.get_buffer().size(), 0);
@@ -123,14 +125,15 @@ bool		Client::send_response (int sd_out)
 		return (true);
 	}
 	// ? Setting generated response to false after each send for now
-	this->response_generated = true;
+	this->response_generated = false;
+	return true;
 
-	// // ? get to the next output message chunk
+	// ? get to the next output message chunk
 	// ++this->_it_chunk;
 	// if (this->_it_chunk == this->_response.end_header())
 	// 	return (true);
 
-	return (true);
+	// return (false);
 }
 
 /**
@@ -151,25 +154,35 @@ void		Client::add_input_buffer (const char *buffer, int len)
 {
 	int	end_of_request;
 
+	std::cout << GRN << "BEFORE APPEND" << std::endl;
+	ft_print_memory((void *)(_request.get_buffer().c_str()), _request.get_buffer().size());
 	this->_request.append_buffer(std::string(buffer, len));
-	while ((end_of_request = this->_request.update_header()) == 0);
+	std::cout << GRN << "AFTER APPEND" << std::endl;
+	ft_print_memory((void *)(_request.get_buffer().c_str()), _request.get_buffer().size());
+	while (this->_request._in_header && (end_of_request = this->_request.update_header()) == 0);
+
+	if (!this->_request._in_header && this->_request._method != "POST") {
+		this->response_generated = true;
+		end_of_request = 2;
+	}
+	if (!this->response_generated && !this->_request._in_header)
+		while ((end_of_request = this->_request.update_body()) == 1);
+	
 	if (end_of_request == 2) {
 		// ? to output contents of map header
 		this->_it_chunk = this->_request.begin_header();
-		std::cout << RED << "Method: " << (this->_request._method == GET ? "GET" : "POST/DELETE") << RST << std::endl;
+		std::cout << GRN << "HEADER" << RST << std::endl;
+		std::cout << RED << "Method: " << this->_request._method << RST << std::endl;
 		std::cout << RED << "path: " << this->_request._path << RST << std::endl;
 		std::cout << RED << "http-version: " << this->_request._http_version << RST << std::endl;
 		for (; _it_chunk != this->_request.end_header(); _it_chunk++)
 			std::cout << RED << (*(_it_chunk)).first << ": " << (*(_it_chunk)).second << RST << std::endl;
+		std::vector<std::string>::iterator it_test = this->_request.begin_body();
+		std::cout << GRN << "BODY" << RST << std::endl;
+		for (; it_test != this->_request.end_body(); it_test++)
+			std::cout << RED << *it_test << RST << std::endl;
 		this->response_generated = true;
 	}
-
-	if (!this->response_generated){
-		while ((end_of_request = this->_request.update_body()) == 1);
-		if (end_of_request == 2)
-			this->response_generated = true;
-	}
-	
 }
 
 /**
