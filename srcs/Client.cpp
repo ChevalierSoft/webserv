@@ -6,7 +6,7 @@
 /*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/19 18:46:22 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/01/20 17:43:14 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -146,12 +146,17 @@ void		Client::add_input_buffer (const char *buffer, int len)
 {
 	int	end_of_request;
 
-	std::cout << GRN << "BEFORE APPEND" << std::endl;
-	ft_print_memory((void *)(_request.get_buffer().c_str()), _request.get_buffer().size());
+	// std::cout << GRN << "BEFORE APPEND" << std::endl;
+	// ft_print_memory((void *)(_request.get_buffer().c_str()), _request.get_buffer().size());
 	this->_request.append_buffer(std::string(buffer, len));
-	std::cout << GRN << "AFTER APPEND" << std::endl;
-	ft_print_memory((void *)(_request.get_buffer().c_str()), _request.get_buffer().size());
+	// std::cout << GRN << "AFTER APPEND" << std::endl;
+	// ft_print_memory((void *)(_request.get_buffer().c_str()), _request.get_buffer().size());
 	while (this->_request._in_header && (end_of_request = this->_request.update_header()) == 0);
+	if (this->_request._error > 0) {
+		this->response_generated = true;
+		std::cout << RED << "Error in header" << std::endl;
+		return ;
+	}
 
 	if (!this->_request._in_header && this->_request._method != "POST") {
 		this->response_generated = true;

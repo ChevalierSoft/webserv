@@ -12,7 +12,15 @@ void	*ft_print_memory(void *addr, size_t size);
 // TODO is a line correct ? (first line is method, path, and http version ; rest of header is "key: value")
 // ? Message syntax
 // ? http-version : two digits separated by a period '.'
-// 
+
+enum errors {
+	NO_ERROR,
+	UNDEFINED_METHOD,
+	UNDEFINED_PATH,
+	UNDEFINED_HTTP_VERSION,
+	WRONG_LINE_HEADER,
+	WRONG_VALUE_HEADER
+};
 
 class Message {
 
@@ -28,17 +36,46 @@ public:
 	std::string							_path; // from header first line
 	std::string							_http_version; // from header first line
 	bool								_in_header;
+	int									_error;
 	
 	typedef std::pair<std::string, std::string>					value_type;
 	typedef std::map<std::string, std::string>::const_iterator	it_chunk;
 	
-	Message(void) : _line_index(0), _in_header(true) {}
+	Message(void) {
+		clear();
+		_line_index = 0;
+		_in_header = true;
+		_error = NO_ERROR;
+	}
 
-	virtual ~Message(void) {}
+	virtual ~Message(void) {
+		clear();
+	}
 	
-	Message(const Message & src) {} // !
+	Message(const Message & src) {
+		clear();
+		_header = src._header;
+		_body = src._body;
+		_buffer = src._buffer;
+		_line_index = src._line_index;
+		_method = src._method;
+		_path = src._path;
+		_http_version = src._http_version;
+		_in_header = src._in_header;
+		_error = src._error;
+	}
 	
-	Message &	operator=(const Message & src) { // !
+	Message &	operator=(const Message & src) {
+		clear();
+		_header = src._header;
+		_body = src._body;
+		_buffer = src._buffer;
+		_line_index = src._line_index;
+		_method = src._method;
+		_path = src._path;
+		_http_version = src._http_version;
+		_in_header = src._in_header;
+		_error = src._error;
 		return *this;
 	}
 
@@ -112,6 +149,7 @@ public:
 		_http_version.clear();
 		_line_index = 0;
 		_in_header = true;
+		_error = NO_ERROR;
 	}
 
 	/**
@@ -147,8 +185,10 @@ public:
 			_method = "POST";
 		else if ((found_info = _buffer.find("DELETE")) != _buffer.npos)
 			_method = "DELETE";
-		else
-			return (-1);
+		else {
+
+			return (2);
+		}
 		// need to get path by splitting line by spaces
 		std::string::iterator it_begin_path = _buffer.begin() + found_info;
 		while (*it_begin_path && *it_begin_path != ' ')
