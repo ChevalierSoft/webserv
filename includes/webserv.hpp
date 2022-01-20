@@ -15,5 +15,7 @@
 // # include <sys/time.h>		// gettimeofday
 # include "Server.hpp"
 # include "color.h"
+# include "Conf.hpp"
+# include "Parser.hpp"
 
 std::string 	directory_listing (std::string path, std::string root_path);
