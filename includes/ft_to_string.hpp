@@ -1,21 +1,25 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   webserv.hpp                                        :+:      :+:    :+:   */
+/*   ft_to_string.hpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2021/09/03 04:55:37 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/19 15:52:55 by dait-atm         ###   ########.fr       */
+/*   Created: 2022/01/18 16:54:05 by dait-atm          #+#    #+#             */
+/*   Updated: 2022/01/18 16:57:17 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
-// # include <sys/time.h>		// gettimeofday
-# include "Server.hpp"
-# include "color.h"
-# include "Conf.hpp"
-# include "Parser.hpp"
+# include <string>
+# include <sstream>
 
-std::string 	directory_listing (std::string path, std::string root_path);
+template <typename T>
+std::string	ft_to_string (T __n)
+{
+    std::ostringstream  oss;
+
+    oss << __n;
+    return (oss.str());
+}
