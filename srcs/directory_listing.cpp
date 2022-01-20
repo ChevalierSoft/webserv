@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/19 15:02:13 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/20 08:08:42 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/20 08:38:23 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,9 +57,15 @@ std::string		directory_listing (std::string root, std::string root_path)	// , co
 	std::string		page = "";
 	std::string		body = "";
 
-	// std::cout << "root : " << root << std::endl;
-	// std::cout << "path : " << root_path << std::endl;
-	// std::cout << (root + root_path).c_str() << std::endl;
+
+	std::cout << "root : " << root << std::endl;
+	std::cout << "path : " << root_path << std::endl;
+	std::cout << (root + root_path).c_str() << std::endl;
+
+	// TODO : check if the given root in the config file have a '/' at the end 
+
+	if (root_path[root_path.length() - 1] != '/')			// ? ensuring there is a '/' at the end
+		root_path += "/";
 
 	dir = opendir((root + root_path).c_str());
 
@@ -70,12 +76,13 @@ std::string		directory_listing (std::string root, std::string root_path)	// , co
 	body += "<meta charset=\"UTF-8\">\r\n";
 	body += "<html>";
 	body += "<style>\r\n";
-	body += "	header { width: 100%; background-color: #000; display: inline-block; color: #fff; text-align: center; position: relative; top:0px; overflow: hidden!important;}\r\n";
-	body += "	body   { width: 100%; background-color: #222; color: #fff; margin: 0; }\r\n";
-	body += "	ul     { margin-top: 5%; }";
-	body += "	li     { margin-left: 20%; }\r\n";
+	body += "	html   { background-color: #000; }";
+	body += "	header { min-height:100%; height:100%; width: 100%; display: inline-block; color: #fff; text-align: center; position: relative; top:0px; overflow: hidden!important;}\r\n";
+	body += "	body   { width: 100%;  color: #fff; margin: 0; overflow:auto; }\r\n";
+	body += "	ul     { background-color: #222; padding 5%; }";
+	body += "	li     { margin-left: 20%; padding: 8px }\r\n";
 	body += "	a      { color: cyan; }\r\n";
-	body += "	footer { width: 100%; background-color: #000; color: #fff; height: 50px; position:absolute; bottom: 0; text-align: center; display: inline-block;}\r\n";
+	body += "	footer { padding: 10px; width: 100%; color: #fff; height: 50px; position:absolute; position:relative; bottom: 0; text-align: center; display: inline-block;}\r\n";
 	body += "</style>\r\n";
 	body += "<body>\r\n";
 	body += "<header>\r\n	<h2>Index of ";
@@ -88,14 +95,15 @@ std::string		directory_listing (std::string root, std::string root_path)	// , co
 			;
 		else if (!strcmp(entry->d_name, ".."))
 		{
-			body += "<p><li><a href=\"";
+			body += "<li><a href=\"";
 			body += root_path;				// ? client_path should be used 
-			body += "/..\">⬆️ Parent directory</a></li></p>";
+			body += "/..\">⬆️ Parent directory</a></li>";
 		}
 		else
 		{
-			body += "<p><li><a href=\"";
+			body += "<li><a href=\"";
 			body += root_path;				// ? should use client friendly path
+			// body += "/";
 			body += entry->d_name;
 			body += "\">";
 
@@ -117,7 +125,7 @@ std::string		directory_listing (std::string root, std::string root_path)	// , co
 				body += "❔ ";
 
 			body += entry->d_name;
-			body += "</a></li></p>\r\n";
+			body += "</a></li>\r\n";
 		}	
 	}
 	closedir(dir);
