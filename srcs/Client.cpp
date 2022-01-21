@@ -6,7 +6,7 @@
 /*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/21 14:41:54 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/01/21 14:54:39 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,8 +89,8 @@ bool		Client::parse_and_generate_response ()
 	this->_response.append_buffer(this->_response_generator.generate(this->_request));
 	// this->_response.append_buffer(directory_listing(".", _request._path).c_str());
 
-	this->response_generated = true;
-	return (true);
+	// this->response_generated = true;
+	return (false);
 }
 
 /**
@@ -117,8 +117,8 @@ bool		Client::send_response (int sd_out)
 		return (true);
 	}
 	// ? Setting generated response to false after each send for now
-	// this->response_generated = false;
-	return true;
+	this->response_generated = false;
+	return false;
 
 	// ? get to the next output message chunk
 	// ++this->_it_chunk;
