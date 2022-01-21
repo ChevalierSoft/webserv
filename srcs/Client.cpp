@@ -6,11 +6,13 @@
 /*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/20 17:43:14 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/01/21 14:41:54 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Client.hpp"
+#include "webserv.hpp"
+#include "Request.hpp"
 #include <sys/time.h>
 
 /**
@@ -18,6 +20,15 @@
  * 
  */
 Client::Client () : response_generated(false)
+{
+	gettimeofday(&life_time, NULL);
+}
+
+/**
+ * @brief Construct a new Client:: Client object with it's conf
+ * 
+ */
+Client::Client (const Conf* c) : _conf(c), response_generated(false)
 {
 	gettimeofday(&life_time, NULL);
 }
@@ -51,13 +62,12 @@ Client&		Client::operator= (const Client& copy)
 {
 	if (this != &copy)
 	{
-		// i_msg = copy.i_msg;
-		// o_msg = copy.o_msg;
-		_response = copy._response;
 		_request = copy._request;
+		_response = copy._response;
 		response_generated = copy.response_generated;
+		_it_chunk = copy._it_chunk;
 		life_time = copy.life_time;
-		// TODO finish this copy
+		_conf = copy._conf;
 	}
 	return (*this);
 }
@@ -72,25 +82,15 @@ Client&		Client::operator= (const Client& copy)
  */
 bool		Client::parse_and_generate_response ()
 {
-	// TODO parse the input and generate the message for the client
-	// ? exemple :
-	// int	end_of_response;
+	// TODO : it could be greate to have a bool that tell that the parsing did enough to generate a response
 
-	// std::cout << GRN << "  parse_and_generate_response" << RST << std::endl;
+	this->_response.clear();
 
-	this->_response.append_buffer("HTTP/1.1 200 OK\r\nDate: Tue, 24 Aug 2021 06:20:56 WEST\r\nServer: webserv:42 (popOS)\r\nLast-Modified: Wed, 24 Aug 2021 06:20:56 WEST\r\nContent-Length: 120\r\nContent-Type: text/html\r\nConnection: Closed\r\n\r\n<html>\r\n<body>\r\n<h1>peepowidehappy</h1>\r\n</body>\r\n<img src='https://cdn.frankerfacez.com/emoticon/359928/2'/>\r\n</html>\r\n");
-	// ? response if for the time being default
-	// while ((end_of_response = this->_response.update_header()) == 0);
-	// if (end_of_response == 2)
-	// this->response_generated = true;
-	// if (!this->response_generated){
-		// while ((end_of_response = this->_response.update_body()) == 1);
-		// if (end_of_response == 2)
-		// 	this->response_generated = true;
-	// }
-	this->_it_chunk = this->_response.begin_header();
-	// std::cout << RED << "TEST :" << (*(this->_it_chunk)).second << std::endl;
-	return (false);
+	this->_response.append_buffer(this->_response_generator.generate(this->_request));
+	// this->_response.append_buffer(directory_listing(".", _request._path).c_str());
+
+	this->response_generated = true;
+	return (true);
 }
 
 /**
@@ -117,7 +117,7 @@ bool		Client::send_response (int sd_out)
 		return (true);
 	}
 	// ? Setting generated response to false after each send for now
-	this->response_generated = false;
+	// this->response_generated = false;
 	return true;
 
 	// ? get to the next output message chunk
