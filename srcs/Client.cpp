@@ -6,13 +6,16 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/20 08:04:44 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/21 10:13:36 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Client.hpp"
 #include "webserv.hpp"
 #include <sys/time.h>
+#include <sys/types.h>	// stat
+#include <sys/stat.h>	// stat
+#include <unistd.h>		// stat
 
 /**
  * @brief Construct a new Client:: Client object
@@ -74,31 +77,40 @@ Client&		Client::operator= (const Client& copy)
 bool		Client::parse_and_generate_response ()
 {
 	// TODO parse the input and generate the message for the client
-	// ? exemple :
-	// int	end_of_response;
+	struct stat s;
 
-	// std::cout << GRN << "  parse_and_generate_response" << RST << std::endl;
-
-
-	// std::cout <<CYN << this->_request._path <<RST<< std::endl;
-
-	std::string	root = ".";
 	this->_response.clear();
-	this->_response.append_buffer(directory_listing(root, this->_request._path).c_str());
+	std::string	root = ".";
 
+	if ( ! stat((root + _request._path).c_str(), &s))
+	{
+		if (s.st_mode & S_IFDIR)	// ? the requested path is a directory
+		{
+			// TODO : check if directory indexation in on.
 
-	// this->_response.append_buffer("HTTP/1.1 200 OK\r\nDate: Tue, 24 Aug 2021 06:20:56 WEST\r\nServer: webserv:42 (popOS)\r\nLast-Modified: Wed, 24 Aug 2021 06:20:56 WEST\r\nContent-Length: 120\r\nContent-Type: text/html\r\nConnection: Closed\r\n\r\n<html>\r\n<body>\r\n<h1>peepowidehappy</h1>\r\n</body>\r\n<img src='https://cdn.frankerfacez.com/emoticon/359928/2'/>\r\n</html>\r\n");
-	// ? response if for the time being default
-	// while ((end_of_response = this->_response.update_header()) == 0);
-	// if (end_of_response == 2)
-	// this->response_generated = true;
-	// if (!this->response_generated){
-		// while ((end_of_response = this->_response.update_body()) == 1);
-		// if (end_of_response == 2)
+			// TODO : see if we have to redirect to index.html if it exists.
+			
+			this->_response.append_buffer(directory_listing(root, this->_request._path).c_str());
+		}
+		else if (s.st_mode & S_IFREG)	// ? the requested path is a file
+		{
+			// TODO : generate a file
+			// this->_response.append_buffer(get_file_content(root, this->_request._path).c_str());
+			std::cout << "store '" << root + _request._path << "' through _response.append_buffer()" << std::endl;
+		}
+		else
+		{
+			// ? error: it's not a directory or a file.
+			// ? not sure if symlinks must work. 
+		}
+	}
+	else
+	{
+		// ? basically 404
+		// ? error: wrong path || path too long || out of memory || bad address || ...
+	}
+
 	this->response_generated = true;
-	// }
-	this->_it_chunk = this->_response.begin_header();
-	// std::cout << RED << "TEST :" << (*(this->_it_chunk)).second << std::endl;
 	return (true);
 }
 
@@ -126,7 +138,7 @@ bool		Client::send_response (int sd_out)
 		return (true);
 	}
 	// ? Setting generated response to false after each send for now
-	this->response_generated = false;
+	// this->response_generated = false;
 	return true;
 
 	// ? get to the next output message chunk
