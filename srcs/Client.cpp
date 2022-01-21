@@ -6,7 +6,7 @@
 /*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/21 14:54:39 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/01/21 15:07:00 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -118,7 +118,7 @@ bool		Client::send_response (int sd_out)
 	}
 	// ? Setting generated response to false after each send for now
 	this->response_generated = false;
-	return false;
+	return true;
 
 	// ? get to the next output message chunk
 	// ++this->_it_chunk;
