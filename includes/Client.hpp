@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
+/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 00:54:13 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/17 17:08:30 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/01/21 11:08:10 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,7 @@
 #include "color.h"
 #include "Response.hpp"
 #include "Request.hpp"
+#include "Conf.hpp"
 
 #define CLIENT_TIMEOUT 10 		// time (s) after which the client connection will be closed if there is no event
 
@@ -34,24 +35,26 @@
 class Client // * ______________________________________________________________
 {
 	/// * Variables ____________________________________________________________
+
 private:
-	// TODO i_msg and o_msg may be changed to vectors of char * to handle \0 in the message
-	// ? i_msg and o_msg might be ported to std::list
-	// std::list<std::string>						i_msg;				// the input message buffer_size by buffer_size
-	// std::list<std::string>						o_msg;				// the output message to send to the client
-	Request										_request;
-	Response									_response;
-	bool										response_generated;	// will stop the reading to send o_msg's content
-	Response::it_chunk							_it_chunk;			// points on the begining of o_msg
-	struct timeval								life_time;			// will be updated every event. after CLIENT_TIMEOUT the client is erased and the connection is closed
+	Request					_request;
+	Response				_response;
+	bool					response_generated;	// will stop the reading to send o_msg's content
+	Response::it_chunk		_it_chunk;			// points on the begining of o_msg
+	struct timeval			life_time;			// will be updated every event. after CLIENT_TIMEOUT the client is erased and the connection is closed
+
+	const Conf*				_conf;
 
 	/// * Constructors & Destructors ___________________________________________
 
 public:
-	// (1) default
+	// ? (1) default. should not be used without beeing set
 	Client ();
 
-	// (2) by copy
+	// ? (2) with server's config
+	Client (const Conf* c);
+
+	// ? (3) by copy
 	Client (const Client & copy);
 
 	~Client ();
