@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 00:54:13 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/21 11:08:10 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/21 11:45:21 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,7 @@
 #include "Response.hpp"
 #include "Request.hpp"
 #include "Conf.hpp"
+#include "ResponseGenerator.hpp"
 
 #define CLIENT_TIMEOUT 10 		// time (s) after which the client connection will be closed if there is no event
 
@@ -42,8 +43,9 @@ private:
 	bool					response_generated;	// will stop the reading to send o_msg's content
 	Response::it_chunk		_it_chunk;			// points on the begining of o_msg
 	struct timeval			life_time;			// will be updated every event. after CLIENT_TIMEOUT the client is erased and the connection is closed
-
 	const Conf*				_conf;
+
+	ResponseGenerator		_response_generator;
 
 	/// * Constructors & Destructors ___________________________________________
 
