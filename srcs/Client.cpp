@@ -6,16 +6,14 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/21 11:23:40 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/21 12:19:04 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Client.hpp"
 #include "webserv.hpp"
+#include "Request.hpp"
 #include <sys/time.h>
-#include <sys/types.h>	// stat
-#include <sys/stat.h>	// stat
-#include <unistd.h>		// stat
 
 /**
  * @brief Construct a new Client:: Client object
@@ -84,39 +82,12 @@ Client&		Client::operator= (const Client& copy)
  */
 bool		Client::parse_and_generate_response ()
 {
-	// TODO parse the input and generate the message for the client
-	struct stat s;
+	// TODO : it could be greate to have a bool that tell that the parsing did enough to generate a response
 
 	this->_response.clear();
-	std::string	root = ".";
 
-	if ( ! stat((root + _request._path).c_str(), &s))
-	{
-		if (s.st_mode & S_IFDIR)	// ? the requested path is a directory
-		{
-			// TODO : check if directory indexation in on.
-
-			// TODO : see if we have to redirect to index.html if it exists.
-			
-			this->_response.append_buffer(directory_listing(root, this->_request._path).c_str());
-		}
-		else if (s.st_mode & S_IFREG)	// ? the requested path is a file
-		{
-			// TODO : generate a file
-			// this->_response.append_buffer(get_file_content(root, this->_request._path).c_str());
-			std::cout << "store '" << root + _request._path << "' through _response.append_buffer()" << std::endl;
-		}
-		else
-		{
-			// ? error: it's not a directory or a file.
-			// ? not sure if symlinks must work. 
-		}
-	}
-	else
-	{
-		// ? basically 404
-		// ? error: wrong path || path too long || out of memory || bad address || ...
-	}
+	this->_response.append_buffer(this->_response_generator.generate(this->_request));
+	// this->_response.append_buffer(directory_listing(".", _request._path).c_str());
 
 	this->response_generated = true;
 	return (true);

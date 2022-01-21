@@ -6,52 +6,37 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 10:06:11 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/21 11:27:14 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/21 11:53:11 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
-class ResponseGenerator
+# include "Request.hpp"
+
+class ResponseGenerator // * ___________________________________________________
 {
+	/// * Variables ____________________________________________________________
+
 private:
 	/* data */
-public:
-	// Constructors & Destructors
-	ResponseGenerator(void);
-	ResponseGenerator(/* args */);
-	~ResponseGenerator(void);
 
-	// Copy constructor
-	ResponseGenerator(const ResponseGenerator & copy);
+	/// * Constructors & Destructors ___________________________________________
+
+public:
+	// ? (1) default
+	ResponseGenerator (void);
+
+	// ? (2) by copy
+	ResponseGenerator (const ResponseGenerator & copy);
+
+	~ResponseGenerator (void);
+
+	/// * Member function ______________________________________________________
 
 	// Operation overload =
-	ResponseGenerator &	operator=(const ResponseGenerator &	copy);
-};
+	ResponseGenerator&	operator=(const ResponseGenerator &	copy);
+	
+	std::string			generate(Request& rq);
 
-ResponseGenerator::ResponseGenerator(void)
-{
-}
-
-ResponseGenerator::ResponseGenerator(/* args */)
-{
-}
-
-ResponseGenerator::~ResponseGenerator(void)
-{
-}
-
-ResponseGenerator::ResponseGenerator(const ResponseGenerator & copy)
-{
-	*this = copy;
-	return ;
-}
-
-ResponseGenerator &	ResponseGenerator::operator=(const ResponseGenerator& copy)
-{
-	if (this != &copy)
-	{
-		// copy
-	}
-	return (*this);
-}
+}; // * ________________________________________________________________________
