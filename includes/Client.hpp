@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 00:54:13 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/21 10:15:17 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/21 11:25:17 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,7 @@
 class Client // * ______________________________________________________________
 {
 	/// * Variables ____________________________________________________________
+
 private:
 	Request					_request;
 	Response				_response;
@@ -42,15 +43,18 @@ private:
 	Response::it_chunk		_it_chunk;			// points on the begining of o_msg
 	struct timeval			life_time;			// will be updated every event. after CLIENT_TIMEOUT the client is erased and the connection is closed
 
-	Conf*					_config;
+	const Conf*				_conf;
 
 	/// * Constructors & Destructors ___________________________________________
 
 public:
-	// (1) default
+	// ? (1) default. should not be used without beeing set
 	Client ();
 
-	// (2) by copy
+	// ? (2) with server's config
+	Client (const Conf* c);
+
+	// ? (3) by copy
 	Client (const Client & copy);
 
 	~Client ();

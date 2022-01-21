@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/21 10:13:36 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/21 11:23:40 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,15 @@
  * 
  */
 Client::Client () : response_generated(false)
+{
+	gettimeofday(&life_time, NULL);
+}
+
+/**
+ * @brief Construct a new Client:: Client object with it's conf
+ * 
+ */
+Client::Client (const Conf* c) : _conf(c), response_generated(false)
 {
 	gettimeofday(&life_time, NULL);
 }
@@ -55,13 +64,12 @@ Client&		Client::operator= (const Client& copy)
 {
 	if (this != &copy)
 	{
-		// i_msg = copy.i_msg;
-		// o_msg = copy.o_msg;
-		_response = copy._response;
 		_request = copy._request;
+		_response = copy._response;
 		response_generated = copy.response_generated;
+		_it_chunk = copy._it_chunk;
 		life_time = copy.life_time;
-		// TODO finish this copy
+		_conf = copy._conf;
 	}
 	return (*this);
 }
