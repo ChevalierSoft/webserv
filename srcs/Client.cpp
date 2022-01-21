@@ -6,7 +6,7 @@
 /*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/21 15:07:00 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/01/21 17:32:13 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@
  * @brief Construct a new Client:: Client object
  * 
  */
-Client::Client () : response_generated(false)
+Client::Client () : request_ready(false), response_generated(false)
 {
 	gettimeofday(&life_time, NULL);
 }
@@ -28,7 +28,7 @@ Client::Client () : response_generated(false)
  * @brief Construct a new Client:: Client object with it's conf
  * 
  */
-Client::Client (const Conf* c) : _conf(c), response_generated(false)
+Client::Client (const Conf* c) : _conf(c), request_ready(false), response_generated(false)
 {
 	gettimeofday(&life_time, NULL);
 }
@@ -64,6 +64,7 @@ Client&		Client::operator= (const Client& copy)
 	{
 		_request = copy._request;
 		_response = copy._response;
+		request_ready = copy.request_ready;
 		response_generated = copy.response_generated;
 		_it_chunk = copy._it_chunk;
 		life_time = copy.life_time;
@@ -75,7 +76,7 @@ Client&		Client::operator= (const Client& copy)
 /**
  * @brief This is where the client input is parsed and where the response is generated.
  * 
- * @details If o_msg is ready response_generated is set to true and it_chunk to o_bsg.begin()
+ * @details If o_msg is ready request_ready is set to true and it_chunk to o_bsg.begin()
  * 
  * @return true The response has an error and nothing has to be sent to client
  * @return false To get the rest of the input, or if o_msg is ready. 
@@ -83,13 +84,14 @@ Client&		Client::operator= (const Client& copy)
 bool		Client::parse_and_generate_response ()
 {
 	// TODO : it could be greate to have a bool that tell that the parsing did enough to generate a response
+	// ? request ready is that bool
 
 	this->_response.clear();
 
 	this->_response.append_buffer(this->_response_generator.generate(this->_request));
 	// this->_response.append_buffer(directory_listing(".", _request._path).c_str());
 
-	// this->response_generated = true;
+	// this->request_ready = true;
 	return (false);
 }
 
@@ -117,7 +119,7 @@ bool		Client::send_response (int sd_out)
 		return (true);
 	}
 	// ? Setting generated response to false after each send for now
-	this->response_generated = false;
+	this->request_ready = false;
 	return true;
 
 	// ? get to the next output message chunk
@@ -153,16 +155,17 @@ void		Client::add_input_buffer (const char *buffer, int len)
 	// ft_print_memory((void *)(_request.get_buffer().c_str()), _request.get_buffer().size());
 	while (this->_request._in_header && (end_of_request = this->_request.update_header()) == 0);
 	if (this->_request._error > 0) {
-		this->response_generated = true;
-		std::cout << RED << "Error in header" << std::endl;
+		this->request_ready = true;
+		std::cout << RED << "Error in header : " << this->_request._error << " (refer to errors enum)" << RST << std::endl;
 		return ;
 	}
 
 	if (!this->_request._in_header && this->_request._method != "POST") {
-		this->response_generated = true;
+		std::cout << MAG << "alloOOOOOO0" << std::endl;
+		this->request_ready = true;
 		end_of_request = 2;
 	}
-	if (!this->response_generated && !this->_request._in_header)
+	if (!this->request_ready && !this->_request._in_header)
 		while ((end_of_request = this->_request.update_body()) == 1);
 	
 	if (end_of_request == 2) {
@@ -178,7 +181,7 @@ void		Client::add_input_buffer (const char *buffer, int len)
 		std::cout << GRN << "BODY" << RST << std::endl;
 		for (; it_test != this->_request.end_body(); it_test++)
 			std::cout << RED << *it_test << RST << std::endl;
-		this->response_generated = true;
+		this->request_ready = true;
 	}
 }
 
@@ -203,12 +206,12 @@ bool		Client::is_timed_out ()
 }
 
 /**
- * @brief Getter on response_generated.
+ * @brief Getter on request_ready.
  * 
  * @return true o_msg is ready to be sent to the client.
  * @return false o_msg is still beeing made.
  */
 bool		Client::is_output_ready ()
 {
-	return (this->response_generated);
+	return (this->request_ready);
 }

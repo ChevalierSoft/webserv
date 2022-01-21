@@ -104,6 +104,30 @@ public:
 		}
 		return ret;
 	}
+
+	bool		valid_header(std::string str) {
+		std::string test = str;
+		size_t		found_info;
+
+		while (test.size() > 0 && std::isspace(test.at(0))) // skipping whitespaces
+			test.erase(0, 1);
+		while (test.size() > 0 && !std::isspace(test.at(0)) && test.at(0) != ':') // skipping key
+			test.erase(0, 1);
+		if ((found_info = test.find(":")) != 0) // if ':' is not attached to key, error
+			return false;
+		test.erase(0, 1);
+		while (test.size() > 0 && std::isspace(test.at(0))) // skipping whitespaces
+			test.erase(0, 1);
+		if (test.size() == 0) // if no value, error
+			return false;
+		// while (test.size() > 0 && !std::isspace(test.at(0))) // skipping value
+		// 	test.erase(0, 1);
+		// while (test.size() > 0 && std::isspace(test.at(0))) // skipping whitespaces
+		// 	test.erase(0, 1);
+		// if (test.size() != 0) // if there is more text after value, error
+		// 	return false;
+		return true;
+	}
 	
 	/**
 	 * @brief updates header map with buffer contentt
@@ -126,6 +150,10 @@ public:
 			return (get_first_line(found_newline));
 		else if (found_newline != _buffer.npos && found_newline > 0) {
 			new_str = std::string(_buffer.begin(), _buffer.begin() + found_newline);
+			if (!valid_header(new_str)) {
+				_error = WRONG_LINE_HEADER;
+				return (2);
+			}
 			_header.insert(split_buffer(new_str));
 			_buffer.erase(_buffer.begin(), _buffer.begin() + found_newline + 2);
 			_line_index++;
@@ -177,29 +205,44 @@ public:
 	}
 
 	int			get_first_line(size_t found_newline) {
-		size_t		found_info;
-
-		if ((found_info = _buffer.find("GET") != _buffer.npos))
+		while (_buffer.size() > 0 && std::isspace(_buffer.at(0)))
+			_buffer.erase(0, 1);
+		if (_buffer.find("GET") == 0)
 			_method = "GET";
-		else if ((found_info = _buffer.find("POST")) != _buffer.npos)
+		else if (_buffer.find("POST") == 0)
 			_method = "POST";
-		else if ((found_info = _buffer.find("DELETE")) != _buffer.npos)
+		else if (_buffer.find("DELETE") == 0)
 			_method = "DELETE";
 		else {
-
+			_error = UNDEFINED_METHOD;
 			return (2);
 		}
-		// need to get path by splitting line by spaces
-		std::string::iterator it_begin_path = _buffer.begin() + found_info;
-		while (*it_begin_path && *it_begin_path != ' ')
-			it_begin_path++;
-		it_begin_path++;
-		std::string::iterator it_end_path = it_begin_path;
-		while (*it_end_path && *it_end_path != ' ')
-			it_end_path++;
-		_path = std::string(it_begin_path, it_end_path);
-		_http_version = std::string(it_end_path + 1, _buffer.begin() + found_newline);
-		_buffer.erase(_buffer.begin(), _buffer.begin() + found_newline + 2);
+		_buffer.erase(0, _method.size());
+		while (_buffer.size() > 0 && std::isspace(_buffer.at(0)))
+			_buffer.erase(0, 1);
+		if (_buffer.find("/") == 0) {
+			std::string::iterator end_path = _buffer.begin();
+			while (end_path != _buffer.end() && !(std::isspace(*end_path)))
+				end_path++;
+			_path = std::string(_buffer.begin(), end_path);
+			_buffer.erase(_buffer.begin(), end_path);
+		}
+		else {
+			_error = UNDEFINED_PATH;
+			return (2);
+		}
+		while (_buffer.size() > 0 && std::isspace(_buffer.at(0)))
+			_buffer.erase(0, 1);
+		if (_buffer.find("HTTP/1.1") == 0) {
+			_http_version = "HTTP/1.1";
+			_buffer.erase(0, 8);
+		}
+		else {
+			_error = UNDEFINED_HTTP_VERSION;
+			return (2);
+		}
+		if (_buffer.find("\r\n") == 0)
+			_buffer.erase(0, 2);
 		_line_index++;
 		return (0);
 	}
