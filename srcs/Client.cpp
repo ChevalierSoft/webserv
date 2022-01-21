@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/21 16:03:10 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/21 17:56:50 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,18 +19,18 @@
  * @brief Construct a new Client:: Client object
  * 
  */
-Client::Client () : response_generated(false)
+Client::Client () : _request_ready(false), _response_ready(false)
 {
-	gettimeofday(&life_time, NULL);
+	gettimeofday(&_life_time, NULL);
 }
 
 /**
  * @brief Construct a new Client:: Client object with it's conf
  * 
  */
-Client::Client (const Conf* c) : _conf(c), response_generated(false)
+Client::Client (const Conf* c) : _conf(c), _request_ready(false), _response_ready(false)
 {
-	gettimeofday(&life_time, NULL);
+	gettimeofday(&_life_time, NULL);
 }
 
 /**
@@ -64,9 +64,10 @@ Client&		Client::operator= (const Client& copy)
 	{
 		_request = copy._request;
 		_response = copy._response;
-		response_generated = copy.response_generated;
+		_request_ready = copy._request_ready;
+		_response_ready = copy._response_ready;
 		_it_chunk = copy._it_chunk;
-		life_time = copy.life_time;
+		_life_time = copy._life_time;
 		_conf = copy._conf;
 	}
 	return (*this);
@@ -75,7 +76,7 @@ Client&		Client::operator= (const Client& copy)
 /**
  * @brief This is where the client input is parsed and where the response is generated.
  * 
- * @details If o_msg is ready response_generated is set to true and it_chunk to o_bsg.begin()
+ * @details If o_msg is ready _request_ready is set to true and it_chunk to o_bsg.begin()
  * 
  * @return true The response has an error and nothing has to be sent to client
  * @return false To get the rest of the input, or if o_msg is ready. 
@@ -83,15 +84,16 @@ Client&		Client::operator= (const Client& copy)
 bool		Client::parse_and_generate_response ()
 {
 	// TODO : it could be greate to have a bool that tell that the parsing did enough to generate a response
+	// ? request ready is that bool
 
-	// if (request_ready)
-	// {
+	if (_request_ready)
+	{
 		this->_response.clear();
 		this->_response.append_buffer(this->_response_generator.generate(this->_request));
-		this->response_generated = true;
-	// }
+		this->_response_ready = true;
+	}
 
-	return (true);
+	return (false);
 }
 
 /**
@@ -118,7 +120,7 @@ bool		Client::send_response (int sd_out)
 		return (true);
 	}
 	// ? Setting generated response to false after each send for now
-	// this->response_generated = false;
+	this->_request_ready = false;
 	return true;
 
 	// ? get to the next output message chunk
@@ -130,11 +132,11 @@ bool		Client::send_response (int sd_out)
 }
 
 /**
- * @brief Update life_time counter.
+ * @brief Update _life_time counter.
  */
 void		Client::update ()
 {
-	gettimeofday(&this->life_time, NULL);
+	gettimeofday(&this->_life_time, NULL);
 }
 
 /**
@@ -147,18 +149,24 @@ void		Client::add_input_buffer (const char *buffer, int len)
 {
 	int	end_of_request;
 
-	std::cout << GRN << "BEFORE APPEND" << std::endl;
-	ft_print_memory((void *)(_request.get_buffer().c_str()), _request.get_buffer().size());
+	// std::cout << GRN << "BEFORE APPEND" << std::endl;
+	// ft_print_memory((void *)(_request.get_buffer().c_str()), _request.get_buffer().size());
 	this->_request.append_buffer(std::string(buffer, len));
-	std::cout << GRN << "AFTER APPEND" << std::endl;
-	ft_print_memory((void *)(_request.get_buffer().c_str()), _request.get_buffer().size());
+	// std::cout << GRN << "AFTER APPEND" << std::endl;
+	// ft_print_memory((void *)(_request.get_buffer().c_str()), _request.get_buffer().size());
 	while (this->_request._in_header && (end_of_request = this->_request.update_header()) == 0);
+	if (this->_request._error > 0) {
+		this->_request_ready = true;
+		std::cout << RED << "Error in header : " << this->_request._error << " (refer to errors enum)" << RST << std::endl;
+		return ;
+	}
 
 	if (!this->_request._in_header && this->_request._method != "POST") {
-		this->response_generated = true;
+		std::cout << MAG << "alloOOOOOO0" << std::endl;
+		this->_request_ready = true;
 		end_of_request = 2;
 	}
-	if (!this->response_generated && !this->_request._in_header)
+	if (!this->_request_ready && !this->_request._in_header)
 		while ((end_of_request = this->_request.update_body()) == 1);
 	
 	if (end_of_request == 2) {
@@ -174,12 +182,12 @@ void		Client::add_input_buffer (const char *buffer, int len)
 		std::cout << GRN << "BODY" << RST << std::endl;
 		for (; it_test != this->_request.end_body(); it_test++)
 			std::cout << RED << *it_test << RST << std::endl;
-		this->response_generated = true;
+		this->_request_ready = true;
 	}
 }
 
 /**
- * @brief check if life_time is greater than CLIENT_TIMEOUT.
+ * @brief check if _life_time is greater than CLIENT_TIMEOUT.
  * 
  * @return true last event was before CLIENT_TIMEOUT.
  * @return false last event was close enough.
@@ -192,19 +200,19 @@ bool		Client::is_timed_out ()
 	// TODO make this cleaner without gettimeofday
 	gettimeofday(&tv_now, &tv_zone);
 	
-	if (tv_now.tv_sec - this->life_time.tv_sec > CLIENT_TIMEOUT
-		|| (tv_now.tv_sec < this->life_time.tv_sec && tv_now.tv_sec > CLIENT_TIMEOUT))
+	if (tv_now.tv_sec - this->_life_time.tv_sec > CLIENT_TIMEOUT
+		|| (tv_now.tv_sec < this->_life_time.tv_sec && tv_now.tv_sec > CLIENT_TIMEOUT))
 		return (true);
 	return (false);
 }
 
 /**
- * @brief Getter on response_generated.
+ * @brief Getter on _request_ready.
  * 
  * @return true o_msg is ready to be sent to the client.
  * @return false o_msg is still beeing made.
  */
 bool		Client::is_output_ready ()
 {
-	return (this->response_generated);
+	return (this->_response_ready);
 }
