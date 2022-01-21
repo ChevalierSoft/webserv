@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 10:06:11 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/21 11:53:11 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/21 12:49:37 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,5 +38,7 @@ public:
 	ResponseGenerator&	operator=(const ResponseGenerator &	copy);
 	
 	std::string			generate(Request& rq);
+
+	std::string			get_file_content(std::string root, std::string paht);
 
 }; // * ________________________________________________________________________
