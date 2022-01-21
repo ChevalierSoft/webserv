@@ -1,53 +1,53 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Response_Generator.hpp                             :+:      :+:    :+:   */
+/*   ResponseGenerator.hpp                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 10:06:11 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/21 10:12:20 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/21 11:27:14 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
-class Response_Generator
+class ResponseGenerator
 {
 private:
 	/* data */
 public:
 	// Constructors & Destructors
-	Response_Generator(void);
-	Response_Generator(/* args */);
-	~Response_Generator(void);
+	ResponseGenerator(void);
+	ResponseGenerator(/* args */);
+	~ResponseGenerator(void);
 
 	// Copy constructor
-	Response_Generator(const Response_Generator & copy);
+	ResponseGenerator(const ResponseGenerator & copy);
 
 	// Operation overload =
-	Response_Generator &	operator=(const Response_Generator &	copy);
+	ResponseGenerator &	operator=(const ResponseGenerator &	copy);
 };
 
-Response_Generator::Response_Generator(void)
+ResponseGenerator::ResponseGenerator(void)
 {
 }
 
-Response_Generator::Response_Generator(/* args */)
+ResponseGenerator::ResponseGenerator(/* args */)
 {
 }
 
-Response_Generator::~Response_Generator(void)
+ResponseGenerator::~ResponseGenerator(void)
 {
 }
 
-Response_Generator::Response_Generator(const Response_Generator & copy)
+ResponseGenerator::ResponseGenerator(const ResponseGenerator & copy)
 {
 	*this = copy;
 	return ;
 }
 
-Response_Generator &	Response_Generator::operator=(const Response_Generator& copy)
+ResponseGenerator &	ResponseGenerator::operator=(const ResponseGenerator& copy)
 {
 	if (this != &copy)
 	{
