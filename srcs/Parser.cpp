@@ -22,9 +22,10 @@ bool    Parser::parse_file(std::ifstream &ifs) {
 	
 	while (b)
 	{
+		while (line == "" && b)
+			b = std::getline(ifs, line).good();
 		Conf	c;
 		_confs.push_back(c);
-		b = std::getline(ifs, line).good();
 		while (line != "" && b)
 		{
 			// std::cout << "line = " << std::endl;
@@ -42,6 +43,7 @@ bool    Parser::parse_file(std::ifstream &ifs) {
 			}
 			b = std::getline(ifs, line).good();
 		}
+
 	}
 	return (true);
 }

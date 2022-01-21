@@ -39,6 +39,8 @@ class Route {
         bool        set_redir(redir_type redir);
         bool        add_cgi(cgi_type  cgi);
 
+		bool		set_error_message(std::string error_message);
+
         void		print();
 };
 #endif

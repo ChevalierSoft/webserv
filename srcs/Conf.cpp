@@ -7,7 +7,18 @@
 #include <algorithm>
 #include <stdlib.h>
 
-Conf::Conf(): _err(0) {}
+Conf::Conf(): 
+_name(name_type()), 
+_host(host_type()),
+_port(port_type()),
+_error_pages(error_list()),
+_client_body_size(size_type()),
+_methods(method_list()),
+_dir_listing(dir_listing_type()),
+_upload_path(path_type()),
+_routes(route_list()),
+_error_message(std::string()),
+_err(0) {}
 
 Conf::~Conf() {}
 
@@ -189,4 +200,8 @@ void	Conf::print() {
 bool		Conf::set_error_message(std::string error_message) {
 	_error_message = error_message;
 	return (false);
+}
+
+std::string no_value_error(std::string param) {
+	return ("No value for "+param);
 }

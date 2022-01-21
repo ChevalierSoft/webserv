@@ -24,6 +24,8 @@ Route 	&Route::operator=(const Route &rhs) {
 Route::~Route(){}
 
 bool	Route::add_method(method_type method) {
+	if (!(method == "GET" || method == "POST" || method == "DELETE"))
+		return (set_error_message("Invalid value: methods"));
 	_methods.push_back(method);
 	return (true);
 }
@@ -37,21 +39,29 @@ bool	Route::set_methods(method_list methods) {
 }
 
 bool    Route::set_root(path_type root) {
+	if (root == "")
+		return (set_error_message("Invalid value: "+_path+": root"));
 	_root = root;
 	return (true);
 }
 
 bool    Route::set_file(file_type file) {
+	if (file == "")
+		return (set_error_message("Invalid value: "+_path+": file"));
 	_file = file;
 	return (true);
 }
 
 bool    Route::set_dir_listing(dir_listing_type dir_listing) {
+	if (dir_listing < 0)
+		return (set_error_message("Invalid value: "+_path+": directory_listing"));
 	_dir_listing = dir_listing;
 	return (true);
 }
 
 bool    Route::set_upload_path(path_type upload_path) {
+	if (upload_path == "")
+		return (set_error_message("Invalid value: "+_path+": upload_path"));
 	_upload_path = upload_path;
 	return (true);
 }
@@ -85,4 +95,9 @@ void	Route::print() {
 	for (cgi_list::iterator it = _cgis.begin(); it != _cgis.end(); it++)
 		std::cout << "\t\t" << (*it).first << ": " << (*it).second << std::endl;
     std::cout << std::endl;
+}
+
+bool		Route::set_error_message(std::string error_message) {
+	_error_message = error_message;
+	return (false);
 }
