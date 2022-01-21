@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/21 12:19:04 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/21 16:03:10 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,12 +84,13 @@ bool		Client::parse_and_generate_response ()
 {
 	// TODO : it could be greate to have a bool that tell that the parsing did enough to generate a response
 
-	this->_response.clear();
+	// if (request_ready)
+	// {
+		this->_response.clear();
+		this->_response.append_buffer(this->_response_generator.generate(this->_request));
+		this->response_generated = true;
+	// }
 
-	this->_response.append_buffer(this->_response_generator.generate(this->_request));
-	// this->_response.append_buffer(directory_listing(".", _request._path).c_str());
-
-	this->response_generated = true;
 	return (true);
 }
 
