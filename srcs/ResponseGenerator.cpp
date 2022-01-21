@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/21 13:15:36 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/21 15:38:20 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,10 +71,11 @@ std::string			ResponseGenerator::get_file_content(std::string root, std::string 
 		std::cout << "Couldn't open file\n";
 	}
 
-	// ? add the appropriate header depending on the type of the file (need to read the rfc)
 	s_full_content = "HTTP/1.1 200 OK\r\n";
 	s_full_content += "webser: 42\r\n";
-	s_full_content += "Content-Type: text/html\r\n";
+
+	// TODO :  add the appropriate header depending on the request (or the file extention ?)
+
 	s_full_content += "Content-Length: ";
 	s_full_content += ft_to_string(s_file_content.size());
 	s_full_content += "\r\n\r\n";
