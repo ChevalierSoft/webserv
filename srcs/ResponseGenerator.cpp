@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/21 15:38:20 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/21 17:41:41 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 #include "ResponseGenerator.hpp"
 #include "webserv.hpp"
 #include "ft_to_string.hpp"
+#include "utils.hpp"
 
 ResponseGenerator::ResponseGenerator(void)
 {
@@ -41,6 +42,25 @@ ResponseGenerator&	ResponseGenerator::operator=(const ResponseGenerator& copy)
 	return (*this);
 }
 
+std::string			ResponseGenerator::set_file_content_type(const std::string & extention)
+{
+	std::string	s_content_type = "content-type: ";
+
+	std::cout << "extention found : " << extention << std::endl;
+
+	// TODO : set a hash table at creation with every extentions, it will be cleaner that doing 1000 else if()
+
+	if (extention == ".html")
+		s_content_type += "text/html";
+	else if (extention == ".css")
+		s_content_type += "text/css";
+	else
+		s_content_type += "application/octet-stream";
+
+	s_content_type += "\r\n";
+	return (s_content_type);
+}
+
 /**
  * @brief get the requested file and fill a string with it.
  * 
@@ -48,7 +68,7 @@ ResponseGenerator&	ResponseGenerator::operator=(const ResponseGenerator& copy)
  * @param path the requested file
  * @return std::string file content as string
  */
-std::string			ResponseGenerator::get_file_content(std::string root, std::string path)
+std::string			ResponseGenerator::get_file_content(const std::string &root, const std::string &path)
 {
 	std::ifstream	i_file;
 	std::string		tmp;
@@ -75,6 +95,8 @@ std::string			ResponseGenerator::get_file_content(std::string root, std::string 
 	s_full_content += "webser: 42\r\n";
 
 	// TODO :  add the appropriate header depending on the request (or the file extention ?)
+	
+	s_full_content += this->set_file_content_type(get_flie_extention(get_file_name(path)));
 
 	s_full_content += "Content-Length: ";
 	s_full_content += ft_to_string(s_file_content.size());
@@ -86,12 +108,13 @@ std::string			ResponseGenerator::get_file_content(std::string root, std::string 
 }
 
 /**
- * @brief generate a string with the content requested in rq
+ * @brief generate a response following GET method specificationns.
  * 
- * @param rq the client's _request
- * @return std::string a string containing a file.
+ * @details https://greenbytes.de/tech/webdav/draft-ietf-httpbis-p2-semantics-26.html#GET
+ * 
+ * @return std::string a string containing the response to the client.
  */
-std::string			ResponseGenerator::generate(Request& rq)
+std::string			ResponseGenerator::perform_GET_methode(const Request& rq)
 {
 	struct stat s;
 	std::string	root = ".";		// TODO : use the client->_conf one
@@ -121,5 +144,22 @@ std::string			ResponseGenerator::generate(Request& rq)
 		// ? basically 404
 		// ? error: wrong path || path too long || out of memory || bad address || ...
 	}
+	return ("HTTP/1.1 404 Not Found\r\n\r\n");
+}
+
+/**
+ * @brief generate a string with the content requested in rq
+ * 
+ * @param rq the client's _request
+ * @return std::string a string containing the response to the client.
+ */
+std::string			ResponseGenerator::generate(const Request& rq)
+{
+	// check which method should be called
+	if (rq._method == "GET")
+		return (this->perform_GET_methode(rq));
+	else
+		std::cerr << CYN << "(rq._method != \"GET\")" << std::endl;
+
 	return ("");
 }

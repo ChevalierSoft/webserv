@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/21 11:02:47 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/21 17:55:59 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -210,7 +210,7 @@ bool			Server::record_client_input (const int &i)
 
 	std::cout << YEL << "  Descriptor " << RED << _fds[i].fd << YEL << " is readable\n" << RST << std::endl;
 
-	// ? update client's life_time
+	// ? update client's _life_time
 	_clients[_fds[i].fd].update();
 
 	rc = recv(_fds[i].fd, buffer, sizeof(buffer) - 1, 0); // MSG_DONTWAIT | MSG_ERRQUEUE);	// ? errors number can be checked with the flag MSG_ERRQUEUE (man recv)
@@ -279,7 +279,7 @@ void			Server::squeeze_fds_array ()
 }
 
 /**
- * @brief Kick out a client if there life_time is too long.
+ * @brief Kick out a client if there _life_time is too long.
  * 
  * @details Check if a specific client not sending event since too long,
  *          then decide if it should be timed out.
