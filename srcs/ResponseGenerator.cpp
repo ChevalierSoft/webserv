@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/21 17:41:41 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/22 09:12:19 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,14 +18,17 @@
 #include "webserv.hpp"
 #include "ft_to_string.hpp"
 #include "utils.hpp"
+#include "set_content_types.hpp"
 
-ResponseGenerator::ResponseGenerator(void)
-{
-}
+/**
+ * @brief _ss_content_types will be accessible (read only) by every ::ResponseGenerator objects
+ */
+const std::map<std::string, std::string>
+	ResponseGenerator::_ss_content_types = set_content_types();
 
-ResponseGenerator::~ResponseGenerator(void)
-{
-}
+ResponseGenerator::ResponseGenerator(void) {}
+
+ResponseGenerator::~ResponseGenerator(void) {}
 
 ResponseGenerator::ResponseGenerator(const ResponseGenerator & copy)
 {
@@ -42,20 +45,27 @@ ResponseGenerator&	ResponseGenerator::operator=(const ResponseGenerator& copy)
 	return (*this);
 }
 
+/**
+ * @brief Set the content-type value of a returned content.
+ * 
+ * @param extention Extention of the file that will be sent.
+ * @return std::string The right content-type.
+ */
 std::string			ResponseGenerator::set_file_content_type(const std::string & extention)
 {
-	std::string	s_content_type = "content-type: ";
+	std::string											s_content_type;
+	std::map<std::string, std::string>::const_iterator	cit;
+	
+	s_content_type = "content-type: ";
+	cit = _ss_content_types.find(extention);
 
-	std::cout << "extention found : " << extention << std::endl;
+	// ? debug
+	// std::cout << "extention found : " << extention << std::endl;
 
-	// TODO : set a hash table at creation with every extentions, it will be cleaner that doing 1000 else if()
-
-	if (extention == ".html")
-		s_content_type += "text/html";
-	else if (extention == ".css")
-		s_content_type += "text/css";
-	else
+	if (cit == _ss_content_types.end())
 		s_content_type += "application/octet-stream";
+	else
+		s_content_type += cit->second;
 
 	s_content_type += "\r\n";
 	return (s_content_type);
@@ -82,7 +92,7 @@ std::string			ResponseGenerator::get_file_content(const std::string &root, const
 		while (i_file.good())
 		{
 			std::getline(i_file, tmp);
-			s_file_content += (tmp + "\r\n");
+			s_file_content += (tmp + "\n");
 		}
 	}
 	else
@@ -93,11 +103,7 @@ std::string			ResponseGenerator::get_file_content(const std::string &root, const
 
 	s_full_content = "HTTP/1.1 200 OK\r\n";
 	s_full_content += "webser: 42\r\n";
-
-	// TODO :  add the appropriate header depending on the request (or the file extention ?)
-	
 	s_full_content += this->set_file_content_type(get_flie_extention(get_file_name(path)));
-
 	s_full_content += "Content-Length: ";
 	s_full_content += ft_to_string(s_file_content.size());
 	s_full_content += "\r\n\r\n";
