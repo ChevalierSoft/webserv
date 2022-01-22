@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/22 08:19:54 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/22 09:53:29 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/22 12:58:28 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,19 +26,13 @@
 std::map<std::string, std::string>	set_content_types()
 {
 	std::map<std::string, std::string>	ct;
-	std::string							line;
 	std::ifstream						ifs(REFERENCE_CONTENT_TYPE);
 	std::string							key, value;
 
-	if  (ifs.good())
+	while (ifs.good())
 	{
-		while (getline(ifs, line))
-		{
-			ifs >> key >> value;
-			// //std::cout << key << " " << value << std::endl;
-			ct.insert(std::make_pair(key, value));
-		}
+		ifs >> key >> value;
+		ct.insert(std::make_pair(key, value));
 	}
-
 	return (ct);
 }
