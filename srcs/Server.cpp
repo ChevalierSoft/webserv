@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/22 14:27:33 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/22 14:31:56 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -175,25 +175,19 @@ bool			Server::add_new_client ()
 
 	std::cout << YEL << "  New incoming connection fd : " << RED << new_sd << RST << std::endl;
 
-	char ip[INET6_ADDRSTRLEN];
-	memset(ip, 0, INET6_ADDRSTRLEN);
-
-	switch (in_addr.sa_family) {
-		case AF_INET: {
-			// use of reinterpret_cast preferred to C style cast
-			sockaddr_in *sin = reinterpret_cast<sockaddr_in*>(&in_addr);
-			inet_ntop(AF_INET, &sin->sin_addr, ip, INET6_ADDRSTRLEN);
-			break;
-		}
-		case AF_INET6: {
-			sockaddr_in6 *sin = reinterpret_cast<sockaddr_in6*>(&in_addr);
-			// inet_ntoa should be considered deprecated
-			inet_ntop(AF_INET6, &sin->sin6_addr, ip, INET6_ADDRSTRLEN);
-			break;
-		}
-	}
-
-	std::cout << ip << std::endl;
+	// char ip[INET6_ADDRSTRLEN];
+	// memset(ip, 0, INET6_ADDRSTRLEN);
+	// if (in_addr.sa_family == AF_INET)
+	// {
+	// 	sockaddr_in *sin = reinterpret_cast<sockaddr_in*>(&in_addr);
+	// 	inet_ntop(AF_INET, &sin->sin_addr, ip, INET6_ADDRSTRLEN);
+	// }
+	// else if (in_addr.sa_family == AF_INET6)
+	// {
+	// 	sockaddr_in6 *sin = reinterpret_cast<sockaddr_in6*>(&in_addr);
+	// 	inet_ntop(AF_INET6, &sin->sin6_addr, ip, INET6_ADDRSTRLEN);
+	// }
+	// std::cout << ip << std::endl;
 	
 	tmp.fd = new_sd;
 	tmp.events = POLLIN;
