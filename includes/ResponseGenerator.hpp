@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 10:06:11 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/21 17:20:44 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/22 08:37:00 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@ class ResponseGenerator // * ___________________________________________________
 	/// * Variables ____________________________________________________________
 
 private:
-	/* data */
+	static const std::map<std::string, std::string>	_ss_content_types;	// ? map of content types
 
 	/// * Constructors & Destructors ___________________________________________
 
