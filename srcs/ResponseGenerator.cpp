@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/22 08:43:37 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/22 09:12:19 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,13 +26,9 @@
 const std::map<std::string, std::string>
 	ResponseGenerator::_ss_content_types = set_content_types();
 
-ResponseGenerator::ResponseGenerator(void)
-{
-}
+ResponseGenerator::ResponseGenerator(void) {}
 
-ResponseGenerator::~ResponseGenerator(void)
-{
-}
+ResponseGenerator::~ResponseGenerator(void) {}
 
 ResponseGenerator::ResponseGenerator(const ResponseGenerator & copy)
 {
@@ -63,7 +59,8 @@ std::string			ResponseGenerator::set_file_content_type(const std::string & exten
 	s_content_type = "content-type: ";
 	cit = _ss_content_types.find(extention);
 
-	std::cout << "extention found : " << extention << std::endl;
+	// ? debug
+	// std::cout << "extention found : " << extention << std::endl;
 
 	if (cit == _ss_content_types.end())
 		s_content_type += "application/octet-stream";
@@ -95,7 +92,7 @@ std::string			ResponseGenerator::get_file_content(const std::string &root, const
 		while (i_file.good())
 		{
 			std::getline(i_file, tmp);
-			s_file_content += (tmp + "\r\n");
+			s_file_content += (tmp + "\n");
 		}
 	}
 	else
