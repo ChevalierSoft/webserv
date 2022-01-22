@@ -6,12 +6,15 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/21 17:55:59 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/22 14:27:33 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <iostream>
 #include <unistd.h>			// debug : usleep
+#include <sys/un.h>			// sockaddr_un
+#include <arpa/inet.h>		// inet_ntop
+#include <netdb.h>			// getnameinfo flags
 #include "Server.hpp"
 #include "ft_print_memory.hpp"
 #include "color.h"
@@ -158,10 +161,12 @@ bool			Server::add_new_client ()
 {
 	int				new_sd;
 	struct pollfd	tmp;
+	struct sockaddr	in_addr;
+	socklen_t		in_len = sizeof(in_addr);
 
 	std::cout << "  Listening socket is readable\n";
 
-	new_sd = accept(_listen_sd, NULL, NULL);
+	new_sd = accept(_listen_sd, (struct sockaddr *) &in_addr, &in_len);
 	if (new_sd < 0)
 	{
 		std::cerr << "error: can't accept client: " << new_sd << std::endl;
@@ -169,6 +174,27 @@ bool			Server::add_new_client ()
 	}
 
 	std::cout << YEL << "  New incoming connection fd : " << RED << new_sd << RST << std::endl;
+
+	char ip[INET6_ADDRSTRLEN];
+	memset(ip, 0, INET6_ADDRSTRLEN);
+
+	switch (in_addr.sa_family) {
+		case AF_INET: {
+			// use of reinterpret_cast preferred to C style cast
+			sockaddr_in *sin = reinterpret_cast<sockaddr_in*>(&in_addr);
+			inet_ntop(AF_INET, &sin->sin_addr, ip, INET6_ADDRSTRLEN);
+			break;
+		}
+		case AF_INET6: {
+			sockaddr_in6 *sin = reinterpret_cast<sockaddr_in6*>(&in_addr);
+			// inet_ntoa should be considered deprecated
+			inet_ntop(AF_INET6, &sin->sin6_addr, ip, INET6_ADDRSTRLEN);
+			break;
+		}
+	}
+
+	std::cout << ip << std::endl;
+	
 	tmp.fd = new_sd;
 	tmp.events = POLLIN;
 	tmp.revents = 0;
@@ -188,6 +214,8 @@ void			Server::remove_client (int i)
 {
 	close(_fds[i].fd);
 	_fds[i].fd = -1;
+	_fds[i].events = 0;
+	_fds[i].revents = 0;
 	_fds.erase(_fds.begin() + i);
 	_clients.erase(_fds[i].fd);
 	squeeze_fds_array();
@@ -233,6 +261,10 @@ bool			Server::record_client_input (const int &i)
 	std::cout << YEL << "  " << rc << " bytes received : " << RST << std::endl;
 	ft_print_memory(buffer, rc);
 	
+	// ! if the client send 0 bytes we kick him for now
+	if (rc == 0)
+		close_conn = true;
+
 	_clients[_fds[i].fd].add_input_buffer(buffer, rc);	// ? store the buffer
 
 	// std::cout << "[" << GRN << buffer << RST << "]" << std::endl;
