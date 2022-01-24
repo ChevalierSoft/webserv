@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/22 14:31:56 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/24 10:03:43 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -140,12 +140,6 @@ int				Server::init (const Conf& c)
 	// ? Bind the socket
 	if (this->socket_bind() == false)
 		return (4);
-
-	// // ? init fd number
-	// this->_nb_fds = 0;
-
-	// // ? init the entier array
-	// memset(_fds, 0 , sizeof(_fds));
 	
 	std::cout << "ready to listen on port " << _conf._port << std::endl;
 	return (0);
@@ -212,7 +206,6 @@ void			Server::remove_client (int i)
 	_fds[i].revents = 0;
 	_fds.erase(_fds.begin() + i);
 	_clients.erase(_fds[i].fd);
-	squeeze_fds_array();
 }
 
 /**
@@ -220,7 +213,7 @@ void			Server::remove_client (int i)
  * 
  * @param i Index from server_poll_loop's for loop.
  * 
- * @return true connection to the client must be closed because of an error
+ * @return true connection to the client have been closed because of an error
  *         or we don't need more data to generate the output.
  * @return false the client has to send more data to generate the return message.
  */
@@ -237,31 +230,20 @@ bool			Server::record_client_input (const int &i)
 
 	rc = recv(_fds[i].fd, buffer, sizeof(buffer) - 1, 0); // MSG_DONTWAIT | MSG_ERRQUEUE);	// ? errors number can be checked with the flag MSG_ERRQUEUE (man recv)
 
-	// ? connection closed by client or error while recv.
-	// ? EAGAIN would tell us if this was the end of the client's message or ...
-	// ? if there is an error. because we can not use errno in this project,
-	// ? we will handle this while parsing the input in the client's parsing.
-	// if (rc <= 0)
-	// {
-	//	 if (errno == EAGAIN)
-	//		 break ;
-	// 	std::cout << YEL << "  Connection closed\n" << RST;
-	// 	remove_client(i);
-	// 	return (true);
-	// }
+	if (rc == -1 || rc == 0)	// ? error while reading or client closed the connection
+	{
+		std::cerr <<MAG<< "client closed the connection" <<RST<< std::endl;
+		remove_client(i);
+		return (true);
+	}
 
 	buffer[rc] = '\0';										// ? closing the char array
+	
 	// ? debug
 	std::cout << YEL << "  " << rc << " bytes received : " << RST << std::endl;
-	ft_print_memory(buffer, rc);
-	
-	// ! if the client send 0 bytes we kick him for now
-	if (rc == 0)
-		close_conn = true;
+	// ft_print_memory(buffer, rc);
 
 	_clients[_fds[i].fd].add_input_buffer(buffer, rc);	// ? store the buffer
-
-	// std::cout << "[" << GRN << buffer << RST << "]" << std::endl;
 
 	if (_clients[_fds[i].fd].is_output_ready() == false)
 		close_conn = _clients[_fds[i].fd].parse_and_generate_response();
@@ -276,32 +258,6 @@ bool			Server::record_client_input (const int &i)
 		return (true);
 	}
 	return (false);
-}
-
-/**
- * @brief squeeze _fds when a fd is -1.
- * 
- * @param _fds array of pollfd
- * @param _nb_fds Size of _fds
- */
-void			Server::squeeze_fds_array ()
-{
-	for (std::vector<struct pollfd>::iterator it = _fds.begin(); it != _fds.end(); ++it)
-	{
-		if (it->fd == -1)
-			std::cout << "should of rm position " << _fds.begin() - it << " in _fds" << std::endl;
-	}
-	// for (int i = 0; i < _fds.size(); i++)	// can be faster
-	// {
-	// 	// if (_fds[i].fd == -1)
-	// 	// {
-	// 	// 	for(int j = i; j < _fds.size(); j++)
-	// 	// 	{
-	// 	// 		_fds[j].fd = _fds[j + 1].fd;
-	// 	// 	}
-	// 	// 	i--;
-	// 	// }
-	// }
 }
 
 /**
@@ -387,18 +343,12 @@ bool			Server::server_poll_loop ()
 		// ? check if it's a new client
 		if (_fds[i].fd == _listen_sd)
 		{
-			// if (_fds.size() < MAX_FDS)	// ? now using vector #stonks
-				add_new_client();
+			add_new_client();
 		}
 		// ? else the event was triggered by a pollfd that is already in _fds
 		else
-			need_cleaning |= record_client_input(i);
-
+			record_client_input(i);
 	}
-
-	// ? it's where we will be removing clients and squeeze the array
-	if (need_cleaning)
-		squeeze_fds_array();
 
 	return (true);
 }
