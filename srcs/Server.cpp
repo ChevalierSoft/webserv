@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/24 15:12:55 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/24 16:36:29 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,14 +79,13 @@ Server&			Server::operator= (const Server &rhs)
  */
 bool			Server::socket_bind ()
 {
-	struct sockaddr_in6	addr;
+	struct sockaddr_in	addr;
 	int					rc;
 
 	memset(&addr, 0, sizeof(addr));
-	addr.sin6_family = AF_INET;
-	// ? in6addr_any is a like 0.0.0.0 and gets any address for binding
-	memcpy(&addr.sin6_addr, &in6addr_any, sizeof(in6addr_any));
-	addr.sin6_port = htons(_conf._port);
+	addr.sin_family = AF_INET;
+	addr.sin_addr.s_addr = inet_addr("0.0.0.0");
+	addr.sin_port = htons(_conf._port);
 	rc = bind(_listen_sd, (struct sockaddr *)&addr, sizeof(addr));
 	if (rc < 0)
 	{
@@ -100,7 +99,7 @@ bool			Server::socket_bind ()
 /**
  * @brief Initialise the server.
  * 
- * @param p Port on which the socket will listen.
+ * @param c Conf object with instructions the Server will need to follow. 
  * @return int On success returns 0.
  *         A positive number is returned in case of error.
  */
@@ -145,8 +144,6 @@ int				Server::init (const Conf& c)
 	return (0);
 }
 
-#include <sys/socket.h> // getsockname
-
 /**
  * @brief Add a new client 
  * 
@@ -158,18 +155,17 @@ bool			Server::add_new_client ()
 		int				new_sd;
 	struct pollfd	tmp;
 
-	struct sockaddr_in*	addr = new (struct sockaddr_in);
+	struct sockaddr_in	addr;
 	socklen_t			addr_size = sizeof(struct sockaddr_in);
 
 	std::cout << "  Listening socket is readable\n";
 
-	new_sd = accept(_listen_sd, (struct sockaddr *)addr, &addr_size);
-	std::cout << "New connection from : " << inet_ntoa((reinterpret_cast<sockaddr_in *>(addr))->sin_addr) << std::endl;
-	std::cout << "on port : " << reinterpret_cast<sockaddr_in *>(addr)->sin_port << std::endl;
+	new_sd = accept(_listen_sd, (struct sockaddr *)&addr, &addr_size);
 
-	std::cout << (int)(addr->sin_addr.s_addr & 0xff) << std::endl;
-
-	delete addr;
+	std::cout << "New connection from : " << inet_ntoa(((addr)).sin_addr) << std::endl;
+	// std::cout << "on port : " << (addr).sin_port << std::endl;
+	// std::cout << "on port : " << htons((addr).sin_port) << std::endl;
+	// std::cout << "on port : " << ntohs((addr).sin_port) << std::endl;
 
 	if (new_sd < 0)
 	{
@@ -177,7 +173,7 @@ bool			Server::add_new_client ()
 		return (false);
 	}
 
-	std::cout << YEL << "  New incoming connection fd : " << RED << new_sd << RST << std::endl;
+	std::cout << YEL << "  New incoming connection on fd : " << RED << new_sd << RST << std::endl;
 	
 	tmp.fd = new_sd;
 	tmp.events = POLLIN;
