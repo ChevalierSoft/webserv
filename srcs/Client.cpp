@@ -6,7 +6,7 @@
 /*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/24 18:57:29 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/01/24 19:04:46 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,8 @@
  * @brief Construct a new Client:: Client object
  * 
  */
-Client::Client () : _request_ready(false), _response_ready(false)
+Client::Client ()
+: _request_ready(false), _response_ready(false), _conf(NULL), _ip(), _port()
 {
 	gettimeofday(&_life_time, NULL);
 }
@@ -28,7 +29,8 @@ Client::Client () : _request_ready(false), _response_ready(false)
  * @brief Construct a new Client:: Client object with it's conf
  * 
  */
-Client::Client (const Conf* c) : _conf(c), _request_ready(false), _response_ready(false)
+Client::Client (const Conf* c, std::string ip, std::string port)
+: _conf(c), _request_ready(false), _response_ready(false), _ip(ip), _port(port)
 {
 	gettimeofday(&_life_time, NULL);
 }
@@ -69,6 +71,8 @@ Client&		Client::operator= (const Client& copy)
 		_it_chunk = copy._it_chunk;
 		_life_time = copy._life_time;
 		_conf = copy._conf;
+		_ip = copy._ip;
+		_port = copy._port;
 	}
 	return (*this);
 }
@@ -104,8 +108,7 @@ bool		Client::parse_and_generate_response ()
  * @return false The message is not completly sent
  */
 bool		Client::send_response (int sd_out)
-{
-	int	rc;
+{ int	rc;
 
 	std::cout << GRN << "  sending response" << RST << std::endl;
 

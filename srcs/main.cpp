@@ -24,6 +24,7 @@ int main(int argc, char **argv)
 	if (run == false)
 	{
 		std::cerr << "Error: " << p._error_message << std::endl;
+		std::cerr << p.line_number << ": " << p.line << std::endl;
 		return (20);
 	}
 	else
