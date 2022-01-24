@@ -6,7 +6,7 @@
 /*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/21 17:32:13 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/01/24 15:13:42 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -161,7 +161,6 @@ void		Client::add_input_buffer (const char *buffer, int len)
 	}
 
 	if (!this->_request._in_header && this->_request._method != "POST") {
-		std::cout << MAG << "alloOOOOOO0" << std::endl;
 		this->request_ready = true;
 		end_of_request = 2;
 	}
