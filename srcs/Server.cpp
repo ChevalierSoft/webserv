@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/24 11:23:45 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/24 15:12:55 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,7 +83,7 @@ bool			Server::socket_bind ()
 	int					rc;
 
 	memset(&addr, 0, sizeof(addr));
-	addr.sin6_family = AF_INET6;
+	addr.sin6_family = AF_INET;
 	// ? in6addr_any is a like 0.0.0.0 and gets any address for binding
 	memcpy(&addr.sin6_addr, &in6addr_any, sizeof(in6addr_any));
 	addr.sin6_port = htons(_conf._port);
@@ -112,7 +112,7 @@ int				Server::init (const Conf& c)
 	_conf = c;
 
 	// ? AF_INET6 stream socket to receive incoming connections
-	_listen_sd = socket(AF_INET6, SOCK_STREAM, 0);
+	_listen_sd = socket(AF_INET, SOCK_STREAM, 0);
 	if (_listen_sd < 0)
 	{
 		perror("socket() failed");
@@ -155,19 +155,19 @@ int				Server::init (const Conf& c)
  */
 bool			Server::add_new_client ()
 {
-	int				new_sd;
+		int				new_sd;
 	struct pollfd	tmp;
+
+	struct sockaddr_in*	addr = new (struct sockaddr_in);
+	socklen_t			addr_size = sizeof(struct sockaddr_in);
 
 	std::cout << "  Listening socket is readable\n";
 
-	struct sockaddr*	addr = new (struct sockaddr);
-	socklen_t			addr_size = sizeof(struct sockaddr);
-
-	new_sd = accept(_listen_sd, addr, &addr_size);
+	new_sd = accept(_listen_sd, (struct sockaddr *)addr, &addr_size);
 	std::cout << "New connection from : " << inet_ntoa((reinterpret_cast<sockaddr_in *>(addr))->sin_addr) << std::endl;
+	std::cout << "on port : " << reinterpret_cast<sockaddr_in *>(addr)->sin_port << std::endl;
 
-	getsockname(new_sd, addr, &addr_size);
-	std::cout << "New connection from : " << inet_ntoa((reinterpret_cast<sockaddr_in *>(addr))->sin_addr) << std::endl;
+	std::cout << (int)(addr->sin_addr.s_addr & 0xff) << std::endl;
 
 	delete addr;
 
@@ -178,21 +178,6 @@ bool			Server::add_new_client ()
 	}
 
 	std::cout << YEL << "  New incoming connection fd : " << RED << new_sd << RST << std::endl;
-
-	// char ip[INET6_ADDRSTRLEN];
-	// memset(ip, 0, INET6_ADDRSTRLEN);
-	// if (in_addr.sa_family == AF_INET)
-	// {
-	// 	sockaddr_in *sin = reinterpret_cast<sockaddr_in*>(&in_addr);
-	// 	inet_ntop(AF_INET, &sin->sin_addr, ip, INET6_ADDRSTRLEN);
-	// }
-	// else if (in_addr.sa_family == AF_INET6)
-	// {
-	// 	sockaddr_in6 *sin = reinterpret_cast<sockaddr_in6*>(&in_addr);
-	// 	inet_ntop(AF_INET6, &sin->sin6_addr, ip, INET6_ADDRSTRLEN);
-	// }
-	// std::cout << ip << std::endl;
-
 	
 	tmp.fd = new_sd;
 	tmp.events = POLLIN;
