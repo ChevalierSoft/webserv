@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/24 10:03:43 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/24 10:18:51 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -155,12 +155,16 @@ bool			Server::add_new_client ()
 {
 	int				new_sd;
 	struct pollfd	tmp;
-	struct sockaddr	in_addr;
-	socklen_t		in_len = sizeof(in_addr);
 
 	std::cout << "  Listening socket is readable\n";
 
-	new_sd = accept(_listen_sd, (struct sockaddr *) &in_addr, &in_len);
+	struct sockaddr*	addr = new (struct sockaddr);
+	socklen_t			addr_size = sizeof(struct sockaddr);
+
+	new_sd = accept(_listen_sd, addr, &addr_size);
+		
+	std::cout << "New connection from : " << inet_ntoa((reinterpret_cast<sockaddr_in *>(addr))->sin_addr) << std::endl;
+
 	if (new_sd < 0)
 	{
 		std::cerr << "error: can't accept client: " << new_sd << std::endl;
@@ -182,6 +186,7 @@ bool			Server::add_new_client ()
 	// 	inet_ntop(AF_INET6, &sin->sin6_addr, ip, INET6_ADDRSTRLEN);
 	// }
 	// std::cout << ip << std::endl;
+
 	
 	tmp.fd = new_sd;
 	tmp.events = POLLIN;
