@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/24 10:18:51 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/24 11:23:45 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -145,6 +145,8 @@ int				Server::init (const Conf& c)
 	return (0);
 }
 
+#include <sys/socket.h> // getsockname
+
 /**
  * @brief Add a new client 
  * 
@@ -162,8 +164,12 @@ bool			Server::add_new_client ()
 	socklen_t			addr_size = sizeof(struct sockaddr);
 
 	new_sd = accept(_listen_sd, addr, &addr_size);
-		
 	std::cout << "New connection from : " << inet_ntoa((reinterpret_cast<sockaddr_in *>(addr))->sin_addr) << std::endl;
+
+	getsockname(new_sd, addr, &addr_size);
+	std::cout << "New connection from : " << inet_ntoa((reinterpret_cast<sockaddr_in *>(addr))->sin_addr) << std::endl;
+
+	delete addr;
 
 	if (new_sd < 0)
 	{
