@@ -12,6 +12,8 @@ class Parser {
         conf_list   _confs;
         bool        _err;
         std::string _error_message;
+        std::string line;
+        int         line_number;
 
         bool        parse_file(std::ifstream &ifs);
         param_type  parse_param(std::string &line, const char sep);
@@ -26,5 +28,8 @@ class Parser {
 
         // bool        is_whitespace (const char c);
         line_type   remove_whitespaces(line_type s);
+
+        bool		set_error_message(std::string error_message);
+        bool        check();
 
 };

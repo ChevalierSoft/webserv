@@ -6,8 +6,19 @@
 #include <iostream>
 #include <algorithm>
 #include <stdlib.h>
+#include <cctype>
 
-Conf::Conf(): _err(0) {}
+Conf::Conf(): _name(name_type()),
+_host(host_type()),
+_port(port_type()),
+_error_pages(error_list()),
+_client_body_size(size_t()),
+_methods(method_list()),
+_dir_listing(-1),
+_upload_path(path_type()),
+_routes(route_list()),
+_error_message(std::string()),
+ _err(0) {}
 
 Conf::~Conf() {}
 
@@ -31,14 +42,18 @@ Conf::Conf(Conf const &copy) {
 	*this = copy;
 }
 
+bool	isnotdigit(int c) {
+	return (!(std::isdigit(c)));
+}
+
 port_type   Conf::string_to_port(std::string value) {
-	if (value == "")
+	if (value == "" || count_if(value.begin(), value.end(), isnotdigit))
 		return (-1);
 	return (atoi(value.c_str()));
 }
 
 code_type     Conf::string_to_code(std::string value) {
-	if (value == "")
+	if (value == "" || count_if(value.begin(), value.end(), isnotdigit))
 		return (-1);
 	return (atoi(value.c_str()));
 }
@@ -47,9 +62,6 @@ route_type    Conf::string_to_route(std::string value) {
 	return (Route(value, _methods, _dir_listing, _upload_path));
 }
 
-bool	isnotdigit(int c) {
-	return (!(std::isdigit(c)));
-}
 
 size_type		Conf::string_to_client_body_size(std::string value) {
 	std::string	scale = "MB";
@@ -72,7 +84,7 @@ method_list		Conf::string_to_methods(std::string value) {
 	size_t		end;
 	method_list	methods;
 
-	while (start < value.size())
+	while (start <= value.size())
 	{
 		if ((end = value.find(sep, start)) == std::string::npos)
 			end = value.size();
@@ -112,9 +124,7 @@ bool        Conf::set_port(port_type port) {
 }
 
 bool    Conf::add_error(error_type  error) {
-	if (error.first < 0)
-		return (set_error_message("Invalid parameter"));
-	else if (error.second == "")
+	if (error.first < 0 || error.second == "")
 		return (set_error_message("Invaild value: error_pages"));
 	_error_pages.insert(error);
 	return (true);
@@ -187,6 +197,24 @@ void	Conf::print() {
 }
 
 bool		Conf::set_error_message(std::string error_message) {
-	_error_message = error_message;
+	_error_message = _name+": "+error_message;
+	_err = true;
 	return (false);
+}
+
+bool		Conf::check() {
+	if (_name == name_type())
+		return (set_error_message("Required value: server_name"));
+	else if (_host == host_type())
+		return (set_error_message("Required value: host"));
+	else if (_port == port_type())
+		return (set_error_message("Required value: port"));
+	else if (_error_pages == error_list())
+		return (set_error_message("Required value: error_pages"));
+	else if (_client_body_size == size_type())
+		return (set_error_message("Required value: client_body_size"));
+	for (route_list::iterator it = _routes.begin(); it != _routes.end(); it++)
+		if (!it->check())
+			return (set_error_message(it->_error_message));
+	return (true);
 }

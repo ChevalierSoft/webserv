@@ -64,6 +64,8 @@ class Conf {
 		void		print();
 
 		bool		set_error_message(std::string error_message);
+
+		bool		check();
 };
 
 #endif
