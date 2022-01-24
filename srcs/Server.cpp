@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
+/*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/24 10:03:43 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/24 18:45:35 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@
 #include "ft_print_memory.hpp"
 #include "color.h"
 
-#define __DEB(s)	std::cerr << MAG << s << RST << std::endl; 
+#define __DEB(s)	std::cerr << MAG << s << RST << std::endl;
 
 /**
  * @brief Default Constructor for a new Server:: Server object.

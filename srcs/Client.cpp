@@ -6,7 +6,7 @@
 /*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/24 15:14:54 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/01/24 18:57:29 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -111,16 +111,17 @@ bool		Client::send_response (int sd_out)
 
 	// ? clear request since response is generated
 	this->_request.clear();
+	// this->_response.send_itself(sd_out);
 	// rc = send(sd_out, ((*(this->_it_chunk)).second).c_str(), ((*(this->_it_chunk)).second).size(), 0);
 	// ? For now, sending default response in one go
 	rc = send(sd_out, this->_response.get_buffer().c_str(), this->_response.get_buffer().size(), 0);
-	if (rc < 0)
-	{
-		perror("  send() failed");
-		return (true);
-	}
+	// if (rc < 0)
+	// {
+	// 	perror("  send() failed");
+	// 	return (true);
+	// }
 	// ? Setting generated response to false after each send for now
-	this->_request_ready = false;
+	// this->_request_ready = false;
 	return true;
 
 	// ? get to the next output message chunk

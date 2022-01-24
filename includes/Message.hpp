@@ -6,6 +6,8 @@
 #include <cstring>
 // #include "ft_print_memory.hpp"
 
+# define BUFFER_SIZE	64
+
 void	*ft_print_memory(void *addr, size_t size);
 
 // TODO handle errors from requests
