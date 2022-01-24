@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/24 17:13:31 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/24 17:31:11 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,6 +71,8 @@ Client&		Client::operator= (const Client& copy)
 		_it_chunk = copy._it_chunk;
 		_life_time = copy._life_time;
 		_conf = copy._conf;
+		_ip = copy._ip;
+		_port = copy._port;
 	}
 	return (*this);
 }
