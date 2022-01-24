@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/24 16:36:29 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/24 17:17:29 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 #include "Server.hpp"
 #include "ft_print_memory.hpp"
 #include "color.h"
+#include "ft_to_string.hpp"
 
 #define __DEB(s)	std::cerr << MAG << s << RST << std::endl; 
 
@@ -162,14 +163,13 @@ bool			Server::add_new_client ()
 
 	new_sd = accept(_listen_sd, (struct sockaddr *)&addr, &addr_size);
 
-	std::cout << "New connection from : " << inet_ntoa(((addr)).sin_addr) << std::endl;
-	// std::cout << "on port : " << (addr).sin_port << std::endl;
+	std::cout << "  New connection from : " << inet_ntoa(((addr)).sin_addr) << std::endl;
+	std::cout << "  on port : " << (addr).sin_port << std::endl;
 	// std::cout << "on port : " << htons((addr).sin_port) << std::endl;
-	// std::cout << "on port : " << ntohs((addr).sin_port) << std::endl;
 
 	if (new_sd < 0)
 	{
-		std::cerr << "error: can't accept client: " << new_sd << std::endl;
+		std::cerr << "  error: can't accept client: " << new_sd << std::endl;
 		return (false);
 	}
 
@@ -180,7 +180,7 @@ bool			Server::add_new_client ()
 	tmp.revents = 0;
 	_fds.push_back(tmp);
 
-	_clients[new_sd] = Client(&this->_conf);
+	_clients[new_sd] = Client(&this->_conf, inet_ntoa((addr).sin_addr), ft_to_string(addr.sin_port));
 
 	return (true);
 }
@@ -229,8 +229,8 @@ bool			Server::record_client_input (const int &i)
 		return (true);
 	}
 
-	buffer[rc] = '\0';										// ? closing the char array
-	
+	buffer[rc] = '\0';									// ? closing the char array
+
 	// ? debug
 	std::cout << YEL << "  " << rc << " bytes received : " << RST << std::endl;
 	// ft_print_memory(buffer, rc);

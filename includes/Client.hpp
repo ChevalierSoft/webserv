@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 00:54:13 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/21 17:55:41 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/24 17:12:17 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,12 +40,13 @@ class Client // * ______________________________________________________________
 private:
 	Request					_request;
 	Response				_response;
-	bool					_request_ready;	// will stop the reading to send o_msg's content
+	bool					_request_ready;			// will stop the reading to send o_msg's content
 	bool					_response_ready;
-	Response::it_chunk		_it_chunk;			// points on the begining of o_msg
-	struct timeval			_life_time;			// will be updated every event. after CLIENT_TIMEOUT the client is erased and the connection is closed
+	Response::it_chunk		_it_chunk;				// points on the begining of o_msg
+	struct timeval			_life_time;				// will be updated every event. after CLIENT_TIMEOUT the client is erased and the connection is closed
 	const Conf*				_conf;
-
+	std::string				_ip;
+	std::string				_port;
 	ResponseGenerator		_response_generator;
 
 	/// * Constructors & Destructors ___________________________________________
@@ -54,8 +55,8 @@ public:
 	// ? (1) default. should not be used without beeing set
 	Client ();
 
-	// ? (2) with server's config
-	Client (const Conf* c);
+	// ? (2) with server's config, client ip and client port
+	Client  (const Conf* c, std::string ip, std::string port);
 
 	// ? (3) by copy
 	Client (const Client & copy);
