@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
+/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 00:54:13 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/21 16:54:26 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/01/21 17:55:41 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,10 +40,10 @@ class Client // * ______________________________________________________________
 private:
 	Request					_request;
 	Response				_response;
-	bool					request_ready;	// will stop the reading to send o_msg's content
-	bool					response_generated;
+	bool					_request_ready;	// will stop the reading to send o_msg's content
+	bool					_response_ready;
 	Response::it_chunk		_it_chunk;			// points on the begining of o_msg
-	struct timeval			life_time;			// will be updated every event. after CLIENT_TIMEOUT the client is erased and the connection is closed
+	struct timeval			_life_time;			// will be updated every event. after CLIENT_TIMEOUT the client is erased and the connection is closed
 	const Conf*				_conf;
 
 	ResponseGenerator		_response_generator;

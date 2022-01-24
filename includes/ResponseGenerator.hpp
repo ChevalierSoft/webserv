@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 10:06:11 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/21 12:49:37 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/22 09:00:28 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,12 +14,17 @@
 
 # include "Request.hpp"
 
+/**
+ * @brief Thanks to the generated Request,
+ * 	      ResponseGenerator will generate a response to the client
+ * 
+ */
 class ResponseGenerator // * ___________________________________________________
 {
 	/// * Variables ____________________________________________________________
 
 private:
-	/* data */
+	static const std::map<std::string, std::string>	_ss_content_types;	// ? map of content types
 
 	/// * Constructors & Destructors ___________________________________________
 
@@ -37,8 +42,13 @@ public:
 	// Operation overload =
 	ResponseGenerator&	operator=(const ResponseGenerator &	copy);
 	
-	std::string			generate(Request& rq);
+	std::string			generate(const Request & rq);
 
-	std::string			get_file_content(std::string root, std::string paht);
+private:
+	std::string			get_file_content(const std::string & root, const std::string & paht);
+
+	std::string			perform_GET_methode(const Request & rq);
+
+	std::string			set_file_content_type(const std::string & extention);
 
 }; // * ________________________________________________________________________

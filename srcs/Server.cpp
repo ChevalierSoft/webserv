@@ -6,12 +6,15 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/21 11:02:47 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/24 10:03:43 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <iostream>
 #include <unistd.h>			// debug : usleep
+#include <sys/un.h>			// sockaddr_un
+#include <arpa/inet.h>		// inet_ntop
+#include <netdb.h>			// getnameinfo flags
 #include "Server.hpp"
 #include "ft_print_memory.hpp"
 #include "color.h"
@@ -137,12 +140,6 @@ int				Server::init (const Conf& c)
 	// ? Bind the socket
 	if (this->socket_bind() == false)
 		return (4);
-
-	// // ? init fd number
-	// this->_nb_fds = 0;
-
-	// // ? init the entier array
-	// memset(_fds, 0 , sizeof(_fds));
 	
 	std::cout << "ready to listen on port " << _conf._port << std::endl;
 	return (0);
@@ -158,10 +155,12 @@ bool			Server::add_new_client ()
 {
 	int				new_sd;
 	struct pollfd	tmp;
+	struct sockaddr	in_addr;
+	socklen_t		in_len = sizeof(in_addr);
 
 	std::cout << "  Listening socket is readable\n";
 
-	new_sd = accept(_listen_sd, NULL, NULL);
+	new_sd = accept(_listen_sd, (struct sockaddr *) &in_addr, &in_len);
 	if (new_sd < 0)
 	{
 		std::cerr << "error: can't accept client: " << new_sd << std::endl;
@@ -169,6 +168,21 @@ bool			Server::add_new_client ()
 	}
 
 	std::cout << YEL << "  New incoming connection fd : " << RED << new_sd << RST << std::endl;
+
+	// char ip[INET6_ADDRSTRLEN];
+	// memset(ip, 0, INET6_ADDRSTRLEN);
+	// if (in_addr.sa_family == AF_INET)
+	// {
+	// 	sockaddr_in *sin = reinterpret_cast<sockaddr_in*>(&in_addr);
+	// 	inet_ntop(AF_INET, &sin->sin_addr, ip, INET6_ADDRSTRLEN);
+	// }
+	// else if (in_addr.sa_family == AF_INET6)
+	// {
+	// 	sockaddr_in6 *sin = reinterpret_cast<sockaddr_in6*>(&in_addr);
+	// 	inet_ntop(AF_INET6, &sin->sin6_addr, ip, INET6_ADDRSTRLEN);
+	// }
+	// std::cout << ip << std::endl;
+	
 	tmp.fd = new_sd;
 	tmp.events = POLLIN;
 	tmp.revents = 0;
@@ -188,9 +202,10 @@ void			Server::remove_client (int i)
 {
 	close(_fds[i].fd);
 	_fds[i].fd = -1;
+	_fds[i].events = 0;
+	_fds[i].revents = 0;
 	_fds.erase(_fds.begin() + i);
 	_clients.erase(_fds[i].fd);
-	squeeze_fds_array();
 }
 
 /**
@@ -198,7 +213,7 @@ void			Server::remove_client (int i)
  * 
  * @param i Index from server_poll_loop's for loop.
  * 
- * @return true connection to the client must be closed because of an error
+ * @return true connection to the client have been closed because of an error
  *         or we don't need more data to generate the output.
  * @return false the client has to send more data to generate the return message.
  */
@@ -210,32 +225,25 @@ bool			Server::record_client_input (const int &i)
 
 	std::cout << YEL << "  Descriptor " << RED << _fds[i].fd << YEL << " is readable\n" << RST << std::endl;
 
-	// ? update client's life_time
+	// ? update client's _life_time
 	_clients[_fds[i].fd].update();
 
 	rc = recv(_fds[i].fd, buffer, sizeof(buffer) - 1, 0); // MSG_DONTWAIT | MSG_ERRQUEUE);	// ? errors number can be checked with the flag MSG_ERRQUEUE (man recv)
 
-	// ? connection closed by client or error while recv.
-	// ? EAGAIN would tell us if this was the end of the client's message or ...
-	// ? if there is an error. because we can not use errno in this project,
-	// ? we will handle this while parsing the input in the client's parsing.
-	// if (rc <= 0)
-	// {
-	//	 if (errno == EAGAIN)
-	//		 break ;
-	// 	std::cout << YEL << "  Connection closed\n" << RST;
-	// 	remove_client(i);
-	// 	return (true);
-	// }
+	if (rc == -1 || rc == 0)	// ? error while reading or client closed the connection
+	{
+		std::cerr <<MAG<< "client closed the connection" <<RST<< std::endl;
+		remove_client(i);
+		return (true);
+	}
 
 	buffer[rc] = '\0';										// ? closing the char array
+	
 	// ? debug
 	std::cout << YEL << "  " << rc << " bytes received : " << RST << std::endl;
-	ft_print_memory(buffer, rc);
-	
-	_clients[_fds[i].fd].add_input_buffer(buffer, rc);	// ? store the buffer
+	// ft_print_memory(buffer, rc);
 
-	// std::cout << "[" << GRN << buffer << RST << "]" << std::endl;
+	_clients[_fds[i].fd].add_input_buffer(buffer, rc);	// ? store the buffer
 
 	if (_clients[_fds[i].fd].is_output_ready() == false)
 		close_conn = _clients[_fds[i].fd].parse_and_generate_response();
@@ -253,33 +261,7 @@ bool			Server::record_client_input (const int &i)
 }
 
 /**
- * @brief squeeze _fds when a fd is -1.
- * 
- * @param _fds array of pollfd
- * @param _nb_fds Size of _fds
- */
-void			Server::squeeze_fds_array ()
-{
-	for (std::vector<struct pollfd>::iterator it = _fds.begin(); it != _fds.end(); ++it)
-	{
-		if (it->fd == -1)
-			std::cout << "should of rm position " << _fds.begin() - it << " in _fds" << std::endl;
-	}
-	// for (int i = 0; i < _fds.size(); i++)	// can be faster
-	// {
-	// 	// if (_fds[i].fd == -1)
-	// 	// {
-	// 	// 	for(int j = i; j < _fds.size(); j++)
-	// 	// 	{
-	// 	// 		_fds[j].fd = _fds[j + 1].fd;
-	// 	// 	}
-	// 	// 	i--;
-	// 	// }
-	// }
-}
-
-/**
- * @brief Kick out a client if there life_time is too long.
+ * @brief Kick out a client if there _life_time is too long.
  * 
  * @details Check if a specific client not sending event since too long,
  *          then decide if it should be timed out.
@@ -361,18 +343,12 @@ bool			Server::server_poll_loop ()
 		// ? check if it's a new client
 		if (_fds[i].fd == _listen_sd)
 		{
-			// if (_fds.size() < MAX_FDS)	// ? now using vector #stonks
-				add_new_client();
+			add_new_client();
 		}
 		// ? else the event was triggered by a pollfd that is already in _fds
 		else
-			need_cleaning |= record_client_input(i);
-
+			record_client_input(i);
 	}
-
-	// ? it's where we will be removing clients and squeeze the array
-	if (need_cleaning)
-		squeeze_fds_array();
 
 	return (true);
 }
