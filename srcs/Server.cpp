@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
+/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/19 17:06:13 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/01/21 11:02:47 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,9 +28,9 @@ Server::Server () {}
  * 
  * @param p Port on which the socket will listen.
  */
-Server::Server (int p) : _port(p)
+Server::Server (const Conf& c)
 {
-	init(_port);
+	init(c);
 }
 
 /**
@@ -38,7 +38,7 @@ Server::Server (int p) : _port(p)
  */
 Server::~Server ()
 {
-	clients.clear();
+	_clients.clear();
 	for (std::vector<struct pollfd>::iterator it = _fds.begin(); it != _fds.end(); ++it)
 		close(it->fd);
 }
@@ -61,9 +61,10 @@ Server::Server (const Server & other)
  */
 Server&			Server::operator= (const Server &rhs)
 {
-	_port = rhs._port;
 	dup2(rhs._listen_sd, _listen_sd);
-	// _fds = rhs._fds;				// ! need a deep copy
+	_conf = rhs._conf;
+	_fds = rhs._fds;
+	_clients = rhs._clients;
 	return (*this);
 }
 
@@ -82,7 +83,7 @@ bool			Server::socket_bind ()
 	addr.sin6_family = AF_INET6;
 	// ? in6addr_any is a like 0.0.0.0 and gets any address for binding
 	memcpy(&addr.sin6_addr, &in6addr_any, sizeof(in6addr_any));
-	addr.sin6_port = htons(_port);
+	addr.sin6_port = htons(_conf._port);
 	rc = bind(_listen_sd, (struct sockaddr *)&addr, sizeof(addr));
 	if (rc < 0)
 	{
@@ -100,10 +101,12 @@ bool			Server::socket_bind ()
  * @return int On success returns 0.
  *         A positive number is returned in case of error.
  */
-int				Server::init (int p)
+int				Server::init (const Conf& c)
 {
 	int					rc;
 	int					on = 1;
+
+	_conf = c;
 
 	// ? AF_INET6 stream socket to receive incoming connections
 	_listen_sd = socket(AF_INET6, SOCK_STREAM, 0);
@@ -141,7 +144,7 @@ int				Server::init (int p)
 	// // ? init the entier array
 	// memset(_fds, 0 , sizeof(_fds));
 	
-	std::cout << "ready to listen on port " << _port << std::endl;
+	std::cout << "ready to listen on port " << _conf._port << std::endl;
 	return (0);
 }
 
@@ -171,13 +174,13 @@ bool			Server::add_new_client ()
 	tmp.revents = 0;
 	_fds.push_back(tmp);
 
-	clients[new_sd] = Client();
+	_clients[new_sd] = Client(&this->_conf);
 
 	return (true);
 }
 
 /**
- * @brief remove a client of clients and close it's linked fd
+ * @brief remove a client of _clients and close it's linked fd
  * 
  * @param i Index from server_poll_loop's for loop.
  */
@@ -186,7 +189,7 @@ void			Server::remove_client (int i)
 	close(_fds[i].fd);
 	_fds[i].fd = -1;
 	_fds.erase(_fds.begin() + i);
-	clients.erase(_fds[i].fd);
+	_clients.erase(_fds[i].fd);
 	squeeze_fds_array();
 }
 
@@ -208,7 +211,7 @@ bool			Server::record_client_input (const int &i)
 	std::cout << YEL << "  Descriptor " << RED << _fds[i].fd << YEL << " is readable\n" << RST << std::endl;
 
 	// ? update client's life_time
-	clients[_fds[i].fd].update();
+	_clients[_fds[i].fd].update();
 
 	rc = recv(_fds[i].fd, buffer, sizeof(buffer) - 1, 0); // MSG_DONTWAIT | MSG_ERRQUEUE);	// ? errors number can be checked with the flag MSG_ERRQUEUE (man recv)
 
@@ -230,15 +233,15 @@ bool			Server::record_client_input (const int &i)
 	std::cout << YEL << "  " << rc << " bytes received : " << RST << std::endl;
 	ft_print_memory(buffer, rc);
 	
-	clients[_fds[i].fd].add_input_buffer(buffer, rc);	// ? store the buffer
+	_clients[_fds[i].fd].add_input_buffer(buffer, rc);	// ? store the buffer
 
 	// std::cout << "[" << GRN << buffer << RST << "]" << std::endl;
 
-	if (clients[_fds[i].fd].is_output_ready() == false)
-		close_conn = clients[_fds[i].fd].parse_and_generate_response();
+	if (_clients[_fds[i].fd].is_output_ready() == false)
+		close_conn = _clients[_fds[i].fd].parse_and_generate_response();
 
-	if (clients[_fds[i].fd].is_output_ready() == true)
-		close_conn = clients[_fds[i].fd].send_response(_fds[i].fd);
+	if (_clients[_fds[i].fd].is_output_ready() == true)
+		close_conn = _clients[_fds[i].fd].send_response(_fds[i].fd);
 
 	if (close_conn)
 	{
@@ -287,7 +290,7 @@ void			Server::check_timed_out_client (const int i)
 {
 	if (i < 0 || i == 0)
 		return ;
-	if (clients[_fds[i].fd].is_timed_out() == true)
+	if (_clients[_fds[i].fd].is_timed_out() == true)
 	{
 		std::cerr << "kicked fd : " << RED << _fds[i].fd << RST << std::endl;
 		remove_client(i);
@@ -403,13 +406,13 @@ int				Server::start ()
 	while (server_poll_loop() == true)
 		;
 
-	clients.clear();
+	_clients.clear();
 	// close(_listen_sd);
 
 	return (0);
 }
 
-void	Server::aff_fds()
+void			Server::aff_fds()
 {
 	std::cout << "nb fds : " << _fds.size() << std::endl;
 	for (int i = 0; i < _fds.size(); ++i)

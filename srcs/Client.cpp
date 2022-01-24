@@ -6,18 +6,29 @@
 /*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/19 18:46:22 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/01/21 17:32:13 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Client.hpp"
+#include "webserv.hpp"
+#include "Request.hpp"
 #include <sys/time.h>
 
 /**
  * @brief Construct a new Client:: Client object
  * 
  */
-Client::Client () : response_generated(false)
+Client::Client () : request_ready(false), response_generated(false)
+{
+	gettimeofday(&life_time, NULL);
+}
+
+/**
+ * @brief Construct a new Client:: Client object with it's conf
+ * 
+ */
+Client::Client (const Conf* c) : _conf(c), request_ready(false), response_generated(false)
 {
 	gettimeofday(&life_time, NULL);
 }
@@ -51,13 +62,13 @@ Client&		Client::operator= (const Client& copy)
 {
 	if (this != &copy)
 	{
-		// i_msg = copy.i_msg;
-		// o_msg = copy.o_msg;
-		_response = copy._response;
 		_request = copy._request;
+		_response = copy._response;
+		request_ready = copy.request_ready;
 		response_generated = copy.response_generated;
+		_it_chunk = copy._it_chunk;
 		life_time = copy.life_time;
-		// TODO finish this copy
+		_conf = copy._conf;
 	}
 	return (*this);
 }
@@ -65,31 +76,22 @@ Client&		Client::operator= (const Client& copy)
 /**
  * @brief This is where the client input is parsed and where the response is generated.
  * 
- * @details If o_msg is ready response_generated is set to true and it_chunk to o_bsg.begin()
+ * @details If o_msg is ready request_ready is set to true and it_chunk to o_bsg.begin()
  * 
  * @return true The response has an error and nothing has to be sent to client
  * @return false To get the rest of the input, or if o_msg is ready. 
  */
 bool		Client::parse_and_generate_response ()
 {
-	// TODO parse the input and generate the message for the client
-	// ? exemple :
-	// int	end_of_response;
+	// TODO : it could be greate to have a bool that tell that the parsing did enough to generate a response
+	// ? request ready is that bool
 
-	// std::cout << GRN << "  parse_and_generate_response" << RST << std::endl;
+	this->_response.clear();
 
-	this->_response.append_buffer("HTTP/1.1 200 OK\r\nDate: Tue, 24 Aug 2021 06:20:56 WEST\r\nServer: webserv:42 (popOS)\r\nLast-Modified: Wed, 24 Aug 2021 06:20:56 WEST\r\nContent-Length: 120\r\nContent-Type: text/html\r\nConnection: Closed\r\n\r\n<html>\r\n<body>\r\n<h1>peepowidehappy</h1>\r\n</body>\r\n<img src='https://cdn.frankerfacez.com/emoticon/359928/2'/>\r\n</html>\r\n");
-	// ? response if for the time being default
-	// while ((end_of_response = this->_response.update_header()) == 0);
-	// if (end_of_response == 2)
-	// this->response_generated = true;
-	// if (!this->response_generated){
-		// while ((end_of_response = this->_response.update_body()) == 1);
-		// if (end_of_response == 2)
-		// 	this->response_generated = true;
-	// }
-	this->_it_chunk = this->_response.begin_header();
-	// std::cout << RED << "TEST :" << (*(this->_it_chunk)).second << std::endl;
+	this->_response.append_buffer(this->_response_generator.generate(this->_request));
+	// this->_response.append_buffer(directory_listing(".", _request._path).c_str());
+
+	// this->request_ready = true;
 	return (false);
 }
 
@@ -117,7 +119,7 @@ bool		Client::send_response (int sd_out)
 		return (true);
 	}
 	// ? Setting generated response to false after each send for now
-	this->response_generated = false;
+	this->request_ready = false;
 	return true;
 
 	// ? get to the next output message chunk
@@ -146,18 +148,24 @@ void		Client::add_input_buffer (const char *buffer, int len)
 {
 	int	end_of_request;
 
-	std::cout << GRN << "BEFORE APPEND" << std::endl;
-	ft_print_memory((void *)(_request.get_buffer().c_str()), _request.get_buffer().size());
+	// std::cout << GRN << "BEFORE APPEND" << std::endl;
+	// ft_print_memory((void *)(_request.get_buffer().c_str()), _request.get_buffer().size());
 	this->_request.append_buffer(std::string(buffer, len));
-	std::cout << GRN << "AFTER APPEND" << std::endl;
-	ft_print_memory((void *)(_request.get_buffer().c_str()), _request.get_buffer().size());
+	// std::cout << GRN << "AFTER APPEND" << std::endl;
+	// ft_print_memory((void *)(_request.get_buffer().c_str()), _request.get_buffer().size());
 	while (this->_request._in_header && (end_of_request = this->_request.update_header()) == 0);
+	if (this->_request._error > 0) {
+		this->request_ready = true;
+		std::cout << RED << "Error in header : " << this->_request._error << " (refer to errors enum)" << RST << std::endl;
+		return ;
+	}
 
 	if (!this->_request._in_header && this->_request._method != "POST") {
-		this->response_generated = true;
+		std::cout << MAG << "alloOOOOOO0" << std::endl;
+		this->request_ready = true;
 		end_of_request = 2;
 	}
-	if (!this->response_generated && !this->_request._in_header)
+	if (!this->request_ready && !this->_request._in_header)
 		while ((end_of_request = this->_request.update_body()) == 1);
 	
 	if (end_of_request == 2) {
@@ -173,7 +181,7 @@ void		Client::add_input_buffer (const char *buffer, int len)
 		std::cout << GRN << "BODY" << RST << std::endl;
 		for (; it_test != this->_request.end_body(); it_test++)
 			std::cout << RED << *it_test << RST << std::endl;
-		this->response_generated = true;
+		this->request_ready = true;
 	}
 }
 
@@ -198,12 +206,12 @@ bool		Client::is_timed_out ()
 }
 
 /**
- * @brief Getter on response_generated.
+ * @brief Getter on request_ready.
  * 
  * @return true o_msg is ready to be sent to the client.
  * @return false o_msg is still beeing made.
  */
 bool		Client::is_output_ready ()
 {
-	return (this->response_generated);
+	return (this->request_ready);
 }
