@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/25 18:29:06 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/25 18:48:36 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,7 +92,7 @@ void		Client::parse_response ()
 	}
 
 	if (!this->_request._in_header && this->_request._method != "POST") {
-		std::cout << MAG << "alloOOOOOO0" << std::endl;
+		// std::cout << MAG << "alloOOOOOO0" << std::endl;
 		this->_request_ready = true;
 		end_of_request = 2;
 	}
@@ -102,14 +102,14 @@ void		Client::parse_response ()
 	if (end_of_request == 2) {
 		// ? to output contents of map header
 		this->_it_chunk = this->_request.begin_header();
-		std::cout << GRN << "HEADER" << RST << std::endl;
-		std::cout << RED << "Method: " << this->_request._method << RST << std::endl;
-		std::cout << RED << "path: " << this->_request._path << RST << std::endl;
-		std::cout << RED << "http-version: " << this->_request._http_version << RST << std::endl;
-		for (; _it_chunk != this->_request.end_header(); _it_chunk++)
-			std::cout << RED << (*(_it_chunk)).first << ": " << (*(_it_chunk)).second << RST << std::endl;
+		// std::cout << GRN << "HEADER" << RST << std::endl;
+		// std::cout << RED << "Method: " << this->_request._method << RST << std::endl;
+		// std::cout << RED << "path: " << this->_request._path << RST << std::endl;
+		// std::cout << RED << "http-version: " << this->_request._http_version << RST << std::endl;
+		// for (; _it_chunk != this->_request.end_header(); _it_chunk++)
+		// 	std::cout << RED << (*(_it_chunk)).first << ": " << (*(_it_chunk)).second << RST << std::endl;
 		std::vector<std::string>::iterator it_test = this->_request.begin_body();
-		std::cout << GRN << "BODY" << RST << std::endl;
+		// std::cout << GRN << "BODY" << RST << std::endl;
 		for (; it_test != this->_request.end_body(); it_test++)
 			std::cout << RED << *it_test << RST << std::endl;
 		this->_request_ready = true;
