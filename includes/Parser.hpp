@@ -1,6 +1,5 @@
 
 # include "Conf.hpp"
-# include "typing.hpp"
 
 class Parser {
     private:
