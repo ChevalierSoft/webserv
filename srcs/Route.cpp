@@ -7,17 +7,17 @@ _path(path_type()),
 _methods(method_list()), 
 _dir_listing(-1), 
 _upload_path(path_type()), 
-_cgis(cgi_list()),
+_cgi(cgi_list()),
 _error_message(std::string()), 
 _err(0){
 
 }
-Route::Route(const path_type path, method_list methods, dir_listing_type dir_listing, path_type upload_path):
+Route::Route(const path_type path, method_list methods, dir_listing_type dir_listing, path_type upload_path, cgi_list cgi):
 _path(path), 
 _methods(methods), 
 _dir_listing(dir_listing), 
-_upload_path(upload_path), 
-_cgis(cgi_list()),
+_upload_path(upload_path),
+_cgi(cgi),
 _error_message(std::string()), 
 _err(0) {
 }
@@ -29,11 +29,11 @@ Route::Route(Route const &copy): _path(copy._path) {
 Route 	&Route::operator=(const Route &rhs) {
     _methods = rhs._methods;
     _redir = rhs._redir;
-    _root = rhs._root;
-    _file = rhs._file;
+    _location = rhs._location;
+    _default_file = rhs._default_file;
     _dir_listing = rhs._dir_listing;
     _upload_path = rhs._upload_path;
-    _cgis = rhs._cgis;
+    _cgi = rhs._cgi;
     return (*this);
 }
 
@@ -54,17 +54,17 @@ bool	Route::set_methods(method_list methods) {
 	return (true);
 }
 
-bool    Route::set_root(path_type root) {
-	if (root == "")
-		return(set_error_message("Invalid value: root"));
-	_root = root;
+bool    Route::set_location(path_type location) {
+	if (location == "")
+		return(set_error_message("Invalid value: location"));
+	_location = location;
 	return (true);
 }
 
-bool    Route::set_file(file_type file) {
+bool    Route::set_default_file(file_type file) {
 	if (file == "")
 		return(set_error_message("Invalid value: file"));
-	_file = file;
+	_default_file = file;
 	return (true);
 }
 
@@ -89,10 +89,18 @@ bool    Route::set_redir(redir_type redir) {
 	return (true);
 }
 
-bool    Route::add_cgi(cgi_type  cgi) {
-	if (cgi.first == "" || cgi.second == "")
-		return(set_error_message("Invalid value: cgi"));
-	_cgis.insert(cgi);
+bool	Route::add_cgi(file_type cgi) {
+	if (cgi == "")
+		return (set_error_message("Invalid value: cgi"));
+	_cgi.push_back(cgi);
+	return (true);
+}
+
+bool	Route::set_cgi(cgi_list cgi) {
+	_cgi.clear();
+    for (cgi_list::iterator it = cgi.begin(); it != cgi.end(); it++)
+		if (!add_cgi(*it))
+				return (false);
 	return (true);
 }
 
@@ -107,14 +115,19 @@ void	Route::print() {
 	}
 	std::cout << std::endl;
     std::cout << "\tredirection:" << std::endl << "\t\t" << _redir.first << ": " << _redir.second << std::endl;
-	std::cout << "\troot = " << _root << std::endl;
-	std::cout << "\tfile = " << _file << std::endl;
+	std::cout << "\tlocation = " << _location << std::endl;
+	std::cout << "\tfile = " << _default_file << std::endl;
 	std::cout << "\tdirectory listing = " << _dir_listing << std::endl;
 	std::cout << "\tuploads = " << _upload_path << std::endl;
-    std::cout << "\tcgis:" << std::endl;
-	for (cgi_list::iterator it = _cgis.begin(); it != _cgis.end(); it++)
-		std::cout << "\t\t" << (*it).first << ": " << (*it).second << std::endl;
-    std::cout << std::endl;
+    	std::cout << "\tmethods = ";
+	for (method_list::iterator it = _cgi.begin(); it != _cgi.end(); it++)
+	{
+		if  (it != _cgi.begin())
+			std::cout << ", ";
+		std::cout << *it;
+	}
+	std::cout << std::endl;
+
 }
 
 bool		Route::set_error_message(std::string error_message) {
@@ -126,15 +139,15 @@ bool		Route::set_error_message(std::string error_message) {
 bool	Route::check() {
 	if (_methods == method_list())
 		return (set_error_message("Required value: methods"));
-	else if (_root == path_type())
-		return (set_error_message("Required value: root"));
-	else if (_file == file_type())
+	else if (_location == path_type())
+		return (set_error_message("Required value: location"));
+	else if (_default_file == file_type())
 		return (set_error_message("Required value: file"));
 	else if (_dir_listing == -1)
 		return (set_error_message("Required value: directory_listing"));
 	else if (_upload_path == path_type())
 		return (set_error_message("Required value: upload_path"));
-	else if (_cgis == cgi_list())
+	else if (_cgi == cgi_list())
 		return (set_error_message("Required value: cgi"));
 	return (true);
 }
