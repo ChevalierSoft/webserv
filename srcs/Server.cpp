@@ -6,7 +6,7 @@
 /*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/25 23:24:51 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/01/25 23:37:34 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -197,9 +197,6 @@ void			Server::remove_client (int i)
 	_fds[i].events = 0;
 	_fds[i].revents = 0;
 	_fds.erase(_fds.begin() + i);
-	try {
-		_clients.at(i).get_request().clear();
-	} catch (std::exception & e) {}
 	_clients.erase(_fds[i].fd);
 }
 
