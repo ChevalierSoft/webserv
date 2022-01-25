@@ -199,10 +199,10 @@ public:
 		cl_key = _header.find("Content-Length");
 		size_t	content_length = std::atoi(((*cl_key).second).c_str());
 		if (found_newline != _buffer.npos && found_newline > 0) {
-			new_str = std::string(_buffer.begin(), _buffer.begin() + (found_newline > content_length ? content_length : found_newline));
+			new_str = std::string(_buffer.begin(), _buffer.begin() + (found_newline > (content_length - _body_index) ? (content_length - _body_index) : found_newline));
 			_body.push_back(new_str);
 			_buffer.erase(_buffer.begin(), _buffer.begin() + found_newline + 2);
-			_body_index += (found_newline > content_length ? content_length : found_newline);
+			_body_index += (found_newline > (content_length - _body_index) ? (content_length - _body_index) : found_newline) + 2;
 			_line_index++;
 			if ((cl_key != _header.end() && _body_index >= content_length))
 				return (2);
@@ -211,7 +211,7 @@ public:
 		else if (found_newline == 0)
 			return (2);
 		else if (_buffer.size() > 0) {
-			new_str = std::string(_buffer.begin(), _buffer.begin() + (_buffer.size() > content_length ? content_length : _buffer.size()));
+			new_str = std::string(_buffer.begin(), _buffer.begin() + (_buffer.size() > (content_length - _body_index) ? (content_length - _body_index) : _buffer.size()));
 			_body.push_back(new_str);
 			_buffer.erase(new_str.size());
 			_body_index += new_str.size();
