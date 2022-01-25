@@ -6,7 +6,7 @@
 /*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/25 22:06:54 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/01/25 22:30:08 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -141,7 +141,7 @@ bool		Client::send_response (int sd_out)
 		return (true);
 	}
 	// ? Setting generated response to false after each send for now
-	// this->_request_ready = false;
+	this->_request_ready = false;
 	return true;
 }
 
