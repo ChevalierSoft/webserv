@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   directory_listing.cpp                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
+/*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/19 15:02:13 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/20 09:05:35 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/25 16:08:32 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,7 +75,7 @@ std::string		directory_listing (std::string root, std::string root_path)	// , co
 
 	body += "<!DOCTYPE html>\r\n";
 	body += "<meta charset=\"UTF-8\">\r\n";
-	body += "<html>";
+	body += "<html>\r\n";
 	body += "<style>\r\n";
 	body += "	html   { background-color: #000; }";
 	body += "	header { min-height:100%; height:100%; width: 100%; display: inline-block; color: #fff; text-align: center; position: relative; top:0px; overflow: hidden!important;}\r\n";

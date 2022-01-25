@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/25 18:16:10 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/25 18:29:44 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,8 +18,9 @@
 #include "Server.hpp"
 #include "ft_print_memory.hpp"
 #include "color.h"
+#include "ft_to_string.hpp"
 
-#define __DEB(s)	std::cerr << MAG << s << RST << std::endl; 
+#define __DEB(s)	std::cerr << MAG << s << RST << std::endl;
 
 /**
  * @brief Default Constructor for a new Server:: Server object.
@@ -79,14 +80,13 @@ Server&			Server::operator= (const Server &rhs)
  */
 bool			Server::socket_bind ()
 {
-	struct sockaddr_in6	addr;
+	struct sockaddr_in	addr;
 	int					rc;
 
 	memset(&addr, 0, sizeof(addr));
-	addr.sin6_family = AF_INET6;
-	// ? in6addr_any is a like 0.0.0.0 and gets any address for binding
-	memcpy(&addr.sin6_addr, &in6addr_any, sizeof(in6addr_any));
-	addr.sin6_port = htons(_conf._port);
+	addr.sin_family = AF_INET;
+	addr.sin_addr.s_addr = inet_addr(_conf._host.c_str());
+	addr.sin_port = htons(_conf._port);
 	rc = bind(_listen_sd, (struct sockaddr *)&addr, sizeof(addr));
 	if (rc < 0)
 	{
@@ -100,7 +100,7 @@ bool			Server::socket_bind ()
 /**
  * @brief Initialise the server.
  * 
- * @param p Port on which the socket will listen.
+ * @param c Conf object with instructions the Server will need to follow. 
  * @return int On success returns 0.
  *         A positive number is returned in case of error.
  */
@@ -112,7 +112,7 @@ int				Server::init (const Conf& c)
 	_conf = c;
 
 	// ? AF_INET6 stream socket to receive incoming connections
-	_listen_sd = socket(AF_INET6, SOCK_STREAM, 0);
+	_listen_sd = socket(AF_INET, SOCK_STREAM, 0);
 	if (_listen_sd < 0)
 	{
 		perror("socket() failed");
@@ -140,12 +140,6 @@ int				Server::init (const Conf& c)
 	// ? Bind the socket
 	if (this->socket_bind() == false)
 		return (4);
-
-	// // ? init fd number
-	// this->_nb_fds = 0;
-
-	// // ? init the entier array
-	// memset(_fds, 0 , sizeof(_fds));
 	
 	std::cout << "ready to listen on port " << _conf._port << std::endl;
 	return (0);
@@ -159,42 +153,32 @@ int				Server::init (const Conf& c)
  */
 bool			Server::add_new_client ()
 {
-	int				new_sd;
-	struct pollfd	tmp;
-	struct sockaddr	in_addr;
-	socklen_t		in_len = sizeof(in_addr);
+	int					new_sd;
+	struct pollfd		tmp;
+	struct sockaddr_in	addr;
+	socklen_t			addr_size = sizeof(struct sockaddr_in);
 
 	std::cout << "  Listening socket is readable\n";
 
-	new_sd = accept(_listen_sd, (struct sockaddr *) &in_addr, &in_len);
+	new_sd = accept(_listen_sd, (struct sockaddr *)&addr, &addr_size);
+
+	std::cout << "  New connection from : " << inet_ntoa(((addr)).sin_addr) << std::endl;
+	std::cout << "  on port : " << htons((addr).sin_port) << std::endl;
+
 	if (new_sd < 0)
 	{
-		std::cerr << "error: can't accept client: " << new_sd << std::endl;
+		std::cerr << "  error: can't accept client: " << new_sd << std::endl;
 		return (false);
 	}
 
-	std::cout << YEL << "  New incoming connection fd : " << RED << new_sd << RST << std::endl;
-
-	// char ip[INET6_ADDRSTRLEN];
-	// memset(ip, 0, INET6_ADDRSTRLEN);
-	// if (in_addr.sa_family == AF_INET)
-	// {
-	// 	sockaddr_in *sin = reinterpret_cast<sockaddr_in*>(&in_addr);
-	// 	inet_ntop(AF_INET, &sin->sin_addr, ip, INET6_ADDRSTRLEN);
-	// }
-	// else if (in_addr.sa_family == AF_INET6)
-	// {
-	// 	sockaddr_in6 *sin = reinterpret_cast<sockaddr_in6*>(&in_addr);
-	// 	inet_ntop(AF_INET6, &sin->sin6_addr, ip, INET6_ADDRSTRLEN);
-	// }
-	// std::cout << ip << std::endl;
+	std::cout << YEL << "  New incoming connection on fd : " << RED << new_sd << RST << std::endl;
 	
 	tmp.fd = new_sd;
 	tmp.events = POLLIN;
 	tmp.revents = 0;
 	_fds.push_back(tmp);
 
-	_clients[new_sd] = Client(&this->_conf);
+	_clients[new_sd] = Client(&this->_conf, inet_ntoa((addr).sin_addr), ft_to_string(htons((addr).sin_port)));
 
 	return (true);
 }
@@ -212,7 +196,6 @@ void			Server::remove_client (int i)
 	_fds[i].revents = 0;
 	_fds.erase(_fds.begin() + i);
 	_clients.erase(_fds[i].fd);
-	squeeze_fds_array();
 }
 
 /**
@@ -220,7 +203,7 @@ void			Server::remove_client (int i)
  * 
  * @param i Index from server_poll_loop's for loop.
  * 
- * @return true connection to the client must be closed because of an error
+ * @return true connection to the client have been closed because of an error
  *         or we don't need more data to generate the output.
  * @return false the client has to send more data to generate the return message.
  */
@@ -237,27 +220,18 @@ bool			Server::record_client_input (const int &i)
 
 	rc = recv(_fds[i].fd, buffer, sizeof(buffer) - 1, 0); // MSG_DONTWAIT | MSG_ERRQUEUE);	// ? errors number can be checked with the flag MSG_ERRQUEUE (man recv)
 
-	// ? connection closed by client or error while recv.
-	// ? EAGAIN would tell us if this was the end of the client's message or ...
-	// ? if there is an error. because we can not use errno in this project,
-	// ? we will handle this while parsing the input in the client's parsing.
-	// if (rc <= 0)
-	// {
-	//	 if (errno == EAGAIN)
-	//		 break ;
-	// 	std::cout << YEL << "  Connection closed\n" << RST;
-	// 	remove_client(i);
-	// 	return (true);
-	// }
+	if (rc == -1 || rc == 0)	// ? error while reading or client closed the connection
+	{
+		std::cerr <<MAG<< "client closed the connection" <<RST<< std::endl;
+		remove_client(i);
+		return (true);
+	}
 
-	buffer[rc] = '\0';										// ? closing the char array
+	buffer[rc] = '\0';									// ? closing the char array
+
 	// ? debug
 	std::cout << YEL << "  " << rc << " bytes received : " << RST << std::endl;
-	ft_print_memory(buffer, rc);
-	
-	// ! if the client send 0 bytes we kick him for now
-	if (rc == 0)
-		close_conn = true;
+	// ft_print_memory(buffer, rc);
 
 	_clients[_fds[i].fd].add_input_buffer(buffer, rc);
 
@@ -277,32 +251,6 @@ bool			Server::record_client_input (const int &i)
 		return (true);
 	}
 	return (false);
-}
-
-/**
- * @brief squeeze _fds when a fd is -1.
- * 
- * @param _fds array of pollfd
- * @param _nb_fds Size of _fds
- */
-void			Server::squeeze_fds_array ()
-{
-	for (std::vector<struct pollfd>::iterator it = _fds.begin(); it != _fds.end(); ++it)
-	{
-		if (it->fd == -1)
-			std::cout << "should of rm position " << _fds.begin() - it << " in _fds" << std::endl;
-	}
-	// for (int i = 0; i < _fds.size(); i++)	// can be faster
-	// {
-	// 	// if (_fds[i].fd == -1)
-	// 	// {
-	// 	// 	for(int j = i; j < _fds.size(); j++)
-	// 	// 	{
-	// 	// 		_fds[j].fd = _fds[j + 1].fd;
-	// 	// 	}
-	// 	// 	i--;
-	// 	// }
-	// }
 }
 
 /**
@@ -388,18 +336,12 @@ bool			Server::server_poll_loop ()
 		// ? check if it's a new client
 		if (_fds[i].fd == _listen_sd)
 		{
-			// if (_fds.size() < MAX_FDS)	// ? now using vector #stonks
-				add_new_client();
+			add_new_client();
 		}
 		// ? else the event was triggered by a pollfd that is already in _fds
 		else
-			need_cleaning |= record_client_input(i);
-
+			record_client_input(i);
 	}
-
-	// ? it's where we will be removing clients and squeeze the array
-	if (need_cleaning)
-		squeeze_fds_array();
 
 	return (true);
 }

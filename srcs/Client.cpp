@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/25 18:11:21 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/25 18:29:06 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,8 @@
  * @brief Construct a new Client:: Client object
  * 
  */
-Client::Client () : _request_ready(false), _response_ready(false)
+Client::Client ()
+: _request_ready(false), _response_ready(false), _ip(), _port()
 {
 	gettimeofday(&_life_time, NULL);
 }
@@ -28,7 +29,9 @@ Client::Client () : _request_ready(false), _response_ready(false)
  * @brief Construct a new Client:: Client object with it's conf
  * 
  */
-Client::Client (const Conf* c) : _request_ready(false), _response_ready(false)
+
+Client::Client (const Conf* c, std::string ip, std::string port)
+: _request_ready(false), _response_ready(false), _ip(ip), _port(port)
 {
 	gettimeofday(&_life_time, NULL);
 }
@@ -68,6 +71,8 @@ Client&		Client::operator= (const Client& copy)
 		_response_ready = copy._response_ready;
 		_it_chunk = copy._it_chunk;
 		_life_time = copy._life_time;
+		_ip = copy._ip;
+		_port = copy._port;
 	}
 	return (*this);
 }
@@ -133,13 +138,13 @@ void		Client::add_input_buffer (const char *buffer, int len)
  * @return false The message is not completly sent
  */
 bool		Client::send_response (int sd_out)
-{
-	int	rc;
+{ int	rc;
 
 	std::cout << GRN << "  sending response" << RST << std::endl;
 
 	// ? clear request since response is generated
 	this->_request.clear();
+	// this->_response.send_itself(sd_out);
 	// rc = send(sd_out, ((*(this->_it_chunk)).second).c_str(), ((*(this->_it_chunk)).second).size(), 0);
 	// ? For now, sending default response in one go
 	rc = send(sd_out, this->_response.get_buffer().c_str(), this->_response.get_buffer().size(), 0);

@@ -4,14 +4,13 @@
 #include <vector>
 #include <iostream>
 #include <cstring>
+#include "color.h"
+#include <cstdlib>
 // #include "ft_print_memory.hpp"
 
-void	*ft_print_memory(void *addr, size_t size);
+# define BUFFER_SIZE	64
 
-// TODO handle errors from requests
-// TODO is a line correct ? (first line is method, path, and http version ; rest of header is "key: value")
-// ? Message syntax
-// ? http-version : two digits separated by a period '.'
+void	*ft_print_memory(void *addr, size_t size);
 
 enum errors {
 	NO_ERROR,
@@ -30,6 +29,7 @@ protected:
 
 	std::string							_buffer; // internal buffer to keep track of packets
 	size_t								_line_index; // index that lets me know current line in request
+	size_t								_body_index; // index that lets me know if body is fully read (compare to Content-Length)
 
 public:
 	std::string							_method; // from header first line
@@ -44,6 +44,7 @@ public:
 	Message(void) {
 		clear();
 		_line_index = 0;
+		_body_index = 0;
 		_in_header = true;
 		_error = NO_ERROR;
 	}
@@ -63,6 +64,7 @@ public:
 		_http_version = src._http_version;
 		_in_header = src._in_header;
 		_error = src._error;
+		_body_index = src._body_index;
 	}
 	
 	Message &	operator=(const Message & src) {
@@ -76,6 +78,7 @@ public:
 		_http_version = src._http_version;
 		_in_header = src._in_header;
 		_error = src._error;
+		_body_index = src._body_index;
 		return *this;
 	}
 
@@ -159,11 +162,10 @@ public:
 			_line_index++;
 			return (0);
 		}
-		else if (found_newline != _buffer.npos) {
-			_buffer.erase(_buffer.begin(), _buffer.begin() + found_newline + 2);
+		else if (found_newline == 0) {
+			_buffer.erase(_buffer.begin(), _buffer.begin() + 2);
 			_line_index++;
-			if (_buffer.empty())
-				_in_header = false;
+			_in_header = false;
 		}
 		return (1);
 	}
@@ -176,6 +178,7 @@ public:
 		_path.clear();
 		_http_version.clear();
 		_line_index = 0;
+		_body_index = 0;
 		_in_header = true;
 		_error = NO_ERROR;
 	}
@@ -190,17 +193,32 @@ public:
 	int		update_body() {
 		int			found_newline;
 		std::string	new_str;
+		it_chunk	cl_key;
 
 		found_newline = _buffer.find("\r\n");
+		cl_key = _header.find("Content-Length");
+		size_t	content_length = std::atoi(((*cl_key).second).c_str());
 		if (found_newline != _buffer.npos && found_newline > 0) {
-			new_str = std::string(_buffer.begin(), _buffer.begin() + found_newline);
+			new_str = std::string(_buffer.begin(), _buffer.begin() + (found_newline > (content_length - _body_index) ? (content_length - _body_index) : found_newline));
 			_body.push_back(new_str);
 			_buffer.erase(_buffer.begin(), _buffer.begin() + found_newline + 2);
+			_body_index += (found_newline > (content_length - _body_index) ? (content_length - _body_index) : found_newline) + 2;
 			_line_index++;
+			if ((cl_key != _header.end() && _body_index >= content_length))
+				return (2);
 			return (1);
 		}
-		else if (found_newline != _buffer.npos)
+		else if (found_newline == 0)
 			return (2);
+		else if (_buffer.size() > 0) {
+			new_str = std::string(_buffer.begin(), _buffer.begin() + (_buffer.size() > (content_length - _body_index) ? (content_length - _body_index) : _buffer.size()));
+			_body.push_back(new_str);
+			_buffer.erase(new_str.size());
+			_body_index += new_str.size();
+			if ((cl_key != _header.end() && _body_index >= content_length))
+				return (2);
+			return (0);
+		}
 		return (0);
 	}
 
@@ -275,5 +293,20 @@ public:
 
 	std::string	& get_buffer() {
 		return _buffer;
+	}
+
+	void		d_output() {
+		it_chunk _it_chunk;
+		_it_chunk = _header.begin();
+		std::cout << GRN << "HEADER" << RST << std::endl;
+		std::cout << RED << "Method: " << _method << RST << std::endl;
+		std::cout << RED << "path: " << _path << RST << std::endl;
+		std::cout << RED << "http-version: " << _http_version << RST << std::endl;
+		for (; _it_chunk != _header.end(); _it_chunk++)
+			std::cout << RED << (*(_it_chunk)).first << ": " << (*(_it_chunk)).second << RST << std::endl;
+		std::vector<std::string>::iterator it_test = _body.begin();
+		std::cout << GRN << "BODY" << RST << std::endl;
+		for (; it_test != _body.end(); it_test++)
+			std::cout << RED << *it_test << RST << std::endl;
 	}
 };
