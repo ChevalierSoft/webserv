@@ -2,7 +2,7 @@
 webserv
 *.sw[opmn]
 
-.dSYM
+*.dSYM
 
 # Prerequisites
 *.d
