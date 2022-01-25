@@ -6,7 +6,7 @@
 /*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/25 22:27:18 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/01/25 23:53:54 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -178,6 +178,7 @@ bool				ResponseGenerator::generate(Client& client) const
 	int	rc = access(actual_path.c_str(), (client._request._method == "GET" ? R_OK : W_OK) | F_OK);
 	if (rc < 0) {
 		perror("	access to route failed");
+		client._request.clear();
 		return (true);
 	}
 

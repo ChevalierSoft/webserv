@@ -6,7 +6,7 @@
 /*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 00:54:13 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/25 23:22:57 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/01/25 23:55:09 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,9 +82,5 @@ public:
 	bool	is_request_parsed ();
 
 	bool	is_response_ready ();
-
-	Request	get_request() const {
-		return (this->_request);
-	}
 
 }; // * ________________________________________________________________________
