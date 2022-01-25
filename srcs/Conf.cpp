@@ -125,7 +125,7 @@ bool        Conf::set_port(port_type port) {
 
 bool    Conf::add_error(error_type  error) {
 	if (error.first < 0 || error.second == "")
-		return (set_error_message("Invaild value: error_pages"));
+		return (set_error_message("Invalid value: error_pages"));
 	_error_pages.insert(error);
 	return (true);
 }
