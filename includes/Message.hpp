@@ -159,19 +159,13 @@ public:
 			}
 			_header.insert(split_buffer(new_str));
 			_buffer.erase(_buffer.begin(), _buffer.begin() + found_newline + 2);
-			ft_print_memory((void *)(_buffer.c_str()), _buffer.size());
 			_line_index++;
 			return (0);
 		}
 		else if (found_newline == 0) {
 			_buffer.erase(_buffer.begin(), _buffer.begin() + 2);
 			_line_index++;
-			// ft_print_memory((void *)(_buffer.c_str()), _buffer.size());
-			// if (_buffer.empty() || _buffer.find("\r\n") == 0) {
-				// _buffer.erase(_buffer.begin(), _buffer.begin() + 2);
-				// std::cout << "YO" << std::endl;
-				_in_header = false;
-			// }
+			_in_header = false;
 		}
 		return (1);
 	}
@@ -202,21 +196,22 @@ public:
 		it_chunk	cl_key;
 
 		found_newline = _buffer.find("\r\n");
+		cl_key = _header.find("Content-Length");
+		size_t	content_length = std::atoi(((*cl_key).second).c_str());
 		if (found_newline != _buffer.npos && found_newline > 0) {
-			new_str = std::string(_buffer.begin(), _buffer.begin() + found_newline);
+			new_str = std::string(_buffer.begin(), _buffer.begin() + (found_newline > content_length ? content_length : found_newline));
 			_body.push_back(new_str);
 			_buffer.erase(_buffer.begin(), _buffer.begin() + found_newline + 2);
-			_body_index += found_newline + 2;
+			_body_index += (found_newline > content_length ? content_length : found_newline);
 			_line_index++;
+			if ((cl_key != _header.end() && _body_index >= content_length))
+				return (2);
 			return (1);
 		}
 		else if (found_newline == 0)
 			return (2);
 		else if (_buffer.size() > 0) {
-			cl_key = _header.find("Content-Length");
-			size_t	content_length = std::atoi(((*cl_key).second).c_str());
 			new_str = std::string(_buffer.begin(), _buffer.begin() + (_buffer.size() > content_length ? content_length : _buffer.size()));
-			std::cout << MAG << "TEST :" << new_str << std::endl;
 			_body.push_back(new_str);
 			_buffer.erase(new_str.size());
 			_body_index += new_str.size();
