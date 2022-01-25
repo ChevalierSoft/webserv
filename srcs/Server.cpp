@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
+/*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/24 18:48:48 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/24 22:01:35 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@
 #include "color.h"
 #include "ft_to_string.hpp"
 
-#define __DEB(s)	std::cerr << MAG << s << RST << std::endl; 
+#define __DEB(s)	std::cerr << MAG << s << RST << std::endl;
 
 /**
  * @brief Default Constructor for a new Server:: Server object.
