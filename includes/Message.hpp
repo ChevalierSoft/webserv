@@ -5,6 +5,7 @@
 #include <iostream>
 #include <cstring>
 #include "color.h"
+#include <cstdlib>
 // #include "ft_print_memory.hpp"
 
 # define BUFFER_SIZE	64
