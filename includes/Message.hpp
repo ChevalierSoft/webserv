@@ -8,6 +8,9 @@
 #include <cstdlib>
 // #include "ft_print_memory.hpp"
 
+
+// TODO difference between content-length and actual size of body should be an error
+
 # define BUFFER_SIZE	64
 
 void	*ft_print_memory(void *addr, size_t size);
