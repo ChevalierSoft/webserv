@@ -14,8 +14,8 @@ public:
 	Response(const Response & src) : Message(src), _buffer_index(src._buffer_index) {}
 	
 	Response &	operator=(const Response & src) {
-		*this = src;
-		this->_buffer_index = src._buffer_index;
+		// *this = src;
+		// this->_buffer_index = src._buffer_index;
 		return *this;
 	}
 

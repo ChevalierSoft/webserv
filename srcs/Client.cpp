@@ -6,7 +6,7 @@
 /*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/24 19:04:46 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/01/24 22:26:37 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -118,13 +118,13 @@ bool		Client::send_response (int sd_out)
 	// rc = send(sd_out, ((*(this->_it_chunk)).second).c_str(), ((*(this->_it_chunk)).second).size(), 0);
 	// ? For now, sending default response in one go
 	rc = send(sd_out, this->_response.get_buffer().c_str(), this->_response.get_buffer().size(), 0);
-	// if (rc < 0)
-	// {
-	// 	perror("  send() failed");
-	// 	return (true);
-	// }
+	if (rc < 0)
+	{
+		perror("  send() failed");
+		return (true);
+	}
 	// ? Setting generated response to false after each send for now
-	// this->_request_ready = false;
+	this->_request_ready = false;
 	return true;
 
 	// ? get to the next output message chunk
@@ -174,17 +174,7 @@ void		Client::add_input_buffer (const char *buffer, int len)
 	
 	if (end_of_request == 2) {
 		// ? to output contents of map header
-		this->_it_chunk = this->_request.begin_header();
-		std::cout << GRN << "HEADER" << RST << std::endl;
-		std::cout << RED << "Method: " << this->_request._method << RST << std::endl;
-		std::cout << RED << "path: " << this->_request._path << RST << std::endl;
-		std::cout << RED << "http-version: " << this->_request._http_version << RST << std::endl;
-		for (; _it_chunk != this->_request.end_header(); _it_chunk++)
-			std::cout << RED << (*(_it_chunk)).first << ": " << (*(_it_chunk)).second << RST << std::endl;
-		std::vector<std::string>::iterator it_test = this->_request.begin_body();
-		std::cout << GRN << "BODY" << RST << std::endl;
-		for (; it_test != this->_request.end_body(); it_test++)
-			std::cout << RED << *it_test << RST << std::endl;
+		this->_request.d_output();
 		this->_request_ready = true;
 	}
 }
