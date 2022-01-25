@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ResponseGenerator.cpp                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
+/*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/25 22:13:19 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/25 22:27:18 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -170,16 +170,16 @@ bool				ResponseGenerator::generate(Client& client) const
 	client._response.clear();
 	
 	// TODO : Check asked path (route/location) and set a variable with the real location on this hard drive.
-	// std::string	actual_path(getcwd(NULL, 0));
-	// if (actual_path.empty())
-	// 	return (true);
-	// actual_path.append(client._request._path);
+	std::string	actual_path(getcwd(NULL, 0));
+	if (actual_path.empty())
+		return (true);
+	actual_path.append(client._request._path);
 
-	// int	rc = access(actual_path.c_str(), (client._request._method == "GET" ? R_OK : W_OK) | F_OK);
-	// if (rc < 0) {
-	// 	perror("	access to route failed");
-	// 	return (true);
-	// }
+	int	rc = access(actual_path.c_str(), (client._request._method == "GET" ? R_OK : W_OK) | F_OK);
+	if (rc < 0) {
+		perror("	access to route failed");
+		return (true);
+	}
 
 	// ? check which method should be called
 	if (client._request._method == "GET")
