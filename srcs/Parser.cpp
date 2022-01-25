@@ -52,7 +52,7 @@ bool    Parser::parse_file(std::ifstream &ifs) {
 	return (check());
 }
 
-param_type Parser::parse_param(std::string &line, const char sep) {
+Parser::param_type Parser::parse_param(line_type &line, sep_type sep) {
 	size_t      found;
 
 	if ((found = line.find(sep)) != std::string::npos)
@@ -61,11 +61,11 @@ param_type Parser::parse_param(std::string &line, const char sep) {
 	return ("error");
 }
 
-param_type Parser::parse_value(std::string &line, std::string param) {
+Parser::param_type Parser::parse_value(line_type &line, param_type param) {
 	return (std::string(line.substr(param.size() + 1)));
 }
 
-line_type	Parser::remove_comments(std::string &line, const char sep) {
+Parser::line_type	Parser::remove_comments(line_type &line, sep_type sep) {
 	size_t      found;
 
 	if ((found = line.find(sep)) != std::string::npos)
@@ -74,7 +74,7 @@ line_type	Parser::remove_comments(std::string &line, const char sep) {
 		return (line);
 }
 
-bool    Parser::set_param(std::string &line, std::vector<std::string> params, size_t indent) {
+bool    Parser::set_param(line_type &line, param_list params, indent_type indent) {
 	std::string value(parse_value(line, params[indent]));
 	if (indent ==  0)
 		return (zero_indent(params[0], value));
@@ -88,7 +88,7 @@ bool    Parser::set_param(std::string &line, std::vector<std::string> params, si
 }
 
 
-bool	Parser::zero_indent(std::string param, std::string value)
+bool	Parser::zero_indent(param_type param, std::string value)
 {
 	conf_type	&conf = _confs.back();
 
@@ -124,7 +124,7 @@ bool	Parser::one_indent(param_list params, std::string value)
 	return (set_error_message("Invalid parameter"));
 }
 
-bool	Parser::two_indent(std::vector<std::string> params, std::string value)
+bool	Parser::two_indent(param_list params, std::string value)
 {
 	conf_type	&conf = _confs.back();
 
@@ -137,7 +137,7 @@ bool	Parser::two_indent(std::vector<std::string> params, std::string value)
 			return (route.set_root(value));
 		else if (params[2] == "directory_listing")
 			return (route.set_dir_listing(conf.string_to_dir_listing(value)));
-		else if (params[2] == "file")
+		else if (params[2] == "default_file")
 			return (route.set_file(value));
 		else if (params[2] == "uploads")
 			return (route.set_upload_path(value));
@@ -149,7 +149,7 @@ bool	Parser::two_indent(std::vector<std::string> params, std::string value)
 	return (set_error_message("Invalid parameter"));
 }
 
-bool	Parser::three_indent(std::vector<std::string> params, std::string value) {
+bool	Parser::three_indent(param_list params, std::string value) {
 	conf_type	&conf = _confs.back();
 
 	if (params[0] == "routes")
