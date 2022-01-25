@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
+/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/24 22:01:35 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/01/25 16:42:47 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,7 +85,7 @@ bool			Server::socket_bind ()
 
 	memset(&addr, 0, sizeof(addr));
 	addr.sin_family = AF_INET;
-	addr.sin_addr.s_addr = inet_addr("0.0.0.0");
+	addr.sin_addr.s_addr = inet_addr(_conf._host.c_str());
 	addr.sin_port = htons(_conf._port);
 	rc = bind(_listen_sd, (struct sockaddr *)&addr, sizeof(addr));
 	if (rc < 0)
@@ -153,9 +153,8 @@ int				Server::init (const Conf& c)
  */
 bool			Server::add_new_client ()
 {
-		int				new_sd;
-	struct pollfd	tmp;
-
+	int					new_sd;
+	struct pollfd		tmp;
 	struct sockaddr_in	addr;
 	socklen_t			addr_size = sizeof(struct sockaddr_in);
 
