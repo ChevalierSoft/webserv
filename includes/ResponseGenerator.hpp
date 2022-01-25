@@ -56,4 +56,6 @@ private:
 
 	std::string			set_file_content_type(const std::string & extention) const;
 
+	std::string			parse_real_location(const std::string  & route) const;
+
 }; // * ________________________________________________________________________

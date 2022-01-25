@@ -165,21 +165,22 @@ std::string			ResponseGenerator::perform_GET_methode(const Request& rq) const
  * @return true internal error, need to close the client connexion without sending response
  * @return false all good
  */
+
 bool				ResponseGenerator::generate(Client& client) const
 {
 	client._response.clear();
 	
 	// TODO : Check asked path (route/location) and set a variable with the real location on this hard drive.
-	std::string	actual_path(getcwd(NULL, 0));
-	if (actual_path.empty())
-		return (true);
-	actual_path.append(client._request._path);
 
-	int	rc = access(actual_path.c_str(), (client._request._method == "GET" ? R_OK : W_OK) | F_OK);
-	if (rc < 0) {
-		perror("	access to route failed");
-		return (true);
-	}
+	std::string	location(parse_real_location(client._request._path));
+
+	std::cout << "location = " << location << std::endl;
+	// ;
+	// int	rc = access(location.c_str(), (client._request._method == "GET" ? R_OK : W_OK) | F_OK);
+	// if (rc < 0) {
+	// 	perror("	access to route failed");
+	// 	return (true);
+	// }
 
 	// ? check which method should be called
 	if (client._request._method == "GET")
@@ -190,4 +191,31 @@ bool				ResponseGenerator::generate(Client& client) const
 	client._response_ready = true;
 
 	return (false);
+}
+
+std::string	ResponseGenerator::parse_real_location(const std::string  & request) const {
+	const char					sep = '/';
+	int							found  = 0;
+	Conf::route_list			routes((*_conf)._routes);
+	Conf::route_type			route;
+	std::string					folder;
+	std::string					file;
+
+	while (found <= request.size())
+	{
+		if ((found = request.find(sep, found) == std::string::npos))
+			found = request.size();
+		for (Conf::route_list::iterator it = routes.begin(); it != routes.end(); it++)
+		{
+			std::cout << "_path = " << it->_path << ", substr = " << request.substr(0,found + 1) << std::endl;
+			if (it->_path == request.substr(0,found + 1))
+			{
+				route = *it;
+				file = request.substr(found, std::string::npos);
+			}
+		}
+		found++;
+	}
+	folder = route._location;
+	return (folder+file);
 }
