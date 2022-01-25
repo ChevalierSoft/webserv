@@ -17,6 +17,7 @@ _methods(method_list()),
 _dir_listing(-1),
 _upload_path(path_type()),
 _routes(route_list()),
+_cgi(cgi_list()),
 _error_message(std::string()),
  _err(0) {}
 
@@ -32,6 +33,7 @@ Conf	&Conf::operator=(Conf const &rhs) {
 	_dir_listing = rhs._dir_listing;
 	_upload_path = rhs._upload_path;
 	_routes = rhs._routes;
+	_cgi = rhs._cgi;
 	_error_message = rhs._error_message;
 	_err = rhs._err;
 
@@ -46,20 +48,32 @@ bool	isnotdigit(int c) {
 	return (!(std::isdigit(c)));
 }
 
+int	my_strtoi(std::string s)
+{
+	int	n = 0;
+	for (std::string::size_type i = 0; i < s.size(); i++)
+	{
+		if (!std::isdigit(s[i]) || n * 10 < n)
+			return (-1);
+		n = n * 10 + s[i] - 48;
+	}
+	return (n);
+}
+
 Conf::port_type   Conf::string_to_port(std::string value) {
 	if (value == "" || count_if(value.begin(), value.end(), isnotdigit))
 		return (-1);
-	return (atoi(value.c_str()));
+	return (my_strtoi(value));
 }
 
 Conf::code_type     Conf::string_to_code(std::string value) {
 	if (value == "" || count_if(value.begin(), value.end(), isnotdigit))
 		return (-1);
-	return (atoi(value.c_str()));
+	return (my_strtoi(value));
 }
 
 Conf::route_type    Conf::string_to_route(std::string value) {
-	return (Route(value, _methods, _dir_listing, _upload_path));
+	return (Route(value, _methods, _dir_listing, _upload_path, _cgi));
 }
 
 
@@ -92,6 +106,22 @@ Conf::method_list		Conf::string_to_methods(std::string value) {
 		start = ++end;
 	}
 	return (methods);
+}
+
+Conf::cgi_list		Conf::string_to_cgi(std::string value) {
+	const char	sep = ',';
+	size_t		start = 0;
+	size_t		end;
+	cgi_list	cgis;
+
+	while (start <= value.size())
+	{
+		if ((end = value.find(sep, start)) == std::string::npos)
+			end = value.size();
+		cgis.push_back(value.substr(start, end - start));
+		start = ++end;
+	}
+	return (cgis);
 }
 
 Conf::dir_listing_type	Conf::string_to_dir_listing(std::string value) {
@@ -148,6 +178,21 @@ bool	Conf::add_method(method_type method) {
 bool	Conf::set_methods(method_list methods) {
 	for (method_list::iterator it = methods.begin(); it != methods.end(); it++)
 		if (!add_method(*it))
+			return (false);
+	return (true);
+}
+
+bool	Conf::add_cgi(file_type cgi) {
+	
+	if (cgi == "")
+		return (set_error_message("Invalid value: cgi"));
+	_cgi.push_back(cgi);
+	return (true);
+}
+
+bool	Conf::set_cgi(cgi_list cgi) {
+	for (cgi_list::iterator it = cgi.begin(); it != cgi.end(); it++)
+		if (!add_cgi(*it))
 			return (false);
 	return (true);
 }
@@ -209,8 +254,6 @@ bool		Conf::check() {
 		return (set_error_message("Required value: host"));
 	else if (_port == port_type())
 		return (set_error_message("Required value: port"));
-	else if (_error_pages == error_list())
-		return (set_error_message("Required value: error_pages"));
 	else if (_client_body_size == size_type())
 		return (set_error_message("Required value: client_body_size"));
 	for (route_list::iterator it = _routes.begin(); it != _routes.end(); it++)

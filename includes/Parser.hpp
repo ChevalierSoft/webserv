@@ -21,10 +21,11 @@ class Parser {
         std::string line;
         int         line_number;
 
+        bool	    parse_file_loop(param_list &params);
         bool        parse_file(std::ifstream &ifs);
         param_type  parse_param(line_type &line, sep_type sep);
         param_type  parse_value(line_type &line, param_type param);
-        line_type   remove_comments(line_type &line, sep_type sep);
+        line_type   remove_comments(line_type line, sep_type sep);
         bool        set_param(line_type &line, param_list params, size_t indent);
 
         bool        zero_indent(param_type param, std::string value);
