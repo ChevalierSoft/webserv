@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/25 18:29:44 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/25 18:42:11 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@
 /**
  * @brief Default Constructor for a new Server:: Server object.
  */
-Server::Server () {}
+Server::Server () : _response_generator() {}
 
 /**
  * @brief Construct a new Server:: Server object and initialise it.
@@ -109,7 +109,8 @@ int				Server::init (const Conf& c)
 	int					rc;
 	int					on = 1;
 
-	_conf = c;
+	this->_conf = c;
+	this->_response_generator.set_conf(&_conf);
 
 	// ? AF_INET6 stream socket to receive incoming connections
 	_listen_sd = socket(AF_INET, SOCK_STREAM, 0);

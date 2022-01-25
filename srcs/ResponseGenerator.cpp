@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/25 18:16:58 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/25 18:45:38 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,9 +40,14 @@ ResponseGenerator&	ResponseGenerator::operator=(const ResponseGenerator& copy)
 {
 	if (this != &copy)
 	{
-		// copy
+		_conf = copy._conf;
 	}
 	return (*this);
+}
+
+void				ResponseGenerator::set_conf(const Conf * c)
+{
+	_conf = c;
 }
 
 /**
@@ -51,7 +56,7 @@ ResponseGenerator&	ResponseGenerator::operator=(const ResponseGenerator& copy)
  * @param extention Extention of the file that will be sent.
  * @return std::string The right content-type.
  */
-std::string			ResponseGenerator::set_file_content_type(const std::string & extention)
+std::string			ResponseGenerator::set_file_content_type(const std::string & extention) const
 {
 	std::string											s_content_type;
 	std::map<std::string, std::string>::const_iterator	cit;
@@ -78,7 +83,7 @@ std::string			ResponseGenerator::set_file_content_type(const std::string & exten
  * @param path the requested file
  * @return std::string file content as string
  */
-std::string			ResponseGenerator::get_file_content(const std::string &root, const std::string &path)
+std::string			ResponseGenerator::get_file_content(const std::string &root, const std::string &path) const
 {
 	std::ifstream	i_file;
 	std::string		tmp;
@@ -120,7 +125,7 @@ std::string			ResponseGenerator::get_file_content(const std::string &root, const
  * 
  * @return std::string a string containing the response to the client.
  */
-std::string			ResponseGenerator::perform_GET_methode(const Request& rq)
+std::string			ResponseGenerator::perform_GET_methode(const Request& rq) const
 {
 	struct stat s;
 	std::string	root = ".";		// TODO : use the client->_conf one
@@ -160,7 +165,7 @@ std::string			ResponseGenerator::perform_GET_methode(const Request& rq)
  * @return true internal error, need to close the client connexion without sending response
  * @return false all good
  */
-bool				ResponseGenerator::generate(Client& client)
+bool				ResponseGenerator::generate(Client& client) const
 {
 	client._response.clear();
 	
