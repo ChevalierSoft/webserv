@@ -29,7 +29,6 @@ Client::Client ()
  * @brief Construct a new Client:: Client object with it's conf
  * 
  */
-
 Client::Client (const Conf* c, std::string ip, std::string port)
 : _request_ready(false), _response_ready(false), _ip(ip), _port(port)
 {
@@ -138,7 +137,8 @@ void		Client::add_input_buffer (const char *buffer, int len)
  * @return false The message is not completly sent
  */
 bool		Client::send_response (int sd_out)
-{ int	rc;
+{
+  int	rc;
 
 	std::cout << GRN << "  sending response" << RST << std::endl;
 
