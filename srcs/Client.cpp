@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/21 17:56:50 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/25 17:46:06 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@ Client::Client () : _request_ready(false), _response_ready(false)
  * @brief Construct a new Client:: Client object with it's conf
  * 
  */
-Client::Client (const Conf* c) : _conf(c), _request_ready(false), _response_ready(false)
+Client::Client (const Conf* c) : _request_ready(false), _response_ready(false)
 {
 	gettimeofday(&_life_time, NULL);
 }
@@ -68,33 +68,32 @@ Client&		Client::operator= (const Client& copy)
 		_response_ready = copy._response_ready;
 		_it_chunk = copy._it_chunk;
 		_life_time = copy._life_time;
-		_conf = copy._conf;
 	}
 	return (*this);
 }
 
-/**
- * @brief This is where the client input is parsed and where the response is generated.
- * 
- * @details If o_msg is ready _request_ready is set to true and it_chunk to o_bsg.begin()
- * 
- * @return true The response has an error and nothing has to be sent to client
- * @return false To get the rest of the input, or if o_msg is ready. 
- */
-bool		Client::parse_and_generate_response ()
-{
-	// TODO : it could be greate to have a bool that tell that the parsing did enough to generate a response
-	// ? request ready is that bool
+// /**
+//  * @brief This is where the client input is parsed and where the response is generated.
+//  * 
+//  * @details If o_msg is ready _request_ready is set to true and it_chunk to o_bsg.begin()
+//  * 
+//  * @return true The response has an error and nothing has to be sent to client
+//  * @return false To get the rest of the input, or if o_msg is ready. 
+//  */
+// bool		Client::parse_response ()
+// {
+// 	// TODO : it could be greate to have a bool that tell that the parsing did enough to generate a response
+// 	// ? request ready is that bool
 
-	if (_request_ready)
-	{
-		this->_response.clear();
-		this->_response.append_buffer(this->_response_generator.generate(this->_request));
-		this->_response_ready = true;
-	}
+// 	if (_request_ready)
+// 	{
+// 		this->_response.clear();
+// 		this->_response.append_buffer(this->_response_generator.generate(this->_request));
+// 		this->_response_ready = true;
+// 	}
 
-	return (false);
-}
+// 	return (false);
+// }
 
 /**
  * @brief Send the content of o_msg to the client.
@@ -206,13 +205,12 @@ bool		Client::is_timed_out ()
 	return (false);
 }
 
-/**
- * @brief Getter on _request_ready.
- * 
- * @return true o_msg is ready to be sent to the client.
- * @return false o_msg is still beeing made.
- */
-bool		Client::is_output_ready ()
+bool		Client::is_response_ready ()
 {
 	return (this->_response_ready);
+}
+
+bool		Client::is_request_parsed ()
+{
+	return (this->_request_ready);
 }

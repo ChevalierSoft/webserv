@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 00:54:13 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/21 17:55:41 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/25 17:56:33 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,8 @@
 
 #define CLIENT_TIMEOUT 10 		// time (s) after which the client connection will be closed if there is no event
 
+class ResponseGenerator;
+
 /**
  * @brief Client will store inputs and outputs
  * 
@@ -35,6 +37,9 @@
  */
 class Client // * ______________________________________________________________
 {
+
+	friend class			ResponseGenerator;
+
 	/// * Variables ____________________________________________________________
 
 private:
@@ -44,9 +49,7 @@ private:
 	bool					_response_ready;
 	Response::it_chunk		_it_chunk;			// points on the begining of o_msg
 	struct timeval			_life_time;			// will be updated every event. after CLIENT_TIMEOUT the client is erased and the connection is closed
-	const Conf*				_conf;
-
-	ResponseGenerator		_response_generator;
+	// const Conf*				_conf;
 
 	/// * Constructors & Destructors ___________________________________________
 
@@ -66,7 +69,7 @@ public:
 
 	Client&	operator= (const Client& copy);
 
-	bool	parse_and_generate_response ();
+	bool	parse_response ();
 
 	bool	send_response (int sd_out);
 
@@ -76,6 +79,8 @@ public:
 
 	void	add_input_buffer (const char *buffer, int len);
 
-	bool	is_output_ready ();
+	bool	is_request_parsed ();
+
+	bool	is_response_ready ();
 
 }; // * ________________________________________________________________________

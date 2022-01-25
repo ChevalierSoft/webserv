@@ -6,13 +6,15 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 10:06:11 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/22 09:00:28 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/25 17:57:28 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
-# include "Request.hpp"
+# include "Client.hpp"
+
+class Client;
 
 /**
  * @brief Thanks to the generated Request,
@@ -42,7 +44,7 @@ public:
 	// Operation overload =
 	ResponseGenerator&	operator=(const ResponseGenerator &	copy);
 	
-	std::string			generate(const Request & rq);
+	bool				generate(Client & client);
 
 private:
 	std::string			get_file_content(const std::string & root, const std::string & paht);
