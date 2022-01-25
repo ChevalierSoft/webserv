@@ -11,7 +11,6 @@
 Conf::Conf(): _name(name_type()),
 _host(host_type()),
 _port(port_type()),
-_error_pages(error_list()),
 _client_body_size(size_t()),
 _methods(method_list()),
 _dir_listing(-1),
@@ -19,7 +18,22 @@ _upload_path(path_type()),
 _routes(route_list()),
 _cgi(cgi_list()),
 _error_message(std::string()),
- _err(0) {}
+ _err(0) {
+	std::string	error_path = "./resources/error_pages/html";
+	_error_pages[400] = error_path+="400.html";
+	_error_pages[401] = error_path+="401.html";
+	_error_pages[402] = error_path+="402.html";
+	_error_pages[404] = error_path+="404.html";
+	_error_pages[406] = error_path+="406.html";
+	_error_pages[407] = error_path+="407.html";
+	_error_pages[408] = error_path+="408.html";
+	_error_pages[409] = error_path+="409.html";
+	_error_pages[410] = error_path+="410.html";
+	_error_pages[411] = error_path+="411.html";
+	_error_pages[417] = error_path+="417.html";
+	_error_pages[429] = error_path+="429.html";
+	_error_pages[451] = error_path+="451.html";
+ }
 
 Conf::~Conf() {}
 
@@ -156,7 +170,7 @@ bool        Conf::set_port(port_type port) {
 bool    Conf::add_error(error_type  error) {
 	if (error.first < 0 || error.second == "")
 		return (set_error_message("Invalid value: error_pages"));
-	_error_pages.insert(error);
+	_error_pages[error.first]=error.second;
 	return (true);
 }
 
