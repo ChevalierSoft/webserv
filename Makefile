@@ -6,7 +6,7 @@
 #    By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2021/04/12 12:55:09 by dait-atm          #+#    #+#              #
-#    Updated: 2022/01/19 15:28:10 by dait-atm         ###   ########.fr        #
+#    Updated: 2022/01/22 08:28:27 by dait-atm         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -27,8 +27,11 @@ Client.cpp \
 Conf.cpp \
 main.cpp \
 Parser.cpp \
+ResponseGenerator.cpp \
 Route.cpp \
-Server.cpp
+Server.cpp \
+set_content_types.cpp \
+utils.cpp
 
 all: $(NAME)
 

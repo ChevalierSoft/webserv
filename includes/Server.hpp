@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 04:55:39 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/18 13:27:39 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/21 11:00:50 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@
 # include <stdio.h>			// perror
 # include <netinet/in.h>	// htons, sockaddr_in6
 # include "Client.hpp"
+# include "Conf.hpp"
 
 # define BACK_LOG		123
 # define BUFFER_SIZE	64
@@ -36,13 +37,10 @@ class Server // * ______________________________________________________________
 {
 	/// * Variables ____________________________________________________________
 private:
-	bool					_end_server;
-	int						_listen_sd;
-	// int						_nb_fds;
-	int						_port;			// soon this will be in an object sent from the conf parsing
-	// struct pollfd			_fds[MAX_FDS];	// list of sockets beggining with the listening socket
+	int							_listen_sd;
+	Conf						_conf;
 	std::vector<struct pollfd>	_fds;
-	std::map<int, Client>	clients;
+	std::map<int, Client>		_clients;
 
 
 	/// * Constructors & Destructors ___________________________________________
@@ -52,10 +50,10 @@ private:
 public:
 	// ? Constructor (2) taking a port in argument.
 	// TODO After the parsing of a conf file an object will be passed to it
-	Server (int p);
+	Server (const Conf &c);
 
 	// ? Constructor (3) by copy
-	Server (const Server & other);
+	Server (const Server &other);
 
 	~Server ();
 
@@ -65,7 +63,7 @@ public:
 
 	// ? init the server with a conf_object (for now just a port number).
 	// ? this will allow us to reload the server or set it up after using the default constructor.
-	int		init (int port);
+	int		init (const Conf & c);
 
 	// ? Server's main loop
 	int		start ();

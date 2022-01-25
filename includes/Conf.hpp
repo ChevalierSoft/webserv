@@ -18,11 +18,28 @@
 # include <vector>
 # include <fstream>
 
-# include "typing.hpp"
 # include "Route.hpp"
+class Route;
 
 class Conf {
 	public:
+		typedef std::string                     name_type;
+		typedef std::string                     host_type;
+		typedef int                             port_type;
+		typedef std::string                     file_type;
+		typedef int                             code_type;
+		typedef std::pair<code_type, file_maptype> error_type;
+		typedef	std::<code_type, file_type>	error_list;
+		typedef int                             size_type;
+		typedef std::string						method_type;
+		typedef std::vector<method_type>		method_list;
+		typedef short                           dir_listing_type;
+		typedef std::string                     path_type;
+		typedef class Route                     route_type;
+		typedef std::vector<route_type>			route_list;
+		typedef bool                            errno_type;
+		typedef std::string                     error_message_type;
+
 		name_type			_name;
 		host_type			_host;
 		port_type			_port;
@@ -64,6 +81,8 @@ class Conf {
 		void		print();
 
 		bool		set_error_message(std::string error_message);
+
+		bool		check();
 };
 
 #endif
