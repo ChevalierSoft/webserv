@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
+/*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/25 18:42:11 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/25 19:35:26 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@
 #include "ft_print_memory.hpp"
 #include "color.h"
 #include "ft_to_string.hpp"
+#include <fcntl.h>
 
 #define __DEB(s)	std::cerr << MAG << s << RST << std::endl;
 
@@ -137,7 +138,7 @@ int				Server::init (const Conf& c)
 		close(_listen_sd);
 		return (3);
 	}
-
+	
 	// ? Bind the socket
 	if (this->socket_bind() == false)
 		return (4);

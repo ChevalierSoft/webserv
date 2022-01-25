@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
+/*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 00:54:13 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/25 18:28:46 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/25 19:20:26 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,7 +47,6 @@ private:
 	Response				_response;
 	bool					_request_ready;			// will stop the reading to send o_msg's content
 	bool					_response_ready;
-	Response::it_chunk		_it_chunk;				// points on the begining of o_msg
 	struct timeval			_life_time;				// will be updated every event. after CLIENT_TIMEOUT the client is erased and the connection is closed
 	std::string				_ip;
 	std::string				_port;
