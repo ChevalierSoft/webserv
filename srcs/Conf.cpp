@@ -46,24 +46,24 @@ bool	isnotdigit(int c) {
 	return (!(std::isdigit(c)));
 }
 
-port_type   Conf::string_to_port(std::string value) {
+Conf::port_type   Conf::string_to_port(std::string value) {
 	if (value == "" || count_if(value.begin(), value.end(), isnotdigit))
 		return (-1);
 	return (atoi(value.c_str()));
 }
 
-code_type     Conf::string_to_code(std::string value) {
+Conf::code_type     Conf::string_to_code(std::string value) {
 	if (value == "" || count_if(value.begin(), value.end(), isnotdigit))
 		return (-1);
 	return (atoi(value.c_str()));
 }
 
-route_type    Conf::string_to_route(std::string value) {
+Conf::route_type    Conf::string_to_route(std::string value) {
 	return (Route(value, _methods, _dir_listing, _upload_path));
 }
 
 
-size_type		Conf::string_to_client_body_size(std::string value) {
+Conf::size_type		Conf::string_to_client_body_size(std::string value) {
 	std::string	scale = "MB";
 
 	std::string::iterator	end_pos = std::find_if(value.begin(), value.end(), isnotdigit);
@@ -78,7 +78,7 @@ size_type		Conf::string_to_client_body_size(std::string value) {
 	return (-1);
 }
 
-method_list		Conf::string_to_methods(std::string value) {
+Conf::method_list		Conf::string_to_methods(std::string value) {
 	const char	sep = ',';
 	size_t		start = 0;
 	size_t		end;
@@ -94,7 +94,7 @@ method_list		Conf::string_to_methods(std::string value) {
 	return (methods);
 }
 
-dir_listing_type	Conf::string_to_dir_listing(std::string value) {
+Conf::dir_listing_type	Conf::string_to_dir_listing(std::string value) {
 	if (value == "off")
 		return (0);
 	else if (value == "on")
