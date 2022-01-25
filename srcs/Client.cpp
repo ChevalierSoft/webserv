@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
+/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/25 18:47:05 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/01/25 18:48:36 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@
  * 
  */
 Client::Client ()
-: _request_ready(false), _response_ready(false), _conf(NULL), _ip(), _port()
+: _request_ready(false), _response_ready(false), _ip(), _port()
 {
 	gettimeofday(&_life_time, NULL);
 }
@@ -30,7 +30,7 @@ Client::Client ()
  * 
  */
 Client::Client (const Conf* c, std::string ip, std::string port)
-: _conf(c), _request_ready(false), _response_ready(false), _ip(ip), _port(port)
+: _request_ready(false), _response_ready(false), _ip(ip), _port(port)
 {
 	gettimeofday(&_life_time, NULL);
 }
@@ -70,7 +70,6 @@ Client&		Client::operator= (const Client& copy)
 		_response_ready = copy._response_ready;
 		_it_chunk = copy._it_chunk;
 		_life_time = copy._life_time;
-		_conf = copy._conf;
 		_ip = copy._ip;
 		_port = copy._port;
 	}
@@ -78,27 +77,57 @@ Client&		Client::operator= (const Client& copy)
 }
 
 /**
- * @brief This is where the client input is parsed and where the response is generated.
- * 
- * @details If o_msg is ready _request_ready is set to true and it_chunk to o_bsg.begin()
- * 
- * @return true The response has an error and nothing has to be sent to client
- * @return false To get the rest of the input, or if o_msg is ready. 
+ * @brief This is where the client input is parsed.
  */
-bool		Client::parse_and_generate_response ()
+void		Client::parse_response ()
 {
-	// TODO : it could be greate to have a bool that tell that the parsing did enough to generate a response
-	// ? request ready is that bool
+	int	end_of_request;
 
-	if (_request_ready)
-	{
-		this->_response.clear();
-		this->_response.append_buffer(this->_response_generator.generate(this->_request));
-		this->_response_ready = true;
+	while (this->_request._in_header && (end_of_request = this->_request.update_header()) == 0);
+	if (this->_request._error > 0) {
+		this->_request_ready = true;
+		std::cout << RED << "Error in header : " << this->_request._error << " (refer to errors enum)" << RST << std::endl;
+		return ;
 	}
 
-	return (false);
+	if (!this->_request._in_header && this->_request._method != "POST") {
+		// std::cout << MAG << "alloOOOOOO0" << std::endl;
+		this->_request_ready = true;
+		end_of_request = 2;
+	}
+	if (!this->_request_ready && !this->_request._in_header)
+		while ((end_of_request = this->_request.update_body()) == 1);
+	
+	if (end_of_request == 2) {
+		// ? to output contents of map header
+		this->_it_chunk = this->_request.begin_header();
+		// std::cout << GRN << "HEADER" << RST << std::endl;
+		// std::cout << RED << "Method: " << this->_request._method << RST << std::endl;
+		// std::cout << RED << "path: " << this->_request._path << RST << std::endl;
+		// std::cout << RED << "http-version: " << this->_request._http_version << RST << std::endl;
+		// for (; _it_chunk != this->_request.end_header(); _it_chunk++)
+		// 	std::cout << RED << (*(_it_chunk)).first << ": " << (*(_it_chunk)).second << RST << std::endl;
+		std::vector<std::string>::iterator it_test = this->_request.begin_body();
+		// std::cout << GRN << "BODY" << RST << std::endl;
+		for (; it_test != this->_request.end_body(); it_test++)
+			std::cout << RED << *it_test << RST << std::endl;
+		this->_request_ready = true;
+	}
+
+	return ;
 }
+
+/**
+ * @brief store a buffer in i_msg.
+ * 
+ * @param buffer an input buffer
+ * @param len the lenght of 'buffer'
+ */
+void		Client::add_input_buffer (const char *buffer, int len)
+{
+	this->_request.append_buffer(std::string(buffer, len));
+}
+
 
 /**
  * @brief Send the content of o_msg to the client.
@@ -108,7 +137,8 @@ bool		Client::parse_and_generate_response ()
  * @return false The message is not completly sent
  */
 bool		Client::send_response (int sd_out)
-{ int	rc;
+{
+  int	rc;
 
 	std::cout << GRN << "  sending response" << RST << std::endl;
 
@@ -144,38 +174,6 @@ void		Client::update ()
 }
 
 /**
- * @brief store a buffer in i_msg.
- * 
- * @param buffer an input buffer
- * @param len the lenght of 'buffer'
- */
-void		Client::add_input_buffer (const char *buffer, int len)
-{
-	int	end_of_request;
-
-	this->_request.append_buffer(std::string(buffer, len));
-	while (this->_request._in_header && (end_of_request = this->_request.update_header()) == 0);
-	if (this->_request._error > 0) {
-		this->_request_ready = true;
-		std::cout << RED << "Error in header : " << this->_request._error << " (refer to errors enum)" << RST << std::endl;
-		return ;
-	}
-
-	if (!this->_request._in_header && this->_request._method != "POST") {
-		this->_request_ready = true;
-		end_of_request = 2;
-	}
-	if (!this->_request_ready && !this->_request._in_header)
-		while ((end_of_request = this->_request.update_body()) == 1);
-	
-	if (end_of_request == 2) {
-		// ? to output contents of map header
-		// this->_request.d_output();
-		this->_request_ready = true;
-	}
-}
-
-/**
  * @brief check if _life_time is greater than CLIENT_TIMEOUT.
  * 
  * @return true last event was before CLIENT_TIMEOUT.
@@ -195,13 +193,12 @@ bool		Client::is_timed_out ()
 	return (false);
 }
 
-/**
- * @brief Getter on _request_ready.
- * 
- * @return true o_msg is ready to be sent to the client.
- * @return false o_msg is still beeing made.
- */
-bool		Client::is_output_ready ()
+bool		Client::is_response_ready ()
 {
 	return (this->_response_ready);
+}
+
+bool		Client::is_request_parsed ()
+{
+	return (this->_request_ready);
 }

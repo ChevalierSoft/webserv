@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/25 16:42:47 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/25 18:42:11 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@
 /**
  * @brief Default Constructor for a new Server:: Server object.
  */
-Server::Server () {}
+Server::Server () : _response_generator() {}
 
 /**
  * @brief Construct a new Server:: Server object and initialise it.
@@ -109,7 +109,8 @@ int				Server::init (const Conf& c)
 	int					rc;
 	int					on = 1;
 
-	_conf = c;
+	this->_conf = c;
+	this->_response_generator.set_conf(&_conf);
 
 	// ? AF_INET6 stream socket to receive incoming connections
 	_listen_sd = socket(AF_INET, SOCK_STREAM, 0);
@@ -233,12 +234,15 @@ bool			Server::record_client_input (const int &i)
 	std::cout << YEL << "  " << rc << " bytes received : " << RST << std::endl;
 	// ft_print_memory(buffer, rc);
 
-	_clients[_fds[i].fd].add_input_buffer(buffer, rc);	// ? store the buffer
+	_clients[_fds[i].fd].add_input_buffer(buffer, rc);
 
-	if (_clients[_fds[i].fd].is_output_ready() == false)
-		close_conn = _clients[_fds[i].fd].parse_and_generate_response();
+	if (_clients[_fds[i].fd].is_request_parsed() == false)
+		_clients[_fds[i].fd].parse_response();
+	
+	if (_clients[_fds[i].fd].is_request_parsed() == true)
+		close_conn = this->_response_generator.generate(_clients[_fds[i].fd]);
 
-	if (_clients[_fds[i].fd].is_output_ready() == true)
+	if (_clients[_fds[i].fd].is_response_ready() == true)
 		close_conn = _clients[_fds[i].fd].send_response(_fds[i].fd);
 
 	if (close_conn)
