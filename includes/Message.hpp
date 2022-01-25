@@ -11,11 +11,6 @@
 
 void	*ft_print_memory(void *addr, size_t size);
 
-// TODO handle errors from requests
-// TODO is a line correct ? (first line is method, path, and http version ; rest of header is "key: value")
-// ? Message syntax
-// ? http-version : two digits separated by a period '.'
-
 enum errors {
 	NO_ERROR,
 	UNDEFINED_METHOD,
