@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 00:54:13 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/25 17:56:33 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/25 18:07:47 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,7 +69,7 @@ public:
 
 	Client&	operator= (const Client& copy);
 
-	bool	parse_response ();
+	void	parse_response ();
 
 	bool	send_response (int sd_out);
 

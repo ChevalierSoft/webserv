@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/25 17:46:06 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/25 18:11:21 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,28 +72,58 @@ Client&		Client::operator= (const Client& copy)
 	return (*this);
 }
 
-// /**
-//  * @brief This is where the client input is parsed and where the response is generated.
-//  * 
-//  * @details If o_msg is ready _request_ready is set to true and it_chunk to o_bsg.begin()
-//  * 
-//  * @return true The response has an error and nothing has to be sent to client
-//  * @return false To get the rest of the input, or if o_msg is ready. 
-//  */
-// bool		Client::parse_response ()
-// {
-// 	// TODO : it could be greate to have a bool that tell that the parsing did enough to generate a response
-// 	// ? request ready is that bool
+/**
+ * @brief This is where the client input is parsed.
+ */
+void		Client::parse_response ()
+{
+	int	end_of_request;
 
-// 	if (_request_ready)
-// 	{
-// 		this->_response.clear();
-// 		this->_response.append_buffer(this->_response_generator.generate(this->_request));
-// 		this->_response_ready = true;
-// 	}
+	while (this->_request._in_header && (end_of_request = this->_request.update_header()) == 0);
+	if (this->_request._error > 0) {
+		this->_request_ready = true;
+		std::cout << RED << "Error in header : " << this->_request._error << " (refer to errors enum)" << RST << std::endl;
+		return ;
+	}
 
-// 	return (false);
-// }
+	if (!this->_request._in_header && this->_request._method != "POST") {
+		std::cout << MAG << "alloOOOOOO0" << std::endl;
+		this->_request_ready = true;
+		end_of_request = 2;
+	}
+	if (!this->_request_ready && !this->_request._in_header)
+		while ((end_of_request = this->_request.update_body()) == 1);
+	
+	if (end_of_request == 2) {
+		// ? to output contents of map header
+		this->_it_chunk = this->_request.begin_header();
+		std::cout << GRN << "HEADER" << RST << std::endl;
+		std::cout << RED << "Method: " << this->_request._method << RST << std::endl;
+		std::cout << RED << "path: " << this->_request._path << RST << std::endl;
+		std::cout << RED << "http-version: " << this->_request._http_version << RST << std::endl;
+		for (; _it_chunk != this->_request.end_header(); _it_chunk++)
+			std::cout << RED << (*(_it_chunk)).first << ": " << (*(_it_chunk)).second << RST << std::endl;
+		std::vector<std::string>::iterator it_test = this->_request.begin_body();
+		std::cout << GRN << "BODY" << RST << std::endl;
+		for (; it_test != this->_request.end_body(); it_test++)
+			std::cout << RED << *it_test << RST << std::endl;
+		this->_request_ready = true;
+	}
+
+	return ;
+}
+
+/**
+ * @brief store a buffer in i_msg.
+ * 
+ * @param buffer an input buffer
+ * @param len the lenght of 'buffer'
+ */
+void		Client::add_input_buffer (const char *buffer, int len)
+{
+	this->_request.append_buffer(std::string(buffer, len));
+}
+
 
 /**
  * @brief Send the content of o_msg to the client.
@@ -136,53 +166,6 @@ bool		Client::send_response (int sd_out)
 void		Client::update ()
 {
 	gettimeofday(&this->_life_time, NULL);
-}
-
-/**
- * @brief store a buffer in i_msg.
- * 
- * @param buffer an input buffer
- * @param len the lenght of 'buffer'
- */
-void		Client::add_input_buffer (const char *buffer, int len)
-{
-	int	end_of_request;
-
-	// std::cout << GRN << "BEFORE APPEND" << std::endl;
-	// ft_print_memory((void *)(_request.get_buffer().c_str()), _request.get_buffer().size());
-	this->_request.append_buffer(std::string(buffer, len));
-	// std::cout << GRN << "AFTER APPEND" << std::endl;
-	// ft_print_memory((void *)(_request.get_buffer().c_str()), _request.get_buffer().size());
-	while (this->_request._in_header && (end_of_request = this->_request.update_header()) == 0);
-	if (this->_request._error > 0) {
-		this->_request_ready = true;
-		std::cout << RED << "Error in header : " << this->_request._error << " (refer to errors enum)" << RST << std::endl;
-		return ;
-	}
-
-	if (!this->_request._in_header && this->_request._method != "POST") {
-		std::cout << MAG << "alloOOOOOO0" << std::endl;
-		this->_request_ready = true;
-		end_of_request = 2;
-	}
-	if (!this->_request_ready && !this->_request._in_header)
-		while ((end_of_request = this->_request.update_body()) == 1);
-	
-	if (end_of_request == 2) {
-		// ? to output contents of map header
-		this->_it_chunk = this->_request.begin_header();
-		std::cout << GRN << "HEADER" << RST << std::endl;
-		std::cout << RED << "Method: " << this->_request._method << RST << std::endl;
-		std::cout << RED << "path: " << this->_request._path << RST << std::endl;
-		std::cout << RED << "http-version: " << this->_request._http_version << RST << std::endl;
-		for (; _it_chunk != this->_request.end_header(); _it_chunk++)
-			std::cout << RED << (*(_it_chunk)).first << ": " << (*(_it_chunk)).second << RST << std::endl;
-		std::vector<std::string>::iterator it_test = this->_request.begin_body();
-		std::cout << GRN << "BODY" << RST << std::endl;
-		for (; it_test != this->_request.end_body(); it_test++)
-			std::cout << RED << *it_test << RST << std::endl;
-		this->_request_ready = true;
-	}
 }
 
 /**

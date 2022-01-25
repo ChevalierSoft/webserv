@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/25 17:38:27 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/25 18:16:10 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -259,12 +259,14 @@ bool			Server::record_client_input (const int &i)
 	if (rc == 0)
 		close_conn = true;
 
-	// ? store and parse the buffer
-	_clients[_fds[i].fd].add_input_buffer(buffer, rc);	
-	// ? generate response
-	if (_clients[_fds[i].fd].is_request_parsed())
+	_clients[_fds[i].fd].add_input_buffer(buffer, rc);
+
+	if (_clients[_fds[i].fd].is_request_parsed() == false)
+		_clients[_fds[i].fd].parse_response();
+	
+	if (_clients[_fds[i].fd].is_request_parsed() == true)
 		close_conn = this->_response_generator.generate(_clients[_fds[i].fd]);
-	// ? send response
+
 	if (_clients[_fds[i].fd].is_response_ready() == true)
 		close_conn = _clients[_fds[i].fd].send_response(_fds[i].fd);
 
