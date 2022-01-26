@@ -6,7 +6,7 @@
 #    By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/01/12 04:20:34 by dait-atm          #+#    #+#              #
-#    Updated: 2022/01/12 06:39:37 by dait-atm         ###   ########.fr        #
+#    Updated: 2022/01/16 06:01:28 by dait-atm         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -18,8 +18,8 @@ RUN apt-get update && \
 	rm -rf /var/cache/apk/*
 
 # ? copy test CGI scripts and an index
-COPY ./cgi_just_print.sh /usr/lib/cgi-bin/
-COPY ./index.html /var/www/html/
+# COPY ./cgi_just_print.sh /usr/lib/cgi-bin/
+# COPY ./index.html /var/www/html/
 
 # ? enable CGI in apache2.conf
 RUN echo '\n\
@@ -37,3 +37,5 @@ CMD /etc/init.d/apache2 start && /bin/bash
 EXPOSE 80
 
 # ? CGI is accessible throgh : http://localhost:4040/cgi-bin/cgi_just_print.sh
+
+# ? install php7 cgi https://stackoverflow.com/questions/60751761/install-php7-4-cgi-in-debian-10
