@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/26 15:00:47 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/26 15:37:48 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -180,19 +180,12 @@ std::string			ResponseGenerator::get_file_content (const std::string &root, cons
 void				ResponseGenerator::set_cgi_env (Client & client, std::vector<std::string> s_envs, std::vector<char *> a_envs) const
 {
 	// TODO : add the rest
-
-	s_envs.push_back( "PWD=" + std::string("./") );
-	
+	s_envs.push_back("PWD=" + std::string("./"));
 	s_envs.push_back("REQUEST_SCHEME=http");
-
 	s_envs.push_back("SERVER_PROTOCOL=HTTP/1.1");
-
 	s_envs.push_back("SERVER_ADDR=" + this->_conf->_host);
-
 	s_envs.push_back("SERVER_PORT=" + ft_to_string(this->_conf->_port));
-
 	s_envs.push_back("QUERY_STRING=");	// ? add GET arguments here
-
 	s_envs.push_back("REQUEST_METHOD=" + client._request._method);
 
 	int i = 0;
@@ -224,7 +217,7 @@ std::string			ResponseGenerator::open_cgi (Client & client, std::string url) con
 		close(cgi_pipe[1]);
 		return (get_error_file(500));
 	}
-	if (!child)
+	else if (!child)
 	{
 		set_cgi_env(client, s_envs, a_envs);
 		exe[0] = &url[0];
@@ -232,9 +225,10 @@ std::string			ResponseGenerator::open_cgi (Client & client, std::string url) con
 		dup2(cgi_pipe[0], 0);
 		dup2(cgi_pipe[1], 1);
 		execve(exe[0], exe, a_envs.data());
+		// TODO : clean memory. maybe by an ugly exception
 	}
 	
-	write(cgi_pipe[1], "", 1);	// TODO : send body in case of POST
+	write(cgi_pipe[1], "", 1);	// TODO : send request's body in case of POST
 
 	// ! It might be great to avoid this loop
 	while ((err = read(cgi_pipe[0], buff, CGI_BUFF_SIZE)) > 0)
