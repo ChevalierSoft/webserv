@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 10:06:11 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/26 02:12:32 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/26 09:54:30 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,5 +59,7 @@ private:
 	std::string			perform_GET_method(const Client & client) const;
 
 	std::string			set_file_content_type(const std::string & extention) const;
+
+	std::string			get_generic_error(int err) const;
 
 }; // * ________________________________________________________________________

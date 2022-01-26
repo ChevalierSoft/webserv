@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/26 02:12:32 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/26 10:00:22 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,6 +64,19 @@ std::string			ResponseGenerator::set_header (int err, std::string ext, size_t si
 	return (s_header);
 }
 
+std::string			ResponseGenerator::get_generic_error(int err) const
+{
+	std::string		s_file_content = "";
+	std::string		s_full_content;
+
+	std::cerr << "get_generic_error" << std::endl;
+
+	s_file_content = ft_to_string(err) + " Not Found\r\n";
+	s_full_content = set_header(err, ".html", s_file_content.size()) + s_file_content;
+
+	return (s_full_content);
+}
+
 /**
  * @brief  if a html file is requested
  */
@@ -75,9 +88,9 @@ std::string			ResponseGenerator::get_error_file(Conf::code_type err) const
 	std::string							tmp;
 	Conf::error_list::const_iterator	it = _conf->_error_pages.find(err);
 
-
+	std::cerr << "get_error_file" << std::endl;
 	if (it == _conf->_error_pages.end())
-		;	// TODO : generate dynamic error page
+		return (get_generic_error(404));
 	else
 	{
 		std::cerr << CYN << it->second << RST << std::endl;
@@ -93,7 +106,7 @@ std::string			ResponseGenerator::get_error_file(Conf::code_type err) const
 		}
 		else
 		{
-			// TODO: link is wrong, generate dynamic error page
+			return (get_generic_error(404));
 		}
 	}
 
