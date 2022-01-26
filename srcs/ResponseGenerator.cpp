@@ -175,7 +175,6 @@ bool				ResponseGenerator::generate(Client& client) const
 
 	Request request(parse_request_route(client._request));
 	// ;
-	std::cout << "path = " << request._path << std::endl;
 	int	rc = access(request._path.c_str(), (client._request._method == "GET" ? R_OK : W_OK) | F_OK);
 	if (rc < 0) {
 		perror("	access to route failed");
@@ -209,7 +208,6 @@ Request 	ResponseGenerator::parse_request_route(Request  const &input_request) c
 	std::string					file = std::string();
 	std::string					path;
 	Request						output_request;
-	std::cout << "input = " << input_request._path << std::endl;
 	while (found <= input_request._path.size())
 	{
 		if ((found = input_request._path.find(sep, found)) == std::string::npos)
