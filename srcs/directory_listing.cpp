@@ -45,12 +45,12 @@ std::string		send_403 ()
  * 
  * @param fd the client fd
  * @param root where is located the site
- * @param root_path where the listing should be done
+ * @param path where the listing should be done
  * //@param client_path the root_path to give to the client (avoiding to give them the real path)
  * @return true listing done
  * @return false an error occured
  */
-std::string		directory_listing (std::string root, std::string root_path)	// , const char *client_path)
+std::string		directory_listing (std::string path)	// , const char *client_path)
 {
 	struct dirent	*entry;
 	DIR				*dir;
@@ -60,15 +60,15 @@ std::string		directory_listing (std::string root, std::string root_path)	// , co
 
 	// TODO : check if the given root in the config file have a '/' at the end 
 
-	if (root_path[root_path.length() - 1] != '/')			// ? ensuring there is a '/' at the end
-		root_path += "/";
+	if (path[path.length() - 1] != '/')			// ? ensuring there is a '/' at the end
+		path += "/";
 
 	// ? DEBUG
 	// std::cout << "root : " << root << std::endl;
-	// std::cout << "path : " << root_path << std::endl;
-	// std::cout << (root + root_path).c_str() << std::endl;
+	// std::cout << "path : " << path << std::endl;
+	// std::cout << (root + path).c_str() << std::endl;
 
-	dir = opendir((root + root_path).c_str());
+	dir = opendir((path).c_str());
 
 	if (dir == NULL)
 		return (send_403());
@@ -87,7 +87,7 @@ std::string		directory_listing (std::string root, std::string root_path)	// , co
 	body += "</style>\r\n";
 	body += "<body>\r\n";
 	body += "<header>\r\n	<h2>Index of ";
-	body += root_path;	// client_path;
+	body += path;	// client_path;
 	body += "</h2>\r\n</header>\r\n<ul>";
 
 	while ((entry = readdir(dir)) != NULL)
@@ -98,7 +98,7 @@ std::string		directory_listing (std::string root, std::string root_path)	// , co
 		{
 			body += "<li><a href=\"";			
 			// body += std::filesystem::path("foo/bar").remove_filename();	// ? c++17
-			tmp = root_path;				// TODO : client_path should be used
+			tmp = path;				// TODO : client_path should be used
 			tmp[tmp.rfind('/')] = '\0';
 			tmp[tmp.rfind('/')] = '\0';
 			if (tmp.empty() || tmp[0] == '\0')
@@ -109,7 +109,7 @@ std::string		directory_listing (std::string root, std::string root_path)	// , co
 		else
 		{
 			body += "<li><a href=\"";
-			body += root_path;				// TODO : client_path should be used
+			body += path;				// TODO : client_path should be used
 			body += entry->d_name;
 			body += "\">";
 
