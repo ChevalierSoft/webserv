@@ -83,14 +83,14 @@ std::string			ResponseGenerator::set_file_content_type(const std::string & exten
  * @param path the requested file
  * @return std::string file content as string
  */
-std::string			ResponseGenerator::get_file_content(const std::string &root, const std::string &path) const
+std::string			ResponseGenerator::get_file_content(const std::string &path) const
 {
 	std::ifstream	i_file;
 	std::string		tmp;
 	std::string		s_file_content = "";
 	std::string		s_full_content;
 
-	i_file.open((root + path).c_str());
+	i_file.open((path).c_str());
 
 	if (i_file.is_open())
 	{
@@ -128,21 +128,21 @@ std::string			ResponseGenerator::get_file_content(const std::string &root, const
 std::string			ResponseGenerator::perform_GET_methode(const Request& rq) const
 {
 	struct stat s;
-	std::string	root = ".";		// TODO : use the client->_conf one
 
-	if ( ! stat(("." + rq._path).c_str(), &s))
+	if ( !(stat((rq._path).c_str(), &s)) )
 	{
 		if (s.st_mode & S_IFDIR)	// ? the requested path is a directory
 		{
-			// TODO : check if directory indexation in on.
-
-			// TODO : see if we have to redirect to index.html if it exists.
-			
-			return (directory_listing(root, rq._path));
+			if (rq._route._dir_listing) // check if directory listing is on
+			{
+				return (directory_listing(rq._path));
+			}
+			else
+				return ("HTTP/1.1 403 Forbidden\r\n\r\n"); // TODO : 403 forbidden 
 		}
 		else if (s.st_mode & S_IFREG)	// ? the requested path is a file
 		{
-			return (get_file_content(root, rq._path));
+			return (get_file_content(rq._path));
 		}
 		else
 		{
@@ -152,6 +152,7 @@ std::string			ResponseGenerator::perform_GET_methode(const Request& rq) const
 	}
 	else
 	{
+		//TODO write function that sends error pages
 		// ? basically 404
 		// ? error: wrong path || path too long || out of memory || bad address || ...
 	}
@@ -170,21 +171,20 @@ bool				ResponseGenerator::generate(Client& client) const
 {
 	client._response.clear();
 	
-	// TODO : Check asked path (route/location) and set a variable with the real location on this hard drive.
+	// Check asked path (route/location) and set a variable with the real location on this hard drive.
 
-	std::string	location(parse_real_location(client._request._path));
-
-	std::cout << "location = " << location << std::endl;
+	Request request(parse_request_route(client._request));
 	// ;
-	// int	rc = access(location.c_str(), (client._request._method == "GET" ? R_OK : W_OK) | F_OK);
-	// if (rc < 0) {
-	// 	perror("	access to route failed");
-	// 	return (true);
-	// }
+	std::cout << "path = " << request._path << std::endl;
+	int	rc = access(request._path.c_str(), (client._request._method == "GET" ? R_OK : W_OK) | F_OK);
+	if (rc < 0) {
+		perror("	access to route failed");
+		return (true);
+	}
 
 	// ? check which method should be called
 	if (client._request._method == "GET")
-		client._response.append_buffer(this->perform_GET_methode(client._request));
+		client._response.append_buffer(this->perform_GET_methode(request));
 	else
 		std::cerr << CYN << "(client._request._method != \"GET\")" << std::endl;
 
@@ -193,29 +193,47 @@ bool				ResponseGenerator::generate(Client& client) const
 	return (false);
 }
 
-std::string	ResponseGenerator::parse_real_location(const std::string  & request) const {
+bool		ResponseGenerator::is_directory(const std::string path) const{
+	struct stat s;
+
+	if ( lstat(path.c_str(), &s) == 0 )
+    	if (S_ISDIR(s.st_mode))
+			return (true);
+	return (false);
+}
+
+Request 	ResponseGenerator::parse_request_route(Request  const &input_request) const{
 	const char					sep = '/';
 	int							found  = 0;
 	Conf::route_list			routes((*_conf)._routes);
-	Conf::route_type			route;
-	std::string					folder;
-	std::string					file;
-
-	while (found <= request.size())
+	std::string					file = std::string();
+	std::string					path;
+	Request						output_request;
+	std::cout << "input = " << input_request._path << std::endl;
+	while (found <= input_request._path.size())
 	{
-		if ((found = request.find(sep, found) == std::string::npos))
-			found = request.size();
+		if ((found = input_request._path.find(sep, found)) == std::string::npos)
+			found = input_request._path.size();
 		for (Conf::route_list::iterator it = routes.begin(); it != routes.end(); it++)
 		{
-			std::cout << "_path = " << it->_path << ", substr = " << request.substr(0,found + 1) << std::endl;
-			if (it->_path == request.substr(0,found + 1))
+			if (it->_path == input_request._path.substr(0,found)+"/")
 			{
-				route = *it;
-				file = request.substr(found, std::string::npos);
+				output_request._route = *it;
+				if (found < input_request._path.size())
+					file = input_request._path.substr(found + 1, input_request._path.size() - found);
+				else
+					file = "";
 			}
 		}
 		found++;
 	}
-	folder = route._location;
-	return (folder+file);
+	output_request._path = output_request._route._location+file;
+	if (is_directory(output_request._path))
+	{
+		if (*(output_request._path.end() - 1) != '/')
+			output_request._path+="/";
+		if (output_request._route._default_file != "") // check if default file is defined
+			output_request._path+=output_request._route._default_file; // adding default file to path
+	}
+	return (output_request);
 }

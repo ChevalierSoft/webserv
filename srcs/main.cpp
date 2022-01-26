@@ -18,8 +18,6 @@ int main(int argc, char **argv)
 	
 	Parser	p("tst/conf/webserv.conf");
 	run = !p._err;
-	// for (conf_list::iterator it = p._confs.begin(); it != p._confs.end(); it++)
-	// 	(*it).print();
 	if (run == false)
 	{
 		std::cerr << "Error: " << p._error_message << std::endl;

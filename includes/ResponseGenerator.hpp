@@ -50,12 +50,14 @@ public:
 	void				set_conf(const Conf * c);
 
 private:
-	std::string			get_file_content(const std::string & root, const std::string & paht) const;
+	std::string			get_file_content(const std::string & path) const;
 
 	std::string			perform_GET_methode(const Request & rq) const;
 
 	std::string			set_file_content_type(const std::string & extention) const;
 
-	std::string			parse_real_location(const std::string  & route) const;
+	Request				parse_request_route(Request  const & input_request) const;
+
+	bool				is_directory(const std::string path) const;
 
 }; // * ________________________________________________________________________
