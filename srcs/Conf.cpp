@@ -19,20 +19,20 @@ _routes(route_list()),
 _cgi(cgi_list()),
 _error_message(std::string()),
 _err(0) {
-	std::string	error_path = "./resources/error_pages/html/";
-	_error_pages[400] = error_path + "400.html";
-	_error_pages[401] = error_path + "401.html";
-	_error_pages[402] = error_path + "402.html";
-	_error_pages[404] = error_path + "404.html";
-	_error_pages[406] = error_path + "406.html";
-	_error_pages[407] = error_path + "407.html";
-	_error_pages[408] = error_path + "408.html";
-	_error_pages[409] = error_path + "409.html";
-	_error_pages[410] = error_path + "410.html";
-	_error_pages[411] = error_path + "411.html";
-	_error_pages[417] = error_path + "417.html";
-	_error_pages[429] = error_path + "429.html";
-	_error_pages[451] = error_path + "451.html";
+	// std::string	error_path = "./resources/error_pages/html/";
+	// _error_pages[400] = error_path + "400.html";
+	// _error_pages[401] = error_path + "401.html";
+	// _error_pages[402] = error_path + "402.html";
+	// _error_pages[404] = error_path + "404.html";
+	// _error_pages[406] = error_path + "406.html";
+	// _error_pages[407] = error_path + "407.html";
+	// _error_pages[408] = error_path + "408.html";
+	// _error_pages[409] = error_path + "409.html";
+	// _error_pages[410] = error_path + "410.html";
+	// _error_pages[411] = error_path + "411.html";
+	// _error_pages[417] = error_path + "417.html";
+	// _error_pages[429] = error_path + "429.html";
+	// _error_pages[451] = error_path + "451.html";
 }
 
 Conf::~Conf() {}
