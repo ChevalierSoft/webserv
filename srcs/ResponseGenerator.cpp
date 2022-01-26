@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/26 10:00:22 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/26 10:09:40 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,7 +69,7 @@ std::string			ResponseGenerator::get_generic_error(int err) const
 	std::string		s_file_content = "";
 	std::string		s_full_content;
 
-	std::cerr << "get_generic_error" << std::endl;
+	// std::cerr << "get_generic_error" << std::endl;
 
 	s_file_content = ft_to_string(err) + " Not Found\r\n";
 	s_full_content = set_header(err, ".html", s_file_content.size()) + s_file_content;
@@ -88,7 +88,8 @@ std::string			ResponseGenerator::get_error_file(Conf::code_type err) const
 	std::string							tmp;
 	Conf::error_list::const_iterator	it = _conf->_error_pages.find(err);
 
-	std::cerr << "get_error_file" << std::endl;
+	// std::cerr << "get_error_file" << std::endl;
+
 	if (it == _conf->_error_pages.end())
 		return (get_generic_error(404));
 	else
@@ -112,7 +113,7 @@ std::string			ResponseGenerator::get_error_file(Conf::code_type err) const
 
 	s_full_content = set_header(404, ".html", s_file_content.size());
 	s_full_content += s_file_content;
-
+	
 	return (s_full_content);
 }
 
@@ -170,9 +171,8 @@ std::string			ResponseGenerator::get_file_content(const std::string &root, const
 	}
 	else
 	{
-		// TODO : send error page
-		std::cout << "Couldn't open file\n";
-		return (this->get_error_file(403));
+		// std::cout << "Couldn't open file\n";
+		return (this->get_error_file(403));	// 403 ?
 	}
 
 	s_full_content = set_header(0, get_file_extention(get_file_name(path)), s_file_content.size());
