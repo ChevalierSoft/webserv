@@ -35,6 +35,7 @@ protected:
 	std::string							_buffer; // internal buffer to keep track of packets
 	size_t								_line_index; // index that lets me know current line in request
 	size_t								_body_index; // index that lets me know if body is fully read (compare to Content-Length)
+	int									_content_length;
 
 public:
 	std::string							_method; // from header first line
@@ -54,6 +55,7 @@ public:
 		_body_index = 0;
 		_in_header = true;
 		_error = NO_ERROR;
+		_content_length = -1;
 	}
 
 	virtual ~Message(void) {
@@ -72,6 +74,7 @@ public:
 		_in_header = src._in_header;
 		_error = src._error;
 		_body_index = src._body_index;
+		_content_length = src._content_length;
 	}
 	
 	Message &	operator=(const Message & src) {
@@ -86,6 +89,7 @@ public:
 		_in_header = src._in_header;
 		_error = src._error;
 		_body_index = src._body_index;
+		_content_length = src._content_length;
 		return *this;
 	}
 
@@ -197,6 +201,9 @@ public:
 		else if (found_newline == 0) {
 			_buffer.erase(_buffer.begin(), _buffer.begin() + 2);
 			_line_index++;
+			it_header cl_key = _header.find("Content-Length");
+			if (cl_key != _header.end())
+				_content_length = std::atoi(((*cl_key).second).begin()->c_str());
 			_in_header = false;
 		}
 		return (1);
@@ -213,6 +220,7 @@ public:
 		_body_index = 0;
 		_in_header = true;
 		_error = NO_ERROR;
+		_content_length = -1;
 	}
 
 	/**
@@ -225,29 +233,27 @@ public:
 	int		update_body() {
 		int			found_newline;
 		std::string	new_str;
-		it_header	cl_key;
 
 		found_newline = _buffer.find("\r\n");
-		cl_key = _header.find("Content-Length");
-		size_t	content_length = std::atoi(((*cl_key).second).begin()->c_str());
-		if (found_newline != _buffer.npos && found_newline > 0) {
+		if (_content_length != -1) {
+			if (_buffer.size() >= _content_length) {
+				new_str = std::string(_buffer.begin(), _buffer.begin() + _content_length);
+				_body.push_back(new_str);
+				_buffer.erase(new_str.size());
+				return (2);
+			}
+			return (0);
+		}
+		else if (found_newline != _buffer.npos && found_newline > 0) {
 			new_str = std::string(_buffer.begin(), _buffer.begin() + found_newline);
 			_body.push_back(new_str);
 			_buffer.erase(_buffer.begin(), _buffer.begin() + found_newline + 2);
 			_body_index += found_newline + 2;
 			_line_index++;
-			if ((cl_key != _header.end() && _body_index >= content_length))
-				return (2);
 			return (1);
 		}
 		else if (found_newline == 0)
 			return (2);
-		else if (cl_key != _header.end() && _buffer.size() >= content_length) {
-			new_str = std::string(_buffer.begin(), _buffer.begin() + content_length);
-			_body.push_back(new_str);
-			_buffer.erase(new_str.size());
-			return (2);
-		}
 		return (0);
 	}
 
