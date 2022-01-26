@@ -6,7 +6,7 @@
 /*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/26 14:52:08 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/01/26 15:16:45 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -99,7 +99,7 @@ void		Client::parse_response ()
 	
 	if (end_of_request == 2) {
 		// ? to output contents of map header
-		this->_request.d_output();
+		// this->_request.d_output();
 		this->_request_ready = true;
 	}
 
