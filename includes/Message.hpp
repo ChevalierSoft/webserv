@@ -11,6 +11,8 @@
 
 // TODO difference between content-length and actual size of body may be an error
 
+// TODO Content-Length if there is one overrides \r\n to detect end of body -> needed for upload or post probably
+
 # define BUFFER_SIZE	64
 
 void	*ft_print_memory(void *addr, size_t size);
