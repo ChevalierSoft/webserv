@@ -4,14 +4,16 @@
 #include <vector>
 #include <iostream>
 #include <cstring>
+#include "color.h"
+#include <cstdlib>
 // #include "ft_print_memory.hpp"
 
-void	*ft_print_memory(void *addr, size_t size);
 
-// TODO handle errors from requests
-// TODO is a line correct ? (first line is method, path, and http version ; rest of header is "key: value")
-// ? Message syntax
-// ? http-version : two digits separated by a period '.'
+// TODO difference between content-length and actual size of body may be an error
+
+# define BUFFER_SIZE	64
+
+void	*ft_print_memory(void *addr, size_t size);
 
 enum errors {
 	NO_ERROR,
@@ -25,11 +27,12 @@ enum errors {
 class Message {
 
 protected:
-	std::map<std::string, std::string>	_header; // header contents stored in a map of key-values
+	std::map<std::string, std::vector<std::string> >	_header; // header contents stored in a map of key-values
 	std::vector<std::string>			_body; // body contents stored in a vector of strings
 
 	std::string							_buffer; // internal buffer to keep track of packets
 	size_t								_line_index; // index that lets me know current line in request
+	size_t								_body_index; // index that lets me know if body is fully read (compare to Content-Length)
 
 public:
 	std::string							_method; // from header first line
@@ -38,12 +41,15 @@ public:
 	bool								_in_header;
 	int									_error;
 	
-	typedef std::pair<std::string, std::string>					value_type;
-	typedef std::map<std::string, std::string>::const_iterator	it_chunk;
+	typedef std::vector<std::string>						str_vec;
+	typedef std::pair<std::string, str_vec>					value_type;
+	typedef std::map<std::string, str_vec>::const_iterator	it_header;
+	typedef str_vec::const_iterator							it_value;
 	
 	Message(void) {
 		clear();
 		_line_index = 0;
+		_body_index = 0;
 		_in_header = true;
 		_error = NO_ERROR;
 	}
@@ -63,6 +69,7 @@ public:
 		_http_version = src._http_version;
 		_in_header = src._in_header;
 		_error = src._error;
+		_body_index = src._body_index;
 	}
 	
 	Message &	operator=(const Message & src) {
@@ -76,6 +83,7 @@ public:
 		_http_version = src._http_version;
 		_in_header = src._in_header;
 		_error = src._error;
+		_body_index = src._body_index;
 		return *this;
 	}
 
@@ -90,6 +98,26 @@ public:
 		_buffer.append(src);
 	}
 
+
+	str_vec	split_values(std::string::const_iterator _begin, std::string::const_iterator _end) {
+		str_vec	ret;
+
+		while (_begin != _end) {
+			std::string::const_iterator	new_str_begin = _begin;
+			while (new_str_begin != _end && std::isspace(*new_str_begin))
+				new_str_begin++;
+
+			std::string::const_iterator	new_str_end = new_str_begin;
+			while (new_str_end != _end && (*new_str_end) != ',')
+				new_str_end++;
+			if (new_str_begin != new_str_end)
+				ret.push_back(std::string(new_str_begin, new_str_end));
+			if ((*new_str_end) == ',')
+				new_str_end++;
+			_begin = new_str_end;
+		}
+		return ret;
+	}
 	/**
 	 * @brief splits string into key and value by ": "
 	 * 
@@ -99,9 +127,8 @@ public:
 		value_type	ret;
 		int found;
 
-		if ((found = str.find(":")) != str.npos) {
-			ret = value_type(std::string(str.begin(), str.begin() + found), std::string(str.begin() + found + 2, str.end()));
-		}
+		if ((found = str.find(":")) != str.npos)
+			ret = value_type(std::string(str.begin(), str.begin() + found), split_values(str.begin() + found + 2, str.end()));
 		return ret;
 	}
 
@@ -120,12 +147,18 @@ public:
 			test.erase(0, 1);
 		if (test.size() == 0) // if no value, error
 			return false;
-		// while (test.size() > 0 && !std::isspace(test.at(0))) // skipping value
-		// 	test.erase(0, 1);
-		// while (test.size() > 0 && std::isspace(test.at(0))) // skipping whitespaces
-		// 	test.erase(0, 1);
-		// if (test.size() != 0) // if there is more text after value, error
-		// 	return false;
+		while (test.size() > 0 && !std::isspace(test.at(0))) // skipping value
+			test.erase(0, 1);
+		while (!test.empty()) { // checking for multiple values preceded by a ','
+			if (test.size() > 0 && test.at(0) == ',')
+				test.erase(0, 1);
+			while (test.size() > 0 && std::isspace(test.at(0))) // skipping whitespaces
+				test.erase(0, 1);
+			if (test.size() == 0) // if no value, error
+				return false;
+			while (test.size() > 0 && !std::isspace(test.at(0))) // skipping value
+				test.erase(0, 1);
+		}
 		return true;
 	}
 	
@@ -159,11 +192,10 @@ public:
 			_line_index++;
 			return (0);
 		}
-		else if (found_newline != _buffer.npos) {
-			_buffer.erase(_buffer.begin(), _buffer.begin() + found_newline + 2);
+		else if (found_newline == 0) {
+			_buffer.erase(_buffer.begin(), _buffer.begin() + 2);
 			_line_index++;
-			if (_buffer.empty())
-				_in_header = false;
+			_in_header = false;
 		}
 		return (1);
 	}
@@ -176,6 +208,7 @@ public:
 		_path.clear();
 		_http_version.clear();
 		_line_index = 0;
+		_body_index = 0;
 		_in_header = true;
 		_error = NO_ERROR;
 	}
@@ -190,17 +223,29 @@ public:
 	int		update_body() {
 		int			found_newline;
 		std::string	new_str;
+		it_header	cl_key;
 
 		found_newline = _buffer.find("\r\n");
+		cl_key = _header.find("Content-Length");
+		size_t	content_length = std::atoi(((*cl_key).second).begin()->c_str());
 		if (found_newline != _buffer.npos && found_newline > 0) {
 			new_str = std::string(_buffer.begin(), _buffer.begin() + found_newline);
 			_body.push_back(new_str);
 			_buffer.erase(_buffer.begin(), _buffer.begin() + found_newline + 2);
+			_body_index += found_newline + 2;
 			_line_index++;
+			if ((cl_key != _header.end() && _body_index >= content_length))
+				return (2);
 			return (1);
 		}
-		else if (found_newline != _buffer.npos)
+		else if (found_newline == 0)
 			return (2);
+		else if (cl_key != _header.end() && _buffer.size() >= content_length) {
+			new_str = std::string(_buffer.begin(), _buffer.begin() + content_length);
+			_body.push_back(new_str);
+			_buffer.erase(new_str.size());
+			return (2);
+		}
 		return (0);
 	}
 
@@ -222,10 +267,20 @@ public:
 			_buffer.erase(0, 1);
 		if (_buffer.find("/") == 0) {
 			std::string::iterator end_path = _buffer.begin();
-			while (end_path != _buffer.end() && !(std::isspace(*end_path)))
+			while (end_path != _buffer.end() && !(std::isspace(*end_path)) && (*end_path) != '?')
 				end_path++;
 			_path = std::string(_buffer.begin(), end_path);
 			_buffer.erase(_buffer.begin(), end_path);
+			if (_buffer.find("?") == 0) {
+				_buffer.erase(_buffer.begin(), _buffer.begin() + 1);
+				end_path = _buffer.begin();
+				while (end_path != _buffer.end() && !(std::isspace(*end_path))) {
+					std::cout << "\'" << *end_path << "\'" << " ";
+					end_path++;
+				}
+				_body.push_back(std::string(_buffer.begin(), end_path));
+				_buffer.erase(_buffer.begin(), end_path);
+			}
 		}
 		else {
 			_error = UNDEFINED_PATH;
@@ -250,30 +305,50 @@ public:
 	/**
 	 * @brief calls header map begin
 	 * 
-	 * @return it_chunk begin 
+	 * @return it_header begin 
 	 */
-	it_chunk	begin_header() {
+	it_header	begin_header() {
 		return (_header.begin());
 	}
 
-	std::vector<std::string>::iterator	begin_body() {
+	str_vec::iterator	begin_body() {
 		return (_body.begin());
 	}
 
-	std::vector<std::string>::iterator	end_body() {
+	str_vec::iterator	end_body() {
 		return (_body.end());
 	}
 
 	/**
 	 * @brief calls header map end
 	 * 
-	 * @return it_chunk end 
+	 * @return it_header end 
 	 */
-	it_chunk	end_header() {
+	it_header	end_header() {
 		return (_header.end());
 	}
 
 	std::string	& get_buffer() {
 		return _buffer;
+	}
+
+	void		d_output() {
+		it_header _it_header;
+		_it_header = _header.begin();
+		std::cout << GRN << "HEADER" << RST << std::endl;
+		std::cout << RED << "Method: " << _method << RST << std::endl;
+		std::cout << RED << "path: " << _path << RST << std::endl;
+		std::cout << RED << "http-version: " << _http_version << RST << std::endl;
+		for (; _it_header != _header.end(); _it_header++) {
+			std::cout << RED << (*(_it_header)).first << ": ";
+			it_value	head_it = (*(_it_header)).second.begin();
+			for (; head_it != (*(_it_header)).second.end() - 1; head_it++)
+				std::cout<< (*head_it) << ", ";
+			std::cout << (*head_it) << RST << std::endl;
+		}
+		it_value it_test = _body.begin();
+		std::cout << GRN << "BODY" << RST << std::endl;
+		for (; it_test != _body.end(); it_test++)
+			std::cout << RED << *it_test << RST << std::endl;
 	}
 };

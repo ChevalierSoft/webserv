@@ -18,11 +18,29 @@
 # include <vector>
 # include <fstream>
 
-# include "typing.hpp"
 # include "Route.hpp"
+class Route;
 
 class Conf {
 	public:
+		typedef std::string                     name_type;
+		typedef std::string                     host_type;
+		typedef int                             port_type;
+		typedef std::string                     file_type;
+		typedef int                             code_type;
+		typedef std::pair<code_type, file_type> error_type;
+		typedef	std::map<code_type, file_type>	error_list;
+		typedef int                             size_type;
+		typedef std::string						method_type;
+		typedef std::vector<method_type>		method_list;
+		typedef short                           dir_listing_type;
+		typedef std::string                     path_type;
+		typedef class Route                     route_type;
+		typedef std::vector<route_type>			route_list;
+		typedef bool                            errno_type;
+		typedef std::string                     error_message_type;
+		typedef std::vector<file_type>	        cgi_list;
+
 		name_type			_name;
 		host_type			_host;
 		port_type			_port;
@@ -32,6 +50,7 @@ class Conf {
 		dir_listing_type	_dir_listing;
 		path_type			_upload_path;
 		route_list			_routes;
+		cgi_list			_cgi;
 
 		std::string			_error_message;
 		bool				_err;
@@ -49,6 +68,7 @@ class Conf {
 		method_list						string_to_methods(std::string value);
 		dir_listing_type				string_to_dir_listing(std::string value);
 		route_type    					string_to_route(std::string value);
+		cgi_list						string_to_cgi(std::string value);
 	
 		bool        set_name(name_type name);
 		bool        set_host(host_type host);
@@ -57,6 +77,8 @@ class Conf {
 		bool        set_client_body_size(size_type client_body_size);
 		bool        add_method(method_type method);
 		bool		set_methods(method_list methods);
+		bool        add_cgi(file_type cgi);
+		bool		set_cgi(cgi_list cgi);
 		bool        set_dir_listing(dir_listing_type dir_listing);
 		bool        set_upload_path(path_type upload_path);
 		bool        add_route(route_type route);
@@ -64,6 +86,8 @@ class Conf {
 		void		print();
 
 		bool		set_error_message(std::string error_message);
+
+		bool		check();
 };
 
 #endif

@@ -16,7 +16,6 @@ int main(int argc, char **argv)
 	signal(SIGINT, &sighandler);	// making it easy to close the program
 	signal(SIGQUIT, &sighandler);
 	
-	// // TODO (1) parse the config file (default or provided) and feed a list of object with the configurations
 	Parser	p("tst/conf/webserv.conf");
 	run = !p._err;
 	// for (conf_list::iterator it = p._confs.begin(); it != p._confs.end(); it++)
@@ -24,14 +23,15 @@ int main(int argc, char **argv)
 	if (run == false)
 	{
 		std::cerr << "Error: " << p._error_message << std::endl;
+		std::cerr << p.line_number << ": " << p.line << std::endl;
 		return (20);
 	}
 	else
 	{
-		// TODO (2) loop over the config_object list and create that many Server objects.
+		// TODO : loop over the config_object list and create that many Server objects.
 		Server s(*(p._confs.begin()));
 		
-		// TODO (3) it could be great to start each Server on a thread ?
+		// TODO : it could be great to start each Server on a thread ?
 		err = s.start();
 	}
 

@@ -6,28 +6,31 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 10:06:11 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/22 09:00:28 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/26 11:26:57 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
-# include "Request.hpp"
+# include "Client.hpp"
+# include "Conf.hpp"
+
+class Client;
 
 /**
- * @brief Thanks to the generated Request,
+ * @brief Thanks to the parsed Request,
  * 	      ResponseGenerator will generate a response to the client
  * 
  */
 class ResponseGenerator // * ___________________________________________________
 {
 	/// * Variables ____________________________________________________________
-
 private:
-	static const std::map<std::string, std::string>	_ss_content_types;	// ? map of content types
+	const Conf										*_conf;
+	static const std::map<std::string, std::string>	_ss_content_types;
+	static const std::map<int, std::string>			_ss_error_messages;
 
 	/// * Constructors & Destructors ___________________________________________
-
 public:
 	// ? (1) default
 	ResponseGenerator (void);
@@ -37,18 +40,25 @@ public:
 
 	~ResponseGenerator (void);
 
-	/// * Member function ______________________________________________________
-
-	// Operation overload =
 	ResponseGenerator&	operator=(const ResponseGenerator &	copy);
-	
-	std::string			generate(const Request & rq);
+
+	/// * Member function ______________________________________________________
+public:
+	bool				generate(Client & client) const;
+
+	void				set_conf(const Conf * c);
 
 private:
-	std::string			get_file_content(const std::string & root, const std::string & paht);
+	std::string			set_file_content_type(const std::string & extention) const;
 
-	std::string			perform_GET_methode(const Request & rq);
+	std::string			set_header (int err, std::string ct, size_t size) const;
 
-	std::string			set_file_content_type(const std::string & extention);
+	std::string			generic_error(int err) const;
+
+	std::string			get_error_file(int err) const;
+
+	std::string			get_file_content(const std::string & root, const std::string & paht) const;
+
+	std::string			perform_GET_method(const Client & client) const;
 
 }; // * ________________________________________________________________________

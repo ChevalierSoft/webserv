@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 04:55:39 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/21 11:00:50 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/25 17:45:43 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,7 @@
 # include <netinet/in.h>	// htons, sockaddr_in6
 # include "Client.hpp"
 # include "Conf.hpp"
+# include "ResponseGenerator.hpp"
 
 # define BACK_LOG		123
 # define BUFFER_SIZE	64
@@ -42,6 +43,7 @@ private:
 	std::vector<struct pollfd>	_fds;
 	std::map<int, Client>		_clients;
 
+	ResponseGenerator			_response_generator;
 
 	/// * Constructors & Destructors ___________________________________________
 private:
