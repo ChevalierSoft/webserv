@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ResponseGenerator.cpp                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
+/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/25 23:53:54 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/01/26 11:32:21 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,22 +21,26 @@
 #include "set_content_types.hpp"
 
 /**
- * @brief _ss_content_types will be accessible (read only) by every ::ResponseGenerator objects
+ * @brief _ss_content_types and _ss_error_messages will be accessible
+ *        (read only) by every ::ResponseGenerator objects
  */
 const std::map<std::string, std::string>
 	ResponseGenerator::_ss_content_types = set_content_types();
 
-ResponseGenerator::ResponseGenerator(void) {}
+const std::map<int, std::string>
+	ResponseGenerator::_ss_error_messages = set_error_map();
 
-ResponseGenerator::~ResponseGenerator(void) {}
+ResponseGenerator::ResponseGenerator (void) {}
 
-ResponseGenerator::ResponseGenerator(const ResponseGenerator & copy)
+ResponseGenerator::~ResponseGenerator (void) {}
+
+ResponseGenerator::ResponseGenerator (const ResponseGenerator & copy)
 {
 	*this = copy;
 	return ;
 }
 
-ResponseGenerator&	ResponseGenerator::operator=(const ResponseGenerator& copy)
+ResponseGenerator&	ResponseGenerator::operator= (const ResponseGenerator& copy)
 {
 	if (this != &copy)
 	{
@@ -45,7 +49,7 @@ ResponseGenerator&	ResponseGenerator::operator=(const ResponseGenerator& copy)
 	return (*this);
 }
 
-void				ResponseGenerator::set_conf(const Conf * c)
+void				ResponseGenerator::set_conf (const Conf * c)
 {
 	_conf = c;
 }
@@ -56,16 +60,13 @@ void				ResponseGenerator::set_conf(const Conf * c)
  * @param extention Extention of the file that will be sent.
  * @return std::string The right content-type.
  */
-std::string			ResponseGenerator::set_file_content_type(const std::string & extention) const
+std::string			ResponseGenerator::set_file_content_type (const std::string & extention) const
 {
 	std::string											s_content_type;
 	std::map<std::string, std::string>::const_iterator	cit;
 	
 	s_content_type = "content-type: ";
 	cit = _ss_content_types.find(extention);
-
-	// ? debug
-	// std::cout << "extention found : " << extention << std::endl;
 
 	if (cit == _ss_content_types.end())
 		s_content_type += "application/octet-stream";
@@ -74,6 +75,68 @@ std::string			ResponseGenerator::set_file_content_type(const std::string & exten
 
 	s_content_type += "\r\n";
 	return (s_content_type);
+}
+
+std::string			ResponseGenerator::set_header (int err, std::string ext, size_t size) const
+{
+	std::string		s_header;
+
+	s_header = "HTTP/1.1 " + ft_to_string(err) + " " + _ss_error_messages.find(err)->second + "\r\n";
+	s_header += "webser: 42\r\n";								// TODO : set a cool header
+	s_header += this->set_file_content_type( ext );
+	s_header += "Content-Length: ";
+	s_header += ft_to_string(size);
+	s_header += "\r\n\r\n";
+
+	return (s_header);
+}
+
+std::string			ResponseGenerator::generic_error (int err) const
+{
+	std::string		s_file_content = "";
+	std::string		s_full_content;
+
+	s_file_content = ft_to_string(err) + " " + _ss_error_messages.find(err)->second + "\r\n";
+	s_full_content = set_header(err, ".html", s_file_content.size()) + s_file_content;
+
+	return (s_full_content);
+}
+
+std::string			ResponseGenerator::get_error_file(Conf::code_type err) const
+{
+	std::string							s_file_content = "";
+	std::string							s_full_content;
+	std::ifstream						i_file;
+	std::string							tmp;
+	Conf::error_list::const_iterator	it = _conf->_error_pages.find(err);
+
+	// TODO : if the Accept is not html, just return a header with the correct error code
+
+	if (it == _conf->_error_pages.end())
+		return (generic_error(err));
+	else
+	{
+		std::cerr << CYN << it->second << RST << std::endl;
+		i_file.open(it->second.c_str());
+
+		if (i_file.is_open())
+		{
+			while (i_file.good())
+			{
+				std::getline(i_file, tmp);
+				s_file_content += (tmp + "\n");
+			}
+		}
+		else
+		{
+			return (generic_error(err));
+		}
+	}
+
+	s_full_content = set_header(err, ".html", s_file_content.size());
+	s_full_content += s_file_content;
+	
+	return (s_full_content);
 }
 
 /**
@@ -102,16 +165,11 @@ std::string			ResponseGenerator::get_file_content(const std::string &root, const
 	}
 	else
 	{
-		// TODO : send error page
-		std::cout << "Couldn't open file\n";
+		// std::cout << "Couldn't open file\n";
+		return (this->get_error_file(403));	// 403 ?
 	}
 
-	s_full_content = "HTTP/1.1 200 OK\r\n";
-	s_full_content += "webser: 42\r\n";
-	s_full_content += this->set_file_content_type(get_flie_extention(get_file_name(path)));
-	s_full_content += "Content-Length: ";
-	s_full_content += ft_to_string(s_file_content.size());
-	s_full_content += "\r\n\r\n";
+	s_full_content = set_header(0, get_file_extention(get_file_name(path)), s_file_content.size());
 
 	s_full_content += s_file_content;
 
@@ -125,37 +183,38 @@ std::string			ResponseGenerator::get_file_content(const std::string &root, const
  * 
  * @return std::string a string containing the response to the client.
  */
-std::string			ResponseGenerator::perform_GET_methode(const Request& rq) const
+std::string			ResponseGenerator::perform_GET_method(const Client& client) const
 {
 	struct stat s;
 	std::string	root = ".";		// TODO : use the client->_conf one
 
-	if ( ! stat(("." + rq._path).c_str(), &s))
+	if ( ! stat(("." + client._request._path).c_str(), &s))
 	{
 		if (s.st_mode & S_IFDIR)	// ? the requested path is a directory
 		{
-			// TODO : check if directory indexation in on.
+			// TODO : check if default_file is present in this dir.
 
-			// TODO : see if we have to redirect to index.html if it exists.
+			// TODO : check if directory indexation in on.
 			
-			return (directory_listing(root, rq._path));
+			return (directory_listing(root, client._request._path));
 		}
 		else if (s.st_mode & S_IFREG)	// ? the requested path is a file
 		{
-			return (get_file_content(root, rq._path));
+			return (get_file_content(root, client._request._path));
 		}
 		else
 		{
-			// ? error: it's not a directory or a file.
+			// ? error: it's there, but it's not a directory or a file.
 			// ? not sure if symlinks must work.
+			get_error_file(418);
 		}
 	}
 	else
 	{
-		// ? basically 404
 		// ? error: wrong path || path too long || out of memory || bad address || ...
+		return (get_error_file(404));
 	}
-	return ("HTTP/1.1 404 Not Found\r\n\r\n");
+	return (get_error_file(404));
 }
 
 /**
@@ -170,21 +229,23 @@ bool				ResponseGenerator::generate(Client& client) const
 	client._response.clear();
 	
 	// TODO : Check asked path (route/location) and set a variable with the real location on this hard drive.
-	std::string	actual_path(getcwd(NULL, 0));
-	if (actual_path.empty())
-		return (true);
-	actual_path.append(client._request._path);
+	// TODO : also check if it's an autorised path.
 
-	int	rc = access(actual_path.c_str(), (client._request._method == "GET" ? R_OK : W_OK) | F_OK);
-	if (rc < 0) {
-		perror("	access to route failed");
-		client._request.clear();
-		return (true);
-	}
+	// std::string	actual_path(getcwd(NULL, 0));
+	// if (actual_path.empty())
+	// 	return (true);
+	// actual_path.append(client._request._path);
+
+	// int	rc = access(actual_path.c_str(), (client._request._method == "GET" ? R_OK : W_OK) | F_OK);
+	// if (rc < 0) {
+	// 	perror("	access to route failed");
+	// 	client._request.clear();
+	// 	return (true);
+	// }
 
 	// ? check which method should be called
 	if (client._request._method == "GET")
-		client._response.append_buffer(this->perform_GET_methode(client._request));
+		client._response.append_buffer(this->perform_GET_method(client));
 	else
 		std::cerr << CYN << "(client._request._method != \"GET\")" << std::endl;
 
