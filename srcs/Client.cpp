@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
+/*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/26 01:55:56 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/26 14:52:08 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,6 +85,7 @@ void		Client::parse_response ()
 	while (this->_request._in_header && (end_of_request = this->_request.update_header()) == 0);
 	if (this->_request._error > 0) {
 		this->_request_ready = true;
+		this->_request.d_output();
 		std::cout << RED << "Error in header : " << this->_request._error << " (refer to errors enum)" << RST << std::endl;
 		return ;
 	}
@@ -98,7 +99,7 @@ void		Client::parse_response ()
 	
 	if (end_of_request == 2) {
 		// ? to output contents of map header
-		// this->_request.d_output();
+		this->_request.d_output();
 		this->_request_ready = true;
 	}
 

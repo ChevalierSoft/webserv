@@ -9,7 +9,7 @@
 // #include "ft_print_memory.hpp"
 
 
-// TODO difference between content-length and actual size of body should be an error
+// TODO difference between content-length and actual size of body may be an error
 
 # define BUFFER_SIZE	64
 
@@ -38,7 +38,6 @@ public:
 	std::string							_method; // from header first line
 	std::string							_path; // from header first line
 	std::string							_http_version; // from header first line
-	std::string							_get_contents;
 	bool								_in_header;
 	int									_error;
 	
@@ -69,7 +68,6 @@ public:
 		_in_header = src._in_header;
 		_error = src._error;
 		_body_index = src._body_index;
-		_get_contents = src._get_contents;
 	}
 	
 	Message &	operator=(const Message & src) {
@@ -84,7 +82,6 @@ public:
 		_in_header = src._in_header;
 		_error = src._error;
 		_body_index = src._body_index;
-		_get_contents = src._get_contents;
 		return *this;
 	}
 
@@ -183,7 +180,6 @@ public:
 		_method.clear();
 		_path.clear();
 		_http_version.clear();
-		_get_contents.clear();
 		_line_index = 0;
 		_body_index = 0;
 		_in_header = true;
@@ -206,10 +202,10 @@ public:
 		cl_key = _header.find("Content-Length");
 		size_t	content_length = std::atoi(((*cl_key).second).c_str());
 		if (found_newline != _buffer.npos && found_newline > 0) {
-			new_str = std::string(_buffer.begin(), _buffer.begin() + (found_newline > (content_length - _body_index) ? (content_length - _body_index) : found_newline));
+			new_str = std::string(_buffer.begin(), _buffer.begin() + found_newline);
 			_body.push_back(new_str);
 			_buffer.erase(_buffer.begin(), _buffer.begin() + found_newline + 2);
-			_body_index += (found_newline > (content_length - _body_index) ? (content_length - _body_index) : found_newline) + 2;
+			_body_index += found_newline + 2;
 			_line_index++;
 			if ((cl_key != _header.end() && _body_index >= content_length))
 				return (2);
@@ -217,14 +213,11 @@ public:
 		}
 		else if (found_newline == 0)
 			return (2);
-		else if (_buffer.size() > 0) {
-			new_str = std::string(_buffer.begin(), _buffer.begin() + (_buffer.size() > (content_length - _body_index) ? (content_length - _body_index) : _buffer.size()));
+		else if (cl_key != _header.end() && _buffer.size() >= content_length) {
+			new_str = std::string(_buffer.begin(), _buffer.begin() + content_length);
 			_body.push_back(new_str);
 			_buffer.erase(new_str.size());
-			_body_index += new_str.size();
-			if ((cl_key != _header.end() && _body_index >= content_length))
-				return (2);
-			return (0);
+			return (2);
 		}
 		return (0);
 	}
@@ -253,9 +246,12 @@ public:
 			_buffer.erase(_buffer.begin(), end_path);
 			if (_buffer.find("?") == 0) {
 				_buffer.erase(_buffer.begin(), _buffer.begin() + 1);
-				while (end_path != _buffer.end() && !(std::isspace(*end_path)))
+				end_path = _buffer.begin();
+				while (end_path != _buffer.end() && !(std::isspace(*end_path))) {
+					std::cout << "\'" << *end_path << "\'" << " ";
 					end_path++;
-				_get_contents = std::string(_buffer.begin(), end_path);
+				}
+				_body.push_back(std::string(_buffer.begin(), end_path));
 				_buffer.erase(_buffer.begin(), end_path);
 			}
 		}
@@ -315,7 +311,6 @@ public:
 		std::cout << GRN << "HEADER" << RST << std::endl;
 		std::cout << RED << "Method: " << _method << RST << std::endl;
 		std::cout << RED << "path: " << _path << RST << std::endl;
-		std::cout << RED << "get contents: " << _get_contents << RST << std::endl;
 		std::cout << RED << "http-version: " << _http_version << RST << std::endl;
 		for (; _it_chunk != _header.end(); _it_chunk++)
 			std::cout << RED << (*(_it_chunk)).first << ": " << (*(_it_chunk)).second << RST << std::endl;
