@@ -63,9 +63,9 @@ private:
 
 	void				    set_cgi_env (Client & client, std::vector<std::string> se, std::vector<char *> ae) const;
 
-	std::string			o pen_cgi (Client & client, std::string url) const;
+	std::string			open_cgi (Client & client, std::string url) const;
 
-	std::string			perform_GET_method (const Client & client) const;
+	std::string			perform_GET_method (const Request & rq) const;
 
 	Request				  parse_request_route(Request  const & input_request) const;
 

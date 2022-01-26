@@ -245,7 +245,7 @@ std::string			ResponseGenerator::open_cgi (Client & client, std::string url) con
  * 
  * @return std::string a string containing the response to the client.
  */
-std::string			ResponseGenerator::perform_GET_method(const Client& client) const
+std::string			ResponseGenerator::perform_GET_method(const Request & rq) const
 {
 	struct stat s;
 
@@ -303,7 +303,7 @@ bool				ResponseGenerator::generate(Client& client) const
 
 	// ? check which method should be called
 	if (client._request._method == "GET")
-		client._response.append_buffer(this->perform_GET_methode(request));
+		client._response.append_buffer(this->perform_GET_method(request));
 	else
 		std::cerr << CYN << "(client._request._method != \"GET\")" << std::endl;
 
