@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/26 01:53:43 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/26 02:12:32 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -176,7 +176,7 @@ std::string			ResponseGenerator::get_file_content(const std::string &root, const
  * 
  * @return std::string a string containing the response to the client.
  */
-std::string			ResponseGenerator::perform_GET_methode(const Client& client) const
+std::string			ResponseGenerator::perform_GET_method(const Client& client) const
 {
 	struct stat s;
 	std::string	root = ".";		// TODO : use the client->_conf one
@@ -235,7 +235,7 @@ bool				ResponseGenerator::generate(Client& client) const
 
 	// ? check which method should be called
 	if (client._request._method == "GET")
-		client._response.append_buffer(this->perform_GET_methode(client));
+		client._response.append_buffer(this->perform_GET_method(client));
 	else
 		std::cerr << CYN << "(client._request._method != \"GET\")" << std::endl;
 
