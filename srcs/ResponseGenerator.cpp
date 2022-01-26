@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ResponseGenerator.cpp                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
+/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/25 23:53:54 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/01/26 01:45:16 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,17 +26,17 @@
 const std::map<std::string, std::string>
 	ResponseGenerator::_ss_content_types = set_content_types();
 
-ResponseGenerator::ResponseGenerator(void) {}
+ResponseGenerator::ResponseGenerator (void) {}
 
-ResponseGenerator::~ResponseGenerator(void) {}
+ResponseGenerator::~ResponseGenerator (void) {}
 
-ResponseGenerator::ResponseGenerator(const ResponseGenerator & copy)
+ResponseGenerator::ResponseGenerator (const ResponseGenerator & copy)
 {
 	*this = copy;
 	return ;
 }
 
-ResponseGenerator&	ResponseGenerator::operator=(const ResponseGenerator& copy)
+ResponseGenerator&	ResponseGenerator::operator= (const ResponseGenerator& copy)
 {
 	if (this != &copy)
 	{
@@ -45,9 +45,62 @@ ResponseGenerator&	ResponseGenerator::operator=(const ResponseGenerator& copy)
 	return (*this);
 }
 
-void				ResponseGenerator::set_conf(const Conf * c)
+void				ResponseGenerator::set_conf (const Conf * c)
 {
 	_conf = c;
+}
+
+std::string			ResponseGenerator::set_header (int err, std::string ext, size_t size) const
+{
+	std::string		s_header;
+
+	s_header = "HTTP/1.1 " + ft_to_string(err) + " OK\r\n";		// todo : use correct erroro message after the number
+	s_header += "webser: 42\r\n";								// TODO : set a cool header
+	s_header += this->set_file_content_type( ext );
+	s_header += "Content-Length: ";
+	s_header += ft_to_string(size);
+	s_header += "\r\n\r\n";
+
+	return (s_header);
+}
+
+/**
+ * @brief  if a html file is requested
+ */
+std::string			ResponseGenerator::get_error_file(Conf::code_type err) const
+{
+	std::string							s_file_content = "";
+	std::string							s_full_content;
+	std::ifstream						i_file;
+	std::string							tmp;
+	Conf::error_list::const_iterator	it = _conf->_error_pages.find(err);
+
+
+	if (it == _conf->_error_pages.end())
+		;	// TODO : generate dynamic error page
+	else
+	{
+		std::cerr << CYN << it->second << RST << std::endl;
+		i_file.open(it->second.c_str());
+
+		if (i_file.is_open())
+		{
+			while (i_file.good())
+			{
+				std::getline(i_file, tmp);
+				s_file_content += (tmp + "\n");
+			}
+		}
+		else
+		{
+			// TODO: link is wrong, generate dynamic error page
+		}
+	}
+
+	s_full_content = set_header(404, ".html", s_file_content.size());
+	s_full_content += s_file_content;
+
+	return (s_full_content);
 }
 
 /**
@@ -90,6 +143,8 @@ std::string			ResponseGenerator::get_file_content(const std::string &root, const
 	std::string		s_file_content = "";
 	std::string		s_full_content;
 
+	std::cerr << CYN << "get_file_content" << RST << std::endl;
+
 	i_file.open((root + path).c_str());
 
 	if (i_file.is_open())
@@ -104,14 +159,10 @@ std::string			ResponseGenerator::get_file_content(const std::string &root, const
 	{
 		// TODO : send error page
 		std::cout << "Couldn't open file\n";
+		return (this->get_error_file(403));
 	}
 
-	s_full_content = "HTTP/1.1 200 OK\r\n";
-	s_full_content += "webser: 42\r\n";
-	s_full_content += this->set_file_content_type(get_flie_extention(get_file_name(path)));
-	s_full_content += "Content-Length: ";
-	s_full_content += ft_to_string(s_file_content.size());
-	s_full_content += "\r\n\r\n";
+	s_full_content = set_header(0, get_file_extention(get_file_name(path)), s_file_content.size());
 
 	s_full_content += s_file_content;
 
@@ -134,9 +185,9 @@ std::string			ResponseGenerator::perform_GET_methode(const Request& rq) const
 	{
 		if (s.st_mode & S_IFDIR)	// ? the requested path is a directory
 		{
-			// TODO : check if directory indexation in on.
+			// TODO : check if default_file is present in this dir.
 
-			// TODO : see if we have to redirect to index.html if it exists.
+			// TODO : check if directory indexation in on.
 			
 			return (directory_listing(root, rq._path));
 		}
@@ -146,16 +197,16 @@ std::string			ResponseGenerator::perform_GET_methode(const Request& rq) const
 		}
 		else
 		{
-			// ? error: it's not a directory or a file.
+			// ? error: it's there, but it's not a directory or a file.
 			// ? not sure if symlinks must work.
 		}
 	}
 	else
 	{
-		// ? basically 404
 		// ? error: wrong path || path too long || out of memory || bad address || ...
+		return (get_error_file(404));
 	}
-	return ("HTTP/1.1 404 Not Found\r\n\r\n");
+	return (get_error_file(404));
 }
 
 /**
@@ -170,17 +221,17 @@ bool				ResponseGenerator::generate(Client& client) const
 	client._response.clear();
 	
 	// TODO : Check asked path (route/location) and set a variable with the real location on this hard drive.
-	std::string	actual_path(getcwd(NULL, 0));
-	if (actual_path.empty())
-		return (true);
-	actual_path.append(client._request._path);
+	// std::string	actual_path(getcwd(NULL, 0));
+	// if (actual_path.empty())
+	// 	return (true);
+	// actual_path.append(client._request._path);
 
-	int	rc = access(actual_path.c_str(), (client._request._method == "GET" ? R_OK : W_OK) | F_OK);
-	if (rc < 0) {
-		perror("	access to route failed");
-		client._request.clear();
-		return (true);
-	}
+	// int	rc = access(actual_path.c_str(), (client._request._method == "GET" ? R_OK : W_OK) | F_OK);
+	// if (rc < 0) {
+	// 	perror("	access to route failed");
+	// 	client._request.clear();
+	// 	return (true);
+	// }
 
 	// ? check which method should be called
 	if (client._request._method == "GET")
