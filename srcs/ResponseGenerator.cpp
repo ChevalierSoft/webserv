@@ -6,14 +6,15 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/26 11:32:21 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/26 15:00:47 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <sys/types.h>	// stat
-#include <sys/stat.h>	// stat
-#include <unistd.h>		// stat
-#include <fstream>		// ifstream
+#include <sys/types.h>			// stat
+#include <sys/stat.h>			// stat
+#include <unistd.h>				// stat
+#include <fstream>				// ifstream
+#include <unistd.h>				// execve
 #include "ResponseGenerator.hpp"
 #include "webserv.hpp"
 #include "ft_to_string.hpp"
@@ -102,7 +103,7 @@ std::string			ResponseGenerator::generic_error (int err) const
 	return (s_full_content);
 }
 
-std::string			ResponseGenerator::get_error_file(Conf::code_type err) const
+std::string			ResponseGenerator::get_error_file (Conf::code_type err) const
 {
 	std::string							s_file_content = "";
 	std::string							s_full_content;
@@ -146,7 +147,7 @@ std::string			ResponseGenerator::get_error_file(Conf::code_type err) const
  * @param path the requested file
  * @return std::string file content as string
  */
-std::string			ResponseGenerator::get_file_content(const std::string &root, const std::string &path) const
+std::string			ResponseGenerator::get_file_content (const std::string &root, const std::string &path) const
 {
 	std::ifstream	i_file;
 	std::string		tmp;
@@ -176,6 +177,72 @@ std::string			ResponseGenerator::get_file_content(const std::string &root, const
 	return (s_full_content);
 }
 
+void				ResponseGenerator::set_cgi_env (Client & client, std::vector<std::string> s_envs, std::vector<char *> a_envs) const
+{
+	// TODO : add the rest
+
+	s_envs.push_back( "PWD=" + std::string("./") );
+	
+	s_envs.push_back("REQUEST_SCHEME=http");
+
+	s_envs.push_back("SERVER_PROTOCOL=HTTP/1.1");
+
+	s_envs.push_back("SERVER_ADDR=" + this->_conf->_host);
+
+	s_envs.push_back("SERVER_PORT=" + ft_to_string(this->_conf->_port));
+
+	s_envs.push_back("QUERY_STRING=");	// ? add GET arguments here
+
+	s_envs.push_back("REQUEST_METHOD=" + client._request._method);
+
+	int i = 0;
+	for (std::vector<std::string>::const_iterator cit = s_envs.begin();
+			cit != s_envs.end() ; ++cit)
+		a_envs.push_back(&s_envs[i++][0]);
+
+	return ;
+}
+
+std::string			ResponseGenerator::open_cgi (Client & client, std::string url) const
+{
+	int							err;
+	int							cgi_pipe[2];
+	pid_t						child;
+	char						buff[CGI_BUFF_SIZE];
+	char						*exe[2];
+	std::string					response = "";
+	std::vector<std::string>	s_envs;
+	std::vector<char *>			a_envs;
+	
+	if (pipe(cgi_pipe))
+		return (get_error_file(500));
+
+	child = fork();
+	if (child < 0)
+	{
+		close(cgi_pipe[0]);
+		close(cgi_pipe[1]);
+		return (get_error_file(500));
+	}
+	if (!child)
+	{
+		set_cgi_env(client, s_envs, a_envs);
+		exe[0] = &url[0];
+		exe[1] = NULL;
+		dup2(cgi_pipe[0], 0);
+		dup2(cgi_pipe[1], 1);
+		execve(exe[0], exe, a_envs.data());
+	}
+	
+	write(cgi_pipe[1], "", 1);	// TODO : send body in case of POST
+
+	// ! It might be great to avoid this loop
+	while ((err = read(cgi_pipe[0], buff, CGI_BUFF_SIZE)) > 0)
+		response += buff;
+
+	return (response);
+}
+
 /**
  * @brief generate a response following GET method specificationns.
  * 
@@ -200,6 +267,8 @@ std::string			ResponseGenerator::perform_GET_method(const Client& client) const
 		}
 		else if (s.st_mode & S_IFREG)	// ? the requested path is a file
 		{
+			// TODO : check if it's a CGI
+
 			return (get_file_content(root, client._request._path));
 		}
 		else
