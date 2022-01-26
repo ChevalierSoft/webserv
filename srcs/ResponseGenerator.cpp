@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/26 11:19:01 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/26 11:32:21 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,8 @@
 #include "set_content_types.hpp"
 
 /**
- * @brief _ss_content_types will be accessible (read only) by every ::ResponseGenerator objects
+ * @brief _ss_content_types and _ss_error_messages will be accessible
+ *        (read only) by every ::ResponseGenerator objects
  */
 const std::map<std::string, std::string>
 	ResponseGenerator::_ss_content_types = set_content_types();
@@ -53,6 +54,29 @@ void				ResponseGenerator::set_conf (const Conf * c)
 	_conf = c;
 }
 
+/**
+ * @brief Set the content-type value of a returned content.
+ * 
+ * @param extention Extention of the file that will be sent.
+ * @return std::string The right content-type.
+ */
+std::string			ResponseGenerator::set_file_content_type (const std::string & extention) const
+{
+	std::string											s_content_type;
+	std::map<std::string, std::string>::const_iterator	cit;
+	
+	s_content_type = "content-type: ";
+	cit = _ss_content_types.find(extention);
+
+	if (cit == _ss_content_types.end())
+		s_content_type += "application/octet-stream";
+	else
+		s_content_type += cit->second;
+
+	s_content_type += "\r\n";
+	return (s_content_type);
+}
+
 std::string			ResponseGenerator::set_header (int err, std::string ext, size_t size) const
 {
 	std::string		s_header;
@@ -67,12 +91,10 @@ std::string			ResponseGenerator::set_header (int err, std::string ext, size_t si
 	return (s_header);
 }
 
-std::string			ResponseGenerator::get_generic_error(int err) const
+std::string			ResponseGenerator::generic_error (int err) const
 {
 	std::string		s_file_content = "";
 	std::string		s_full_content;
-
-	// std::cerr << "get_generic_error" << std::endl;
 
 	s_file_content = ft_to_string(err) + " " + _ss_error_messages.find(err)->second + "\r\n";
 	s_full_content = set_header(err, ".html", s_file_content.size()) + s_file_content;
@@ -80,9 +102,6 @@ std::string			ResponseGenerator::get_generic_error(int err) const
 	return (s_full_content);
 }
 
-/**
- * @brief  if a html file is requested
- */
 std::string			ResponseGenerator::get_error_file(Conf::code_type err) const
 {
 	std::string							s_file_content = "";
@@ -91,10 +110,10 @@ std::string			ResponseGenerator::get_error_file(Conf::code_type err) const
 	std::string							tmp;
 	Conf::error_list::const_iterator	it = _conf->_error_pages.find(err);
 
-	// std::cerr << "get_error_file" << std::endl;
+	// TODO : if the Accept is not html, just return a header with the correct error code
 
 	if (it == _conf->_error_pages.end())
-		return (get_generic_error(err));
+		return (generic_error(err));
 	else
 	{
 		std::cerr << CYN << it->second << RST << std::endl;
@@ -110,7 +129,7 @@ std::string			ResponseGenerator::get_error_file(Conf::code_type err) const
 		}
 		else
 		{
-			return (get_generic_error(err));
+			return (generic_error(err));
 		}
 	}
 
@@ -118,32 +137,6 @@ std::string			ResponseGenerator::get_error_file(Conf::code_type err) const
 	s_full_content += s_file_content;
 	
 	return (s_full_content);
-}
-
-/**
- * @brief Set the content-type value of a returned content.
- * 
- * @param extention Extention of the file that will be sent.
- * @return std::string The right content-type.
- */
-std::string			ResponseGenerator::set_file_content_type(const std::string & extention) const
-{
-	std::string											s_content_type;
-	std::map<std::string, std::string>::const_iterator	cit;
-	
-	s_content_type = "content-type: ";
-	cit = _ss_content_types.find(extention);
-
-	// ? debug
-	// std::cout << "extention found : " << extention << std::endl;
-
-	if (cit == _ss_content_types.end())
-		s_content_type += "application/octet-stream";
-	else
-		s_content_type += cit->second;
-
-	s_content_type += "\r\n";
-	return (s_content_type);
 }
 
 /**
@@ -159,8 +152,6 @@ std::string			ResponseGenerator::get_file_content(const std::string &root, const
 	std::string		tmp;
 	std::string		s_file_content = "";
 	std::string		s_full_content;
-
-	// std::cerr << CYN << "get_file_content" << RST << std::endl;
 
 	i_file.open((root + path).c_str());
 
@@ -238,6 +229,8 @@ bool				ResponseGenerator::generate(Client& client) const
 	client._response.clear();
 	
 	// TODO : Check asked path (route/location) and set a variable with the real location on this hard drive.
+	// TODO : also check if it's an autorised path.
+
 	// std::string	actual_path(getcwd(NULL, 0));
 	// if (actual_path.empty())
 	// 	return (true);
