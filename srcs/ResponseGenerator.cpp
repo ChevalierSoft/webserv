@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/26 01:45:16 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/26 01:53:43 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -176,12 +176,12 @@ std::string			ResponseGenerator::get_file_content(const std::string &root, const
  * 
  * @return std::string a string containing the response to the client.
  */
-std::string			ResponseGenerator::perform_GET_methode(const Request& rq) const
+std::string			ResponseGenerator::perform_GET_methode(const Client& client) const
 {
 	struct stat s;
 	std::string	root = ".";		// TODO : use the client->_conf one
 
-	if ( ! stat(("." + rq._path).c_str(), &s))
+	if ( ! stat(("." + client._request._path).c_str(), &s))
 	{
 		if (s.st_mode & S_IFDIR)	// ? the requested path is a directory
 		{
@@ -189,11 +189,11 @@ std::string			ResponseGenerator::perform_GET_methode(const Request& rq) const
 
 			// TODO : check if directory indexation in on.
 			
-			return (directory_listing(root, rq._path));
+			return (directory_listing(root, client._request._path));
 		}
 		else if (s.st_mode & S_IFREG)	// ? the requested path is a file
 		{
-			return (get_file_content(root, rq._path));
+			return (get_file_content(root, client._request._path));
 		}
 		else
 		{
@@ -235,7 +235,7 @@ bool				ResponseGenerator::generate(Client& client) const
 
 	// ? check which method should be called
 	if (client._request._method == "GET")
-		client._response.append_buffer(this->perform_GET_methode(client._request));
+		client._response.append_buffer(this->perform_GET_methode(client));
 	else
 		std::cerr << CYN << "(client._request._method != \"GET\")" << std::endl;
 

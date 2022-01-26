@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 10:06:11 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/26 01:16:25 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/26 01:53:17 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,7 +56,7 @@ private:
 
 	std::string			get_file_content(const std::string & root, const std::string & paht) const;
 
-	std::string			perform_GET_methode(const Request & rq) const;
+	std::string			perform_GET_methode(const Client & client) const;
 
 	std::string			set_file_content_type(const std::string & extention) const;
 
