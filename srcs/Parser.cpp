@@ -69,6 +69,7 @@ bool    Parser::parse_file(std::ifstream &ifs) {
 			}
 			params.clear();
 		}
+
 	}
 	return (check());
 }
