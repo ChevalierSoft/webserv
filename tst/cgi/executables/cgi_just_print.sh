@@ -1,7 +1,10 @@
 #!/bin/bash
 
+echo "HTTP/1.1 200 OK"
 echo "Content-type: text/html"
 echo ""
+
+sleep 2
 
 echo '<html>'
 echo '<head>'

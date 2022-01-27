@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ResponseGenerator.cpp                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
+/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/26 15:37:48 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/27 16:59:43 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,9 @@
 #include <unistd.h>				// stat
 #include <fstream>				// ifstream
 #include <unistd.h>				// execve
+#include <sys/wait.h>			// waitpid
+#include <sys/types.h>			// waitpid
+#include <fcntl.h>				// fcntl
 #include "ResponseGenerator.hpp"
 #include "webserv.hpp"
 #include "ft_to_string.hpp"
@@ -193,22 +196,81 @@ void				ResponseGenerator::set_cgi_env (Client & client, std::vector<std::string
 	for (std::vector<std::string>::const_iterator cit = s_envs.begin();
 			cit != s_envs.end() ; ++cit)
 		a_envs.push_back(&s_envs[i++][0]);
+	
+	a_envs.push_back(NULL);
 
 	return ;
 }
 
-std::string			ResponseGenerator::open_cgi (Client & client, std::string url) const
+void				ResponseGenerator::start_cgi (Client & client, std::string url, int cgi_pipe[2]) const
 {
-	int							err;
-	int							cgi_pipe[2];
-	pid_t						child;
-	char						buff[CGI_BUFF_SIZE];
 	char						*exe[2];
-	std::string					response = "";
 	std::vector<std::string>	s_envs;
 	std::vector<char *>			a_envs;
+
+	set_cgi_env(client, s_envs, a_envs);
+	exe[0] = &url[0];
+	exe[1] = NULL;
+	dup2(cgi_pipe[0], 0);
+	dup2(cgi_pipe[1], 1);
+	execve(exe[0], exe, a_envs.data());
+	// TODO : clean memory. maybe by an ugly exception
+	std::cerr << CYN << "execve_failed" << std::endl;
+	exit(66);
+}
+
+std::string			ResponseGenerator::listen_cgi ( Client & client,
+													std::string url,
+													int cgi_pipe[2],
+													pid_t child ) const
+{
+	int							err;
+	std::string					response = "";
+	char						buff[CGI_BUFF_SIZE];
+
+	// ! need to use WNOHANG and check every loop (when it will be implemented)
+	// ? https://cboard.cprogramming.com/c-programming/138057-waitpid-non-blocking-fork.html
+	waitpid(-1, &child, 0);
+
+	// ! avoid this loop by entering/leaving this function until child is exited
+	while (1)
+	{
+		memset(buff, 0, CGI_BUFF_SIZE);
+		err = read(cgi_pipe[0], buff, CGI_BUFF_SIZE - 1);
+
+		if (err <= 0)
+			break ;
+
+		response += buff;
+		// std::cerr << ">>>>[" << response << "]<<<<" << std::endl;
+	}
+	return (response);
+}
+
+bool				ResponseGenerator::cgi_send_body (Client & client, int cgi_pipe[2]) const
+{
+	// TODO : send request's body in case of POST
+	// TODO : maybe use a static for the first time in this function ?
+	// std::cerr << "sending body" << std::endl;
+	// err = write(cgi_pipe[1], "", 0);
+	// if (err < 0)
+	// 	return (get_error_file(500));
+	// std::cerr << "body sent" << std::endl;
+	return (false);
+}
+
+std::string			ResponseGenerator::cgi_handling (Client & client, std::string url) const
+{
+	int				cgi_pipe[2];
+	pid_t			child;
+	std::string		response;
+	static bool		body_sent = false;
 	
 	if (pipe(cgi_pipe))
+		return (get_error_file(500));
+
+	// ? set non blocking the read part of the pipe
+	if (fcntl(cgi_pipe[0], F_SETFL, O_NONBLOCK) < 0)
 		return (get_error_file(500));
 
 	child = fork();
@@ -219,21 +281,18 @@ std::string			ResponseGenerator::open_cgi (Client & client, std::string url) con
 		return (get_error_file(500));
 	}
 	else if (!child)
-	{
-		set_cgi_env(client, s_envs, a_envs);
-		exe[0] = &url[0];
-		exe[1] = NULL;
-		dup2(cgi_pipe[0], 0);
-		dup2(cgi_pipe[1], 1);
-		execve(exe[0], exe, a_envs.data());
-		// TODO : clean memory. maybe by an ugly exception
-	}
-	
-	write(cgi_pipe[1], "", 1);	// TODO : send request's body in case of POST
+		this->start_cgi(client, url, cgi_pipe);
 
-	// ! It might be great to avoid this loop
-	while ((err = read(cgi_pipe[0], buff, CGI_BUFF_SIZE)) > 0)
-		response += buff;
+	if (body_sent == false)
+	{
+		cgi_send_body(client, cgi_pipe);
+
+		// ! this will depend if the request's parsing set request_ready to 
+		// ! true if the entier body is stored 
+		body_sent = true;
+	}
+
+	response = listen_cgi(client, url, cgi_pipe, child);
 
 	return (response);
 }
@@ -289,14 +348,21 @@ std::string			ResponseGenerator::perform_GET_method(const Request & rq) const
 
 bool				ResponseGenerator::generate(Client& client) const
 {
+	// ! clear at the creation of the client. here it will erase the response each loop 
 	client._response.clear();
-	
-	// Check asked path (route/location) and set a variable with the real location on this hard drive.
+
+	// ? __testing cgi __
+	// std::cout << *_conf->_cgi.begin() << std::endl;
+	// client._response_ready = true;
+	// client._response.append_buffer(this->cgi_handling(client, *_conf->_cgi.begin()));
+	// return (false);
+	// ? ________________
 
 	Request request(parse_request_route(client._request));
 	// ;
 	int	rc = access(request._path.c_str(), (client._request._method == "GET" ? R_OK : W_OK) | F_OK);
 	if (rc < 0) {
+		// TODO : send the client an error page
 		perror("	access to route failed");
 		return (true);
 	}
@@ -305,14 +371,17 @@ bool				ResponseGenerator::generate(Client& client) const
 	if (client._request._method == "GET")
 		client._response.append_buffer(this->perform_GET_method(request));
 	else
+	{
 		std::cerr << CYN << "(client._request._method != \"GET\")" << std::endl;
+		client._response.append_buffer(get_error_file(501));
+	}
 
 	client._response_ready = true;
 
 	return (false);
 }
 
-bool		ResponseGenerator::is_directory(const std::string path) const{
+bool				ResponseGenerator::is_directory(const std::string path) const{
 	struct stat s;
 
 	if ( lstat(path.c_str(), &s) == 0 )
@@ -321,7 +390,7 @@ bool		ResponseGenerator::is_directory(const std::string path) const{
 	return (false);
 }
 
-Request 	ResponseGenerator::parse_request_route(Request  const &input_request) const{
+Request 			ResponseGenerator::parse_request_route(Request  const &input_request) const{
 	const char					sep = '/';
 	int							found  = 0;
 	Conf::route_list			routes((*_conf)._routes);
