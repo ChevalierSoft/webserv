@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 10:06:11 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/26 11:26:57 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/27 16:07:27 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,8 @@
 
 # include "Client.hpp"
 # include "Conf.hpp"
+
+# define CGI_BUFF_SIZE	1200
 
 class Client;
 

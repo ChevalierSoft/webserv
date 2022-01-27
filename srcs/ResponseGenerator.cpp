@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ResponseGenerator.cpp                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
+/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/26 14:34:53 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/01/27 16:07:07 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -176,6 +176,113 @@ std::string			ResponseGenerator::get_file_content(const std::string &root, const
 	return (s_full_content);
 }
 
+void				ResponseGenerator::set_cgi_env (Client & client, std::vector<std::string> s_envs, std::vector<char *> a_envs) const
+{
+	// TODO : add the rest
+	s_envs.push_back("PWD=" + std::string("./"));
+	s_envs.push_back("REQUEST_SCHEME=http");
+	s_envs.push_back("SERVER_PROTOCOL=HTTP/1.1");
+	s_envs.push_back("SERVER_ADDR=" + this->_conf->_host);
+	s_envs.push_back("SERVER_PORT=" + ft_to_string(this->_conf->_port));
+	s_envs.push_back("QUERY_STRING=");	// ? add GET arguments here
+	s_envs.push_back("REQUEST_METHOD=" + client._request._method);
+
+	int i = 0;
+	for (std::vector<std::string>::const_iterator cit = s_envs.begin();
+			cit != s_envs.end() ; ++cit)
+		a_envs.push_back(&s_envs[i++][0]);
+	
+	a_envs.push_back(NULL);
+
+	return ;
+}
+
+#include <sys/wait.h>			// waitpid
+#include <sys/types.h>			// waitpid
+#include <ext/stdio_filebuf.h>	// stdio_filebuf
+#include <fcntl.h>				// fcntl
+
+std::string			ResponseGenerator::open_cgi (Client & client, std::string url) const
+{
+	int							err;
+	int							cgi_pipe[2];
+	pid_t						child;
+	char						buff[CGI_BUFF_SIZE];
+	char						*exe[2];
+	std::string					response = "";
+	std::vector<std::string>	s_envs;
+	std::vector<char *>			a_envs;
+	
+	if (pipe(cgi_pipe))
+		return (get_error_file(500));
+
+	// set non blocking pipes
+	if (fcntl(cgi_pipe[0], F_SETFL, O_NONBLOCK) < 0)
+		return (get_error_file(500));
+
+	child = fork();
+	if (child < 0)
+	{
+		close(cgi_pipe[0]);
+		close(cgi_pipe[1]);
+		return (get_error_file(500));
+	}
+	else if (!child)
+	{
+		set_cgi_env(client, s_envs, a_envs);
+		exe[0] = &url[0];
+		exe[1] = NULL;
+		dup2(cgi_pipe[0], 0);
+		dup2(cgi_pipe[1], 1);
+		execve(exe[0], exe, a_envs.data());
+		// TODO : clean memory. maybe by an ugly exception
+		std::cerr << CYN << "execve_failed" << std::endl;
+	}
+
+	// std::cerr << "sending body" << std::endl;
+	// err = write(cgi_pipe[1], "", 0);	// TODO : send request's body in case of POST
+	// if (err < 0)
+	// 	return (get_error_file(500));
+	// std::cerr << "body sent" << std::endl;
+
+
+	// __gnu_cxx::stdio_filebuf<char>	filebuf(cgi_pipe[0], std::ios::in);
+	// std::istream is(&filebuf);
+	// std::string	line;
+
+	// ! need to use WNOHANG and check every loop (when it will be implemented)
+	waitpid(-1, &child, 0);
+
+	// ! It might be great to avoid this loop
+	while (1)
+	{
+		// is.peek() != EOF
+
+		memset(buff, 0, CGI_BUFF_SIZE);
+		err = read(cgi_pipe[0], buff, CGI_BUFF_SIZE - 1);
+		// if (err < 0)
+		// 	return (get_error_file(500));
+		response += buff;
+		std::cerr << ">>>>[" << response << "]<<<<" << std::endl;
+		
+		if (err <= 0)
+		{
+			std::cerr << err << std::endl;
+			break ;
+		}
+		// std::cerr << "read = " << err << std::endl;
+		// buff[err] = '\0';
+		// response += buff;
+		// if (err < CGI_BUFF_SIZE)
+		// 	break ;
+
+		// getline(is, line);
+		// response += line + "\n";
+	}
+
+	return (response);
+}
+
 /**
  * @brief generate a response following GET method specificationns.
  * 
@@ -227,9 +334,15 @@ std::string			ResponseGenerator::perform_GET_method(const Client& client) const
 bool				ResponseGenerator::generate(Client& client) const
 {
 	client._response.clear();
-	
-	// TODO : Check asked path (route/location) and set a variable with the real location on this hard drive.
-	// TODO : also check if it's an autorised path.
+
+	// ? __testing cgi __
+	std::cout << *_conf->_cgi.begin() << std::endl;
+	client._response_ready = true;
+	client._response.append_buffer(this->open_cgi(client, *_conf->_cgi.begin()));
+	return (false);
+	// ? ________________
+
+	// Check asked path (route/location) and set a variable with the real location on this hard drive.
 
 	// std::string	actual_path(getcwd(NULL, 0));
 	// if (actual_path.empty())
