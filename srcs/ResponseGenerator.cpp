@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/27 16:58:05 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/27 16:59:43 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -352,10 +352,10 @@ bool				ResponseGenerator::generate(Client& client) const
 	client._response.clear();
 
 	// ? __testing cgi __
-	std::cout << *_conf->_cgi.begin() << std::endl;
-	client._response_ready = true;
-	client._response.append_buffer(this->cgi_handling(client, *_conf->_cgi.begin()));
-	return (false);
+	// std::cout << *_conf->_cgi.begin() << std::endl;
+	// client._response_ready = true;
+	// client._response.append_buffer(this->cgi_handling(client, *_conf->_cgi.begin()));
+	// return (false);
 	// ? ________________
 
 	Request request(parse_request_route(client._request));
