@@ -39,4 +39,5 @@ class Parser {
         bool		set_error_message(std::string error_message);
         bool        check();
 
+        void        print();
 };

@@ -187,8 +187,8 @@ void				ResponseGenerator::set_cgi_env (Client & client, std::vector<std::string
 	s_envs.push_back("PWD=" + std::string("./"));
 	s_envs.push_back("REQUEST_SCHEME=http");
 	s_envs.push_back("SERVER_PROTOCOL=HTTP/1.1");
-	s_envs.push_back("SERVER_ADDR=" + this->_conf->_host);
-	s_envs.push_back("SERVER_PORT=" + ft_to_string(this->_conf->_port));
+	s_envs.push_back("SERVER_ADDR=" + this->_conf->_hosts.begin()->first);
+	s_envs.push_back("SERVER_PORT=" + ft_to_string(this->_conf->_hosts.begin()->second));
 	s_envs.push_back("QUERY_STRING=");	// ? add GET arguments here
 	s_envs.push_back("REQUEST_METHOD=" + client._request._method);
 
