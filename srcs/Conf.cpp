@@ -87,6 +87,8 @@ Conf::code_type     Conf::string_to_code(std::string value) {
 }
 
 Conf::route_type    Conf::string_to_route(std::string value) {
+	if (*(value.end() -1) != '/')
+		value+="/";
 	return (Route(value, _methods, _dir_listing, _upload_path, _cgi));
 }
 

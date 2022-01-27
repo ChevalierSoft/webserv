@@ -13,7 +13,7 @@ _err(0){
 
 }
 Route::Route(const path_type path, method_list methods, dir_listing_type dir_listing, path_type upload_path, cgi_list cgi):
-_path(path), 
+_path(path),
 _methods(methods), 
 _dir_listing(dir_listing), 
 _upload_path(upload_path),
@@ -57,6 +57,8 @@ bool	Route::set_methods(method_list methods) {
 bool    Route::set_location(path_type location) {
 	if (location == "")
 		return(set_error_message("Invalid value: location"));
+	if (*(location.end() -1) != '/')
+		location+="/";
 	_location = location;
 	return (true);
 }
@@ -141,8 +143,6 @@ bool	Route::check() {
 		return (set_error_message("Required value: methods"));
 	else if (_location == path_type())
 		return (set_error_message("Required value: location"));
-	else if (_default_file == file_type())
-		return (set_error_message("Required value: file"));
 	else if (_dir_listing == -1)
 		return (set_error_message("Required value: directory_listing"));
 	else if (_upload_path == path_type())
