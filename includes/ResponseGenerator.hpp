@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 10:06:11 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/25 18:45:07 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/26 15:01:25 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,21 +15,21 @@
 # include "Client.hpp"
 # include "Conf.hpp"
 
+# define CGI_BUFF_SIZE	12
+
 class Client;
 
 /**
  * @brief Thanks to the parsed Request,
- * 	      ResponseGenerator will generate a response to the client
- * 
+ * 	      ResponseGenerator will generate the response for the client
  */
 class ResponseGenerator // * ___________________________________________________
 {
 	/// * Variables ____________________________________________________________
 private:
-	const Conf				*_conf;
-
-private:
-	static const std::map<std::string, std::string>	_ss_content_types;	// ? map of content types
+	const Conf										*_conf;
+	static const std::map<std::string, std::string>	_ss_content_types;
+	static const std::map<int, std::string>			_ss_error_messages;
 
 	/// * Constructors & Destructors ___________________________________________
 public:
@@ -41,19 +41,34 @@ public:
 
 	~ResponseGenerator (void);
 
-	ResponseGenerator&	operator=(const ResponseGenerator &	copy);
+	ResponseGenerator&	operator= (const ResponseGenerator &	copy);
 
 	/// * Member function ______________________________________________________
+public:
+	bool				generate (Client & client) const;
 
-	bool				generate(Client & client) const;
-
-	void				set_conf(const Conf * c);
+	void				set_conf (const Conf * c);
 
 private:
-	std::string			get_file_content(const std::string & root, const std::string & paht) const;
 
-	std::string			perform_GET_methode(const Request & rq) const;
+	std::string			get_file_content(const std::string & path) const;
+  
+  std::string			set_file_content_type (const std::string & extention) const;
 
-	std::string			set_file_content_type(const std::string & extention) const;
+	std::string			set_header (int err, std::string ct, size_t size) const;
+
+	std::string			generic_error (int err) const;
+
+	std::string			get_error_file (int err) const;
+
+	void				    set_cgi_env (Client & client, std::vector<std::string> se, std::vector<char *> ae) const;
+
+	std::string			open_cgi (Client & client, std::string url) const;
+
+	std::string			perform_GET_method (const Request & rq) const;
+
+	Request				  parse_request_route(Request  const & input_request) const;
+
+	bool				is_directory(const std::string path) const;
 
 }; // * ________________________________________________________________________

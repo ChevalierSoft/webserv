@@ -18,4 +18,4 @@
 # include "Conf.hpp"
 # include "Parser.hpp"
 
-std::string 	directory_listing (std::string path, std::string root_path);
+std::string 	directory_listing (std::string path);

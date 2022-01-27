@@ -6,7 +6,7 @@
 /*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/25 19:35:26 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/01/25 23:53:46 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -212,7 +212,7 @@ void			Server::remove_client (int i)
 bool			Server::record_client_input (const int &i)
 {
 	char	buffer[BUFFER_SIZE];
-	bool	close_conn;
+	bool	close_conn = 0;
 	int		rc;
 
 	std::cout << YEL << "  Descriptor " << RED << _fds[i].fd << YEL << " is readable\n" << RST << std::endl;
