@@ -122,8 +122,8 @@ bool	Parser::zero_indent(param_type param, std::string value)
 		return (conf.set_client_body_size(conf.string_to_client_body_size(value)));
 	else if (param == "methods")
 		return (conf.set_methods(conf.string_to_methods(value)));
-	else if (param == "cgi")
-		return (conf.set_cgi(conf.string_to_cgi(value)));
+	else if (param == "cgis")
+		return (true);
 	else if (param == "directory_listing")
 		return (conf.set_dir_listing(conf.string_to_dir_listing(value)));
 	else if (param == "uploads")
@@ -143,6 +143,8 @@ bool	Parser::one_indent(param_list params, std::string value)
 		return (conf.add_error(std::make_pair(conf.string_to_code(params[1]), value)));
 	else if (params[0] == "routes")
 		return (conf.add_route(conf.string_to_route(params[1])));
+	else if (params[0] == "cgis")
+		return (conf.add_cgi(std::make_pair(params[1], value)));
 	return (set_error_message("Invalid parameter"));
 }
 
@@ -165,8 +167,8 @@ bool	Parser::two_indent(param_list params, std::string value)
 			return (route.set_upload_path(value));
 		else if (params[2] == "redirection")
 			return (true);
-		else if (params[2] == "cgi")
-			return (route.set_cgi(conf.string_to_cgi(value)));
+		else if (params[2] == "cgis")
+			return (true);
 	}
 	return (set_error_message("Invalid parameter"));
 }
@@ -179,6 +181,8 @@ bool	Parser::three_indent(param_list params, std::string value) {
 		Route	&route = conf._routes.back();
 		if (params[2] == "redirection")
 			return (route.set_redir(std::make_pair(conf.string_to_code(params[3]), value)));
+		else if (params[2] == "cgis")
+			return  (route.add_cgi(std::make_pair(params[3], value)));
 	}
 	return (set_error_message("Invalid parameter"));
 }

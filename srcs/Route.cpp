@@ -7,7 +7,7 @@ _path(path_type()),
 _methods(method_list()), 
 _dir_listing(-1), 
 _upload_path(path_type()), 
-_cgi(cgi_list()),
+_cgis(cgi_list()),
 _error_message(std::string()), 
 _default_file(std::string()), 
 _err(0){
@@ -18,7 +18,7 @@ _path(path),
 _methods(methods), 
 _dir_listing(dir_listing), 
 _upload_path(upload_path),
-_cgi(cgi),
+_cgis(cgi),
 _error_message(std::string()), 
 _err(0) {
 }
@@ -35,14 +35,14 @@ Route 	&Route::operator=(const Route &rhs) {
     _default_file = rhs._default_file;
     _dir_listing = rhs._dir_listing;
     _upload_path = rhs._upload_path;
-    _cgi = rhs._cgi;
+    _cgis = rhs._cgis;
     return (*this);
 }
 
 bool	Route::operator==(const Route &rhs) const {
     return (_methods == rhs._methods && _redir == rhs._redir && _location == rhs._location\
 	&& _default_file == rhs._default_file &&_dir_listing == rhs._dir_listing\
-    && _upload_path == rhs._upload_path && _cgi == rhs._cgi);
+    && _upload_path == rhs._upload_path && _cgis == rhs._cgis);
 }
 
 Route::~Route(){}
@@ -103,15 +103,15 @@ bool    Route::set_redir(redir_type redir) {
 	return (true);
 }
 
-bool	Route::add_cgi(file_type cgi) {
-	if (cgi == "")
-		return (set_error_message("Invalid value: cgi"));
-	_cgi.push_back(cgi);
+bool    Route::add_cgi(cgi_type  cgi) {
+	if (cgi.first == "" || cgi.second == "")
+		return (set_error_message("Invalid value: cgis"));
+	_cgis[cgi.first]=cgi.second;
 	return (true);
 }
 
 bool	Route::set_cgi(cgi_list cgi) {
-	_cgi.clear();
+	_cgis.clear();
     for (cgi_list::iterator it = cgi.begin(); it != cgi.end(); it++)
 		if (!add_cgi(*it))
 				return (false);
@@ -134,12 +134,12 @@ void	Route::print() {
 	std::cout << "\tfile = " << _default_file << std::endl;
 	std::cout << "\tdirectory listing = " << _dir_listing << std::endl;
 	std::cout << "\tuploads = " << _upload_path << std::endl;
-    std::cout << "\tmethods = ";
-	for (method_list::iterator it = _cgi.begin(); it != _cgi.end(); it++)
+    std::cout << "\tcgis = ";
+	for (cgi_list::iterator it = _cgis.begin(); it != _cgis.end(); it++)
 	{
-		if  (it != _cgi.begin())
+		if  (it != _cgis.begin())
 			std::cout << ", ";
-		std::cout << *it;
+		std::cout << "\t\t" << it->first << ": " << it->second << std::endl;
 	}
 	std::cout << std::endl;
 
@@ -160,7 +160,7 @@ bool	Route::check() {
 		return (set_error_message("Required value: directory_listing"));
 	else if (_upload_path == path_type())
 		return (set_error_message("Required value: upload_path"));
-	else if (_cgi == cgi_list())
+	else if (_cgis == cgi_list())
 		return (set_error_message("Required value: cgi"));
 	return (true);
 }
