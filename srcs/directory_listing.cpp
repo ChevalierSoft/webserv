@@ -58,11 +58,6 @@ std::string		directory_listing (std::string path)	// , const char *client_path)
 	std::string		body = "";
 	std::string		tmp;
 
-	// TODO : check if the given root in the config file have a '/' at the end 
-
-	if (path[path.length() - 1] != '/')			// ? ensuring there is a '/' at the end
-		path += "/";
-
 	// ? DEBUG
 	// std::cout << "root : " << root << std::endl;
 	// std::cout << "path : " << path << std::endl;
@@ -98,7 +93,7 @@ std::string		directory_listing (std::string path)	// , const char *client_path)
 		{
 			body += "<li><a href=\"";			
 			// body += std::filesystem::path("foo/bar").remove_filename();	// ? c++17
-			tmp = path;				// TODO : client_path should be used
+			tmp = path;
 			tmp[tmp.rfind('/')] = '\0';
 			tmp[tmp.rfind('/')] = '\0';
 			if (tmp.empty() || tmp[0] == '\0')
@@ -109,7 +104,7 @@ std::string		directory_listing (std::string path)	// , const char *client_path)
 		else
 		{
 			body += "<li><a href=\"";
-			body += path;				// TODO : client_path should be used
+			body += path;
 			body += entry->d_name;
 			body += "\">";
 

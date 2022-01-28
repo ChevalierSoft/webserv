@@ -261,7 +261,7 @@ std::string			ResponseGenerator::listen_cgi (Client & client,
 	}
 
 	page = "HTTP/1.1 200 OK\r\n";
-	page += "Sever: Webserv 42\r\n";	// TODO : set a cool header
+	page += "Server: Webserv 42\r\n";	// TODO : set a cool header
 	page += "Content-Length: ";
 	page += ft_to_string(response.length()) + "\r\n";
 	page += response;
@@ -391,10 +391,10 @@ bool				ResponseGenerator::generate(Client& client) const
 	client._response.clear();
 
 	// ? __testing cgi __
-	// std::cout << *_conf->_cgi.begin() << std::endl;
-	// client._response_ready = true;
-	// client._response.append_buffer(this->cgi_handling(client, *_conf->_cgi.begin()));
-	// return (false);
+	std::cout << *_conf->_cgi.begin() << std::endl;
+	client._response_ready = true;
+	client._response.append_buffer(this->cgi_handling(client, *_conf->_cgi.begin()));
+	return (false);
 	// ? ________________
 
 	Request request(parse_request_route(client._request));
