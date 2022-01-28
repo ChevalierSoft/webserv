@@ -15,7 +15,7 @@ class Route {
 		typedef std::pair<code_type, path_type>	redir_type;
 		typedef std::vector<file_type>	        cgi_list;
 
-		const path_type	    _path;
+		path_type	    	_path;
 		method_list	        _methods;
 		redir_type          _redir;
 		path_type			_location;
