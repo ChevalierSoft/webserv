@@ -431,6 +431,7 @@ Request 			ResponseGenerator::parse_request_route(Request  const &input_request)
 	Request						output_request;
 	std::string					location;
 	
+	// Loop to find the route and set it to output request route
 	while (found <= input_request._path.size())
 	{
 		if ((found = input_request._path.find(sep, found)) == std::string::npos)
@@ -452,11 +453,14 @@ Request 			ResponseGenerator::parse_request_route(Request  const &input_request)
 		}
 		found++;
 	}
+	// once route is found, path is equal to the location + anything after the route name 
 	output_request._path = output_request._route._location+file;
+	// If file is directory, check for default file
 	if (is_directory(output_request._path))
 	{
 		if (*(output_request._path.end() - 1) != '/')
 			output_request._path+="/";
+		// Define redirection if there is a default file
 		if (output_request._route._default_file != "")
 		{
 			if (*(input_request._path.end() - 1) != '/')
@@ -465,7 +469,7 @@ Request 			ResponseGenerator::parse_request_route(Request  const &input_request)
 				output_request._redir = std::make_pair(301, input_request._path+output_request._route._default_file);
 		}	
 	}
-	std::cout << "input = " << input_request._path << ", output = " << output_request._route._path << std::endl;
+	// If the inut_path is exactly the name of a route and this route has a redirection defined, add it
 	if (input_request._path == output_request._route._path && output_request._route._redir != Route::redir_type())
 		output_request._redir = output_request._route._redir;
 	return (output_request);
