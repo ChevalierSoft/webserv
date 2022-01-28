@@ -23,12 +23,13 @@ _error_message(std::string()),
 _err(0) {
 }
 
-Route::Route(Route const &copy): _path(copy._path) { 
+Route::Route(Route const &copy) { 
     *this = copy; 
 }
 
 Route 	&Route::operator=(const Route &rhs) {
-    _methods = rhs._methods;
+    _path = rhs._path;
+	_methods = rhs._methods;
     _redir = rhs._redir;
     _location = rhs._location;
     _default_file = rhs._default_file;

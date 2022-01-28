@@ -347,17 +347,15 @@ std::string			ResponseGenerator::perform_GET_method(const Request & rq) const
 	struct stat s;
 
 	// ? redirects if there is a redirection in appropriate route AND if what is typed in the url corresponds to location in conf
-	if (rq._route._redir.first && rq._path == rq._route._location + rq._route._default_file) {
-		return (get_redirection(rq._route._redir));
-	}
+	if (rq._redir != Route::redir_type())
+		return (get_redirection(rq._redir));
+
 	if ( !(stat((rq._path).c_str(), &s)) )
 	{
 		if (s.st_mode & S_IFDIR)	// ? the requested path is a directory
 		{
 			if (rq._route._dir_listing) // check if directory listing is on
-			{
 				return (directory_listing(rq._path));
-			}
 			else
 				return (get_error_file(403));
 		}
@@ -431,15 +429,21 @@ Request 			ResponseGenerator::parse_request_route(Request  const &input_request)
 	std::string					file = std::string();
 	std::string					path;
 	Request						output_request;
+	std::string					location;
+	
 	while (found <= input_request._path.size())
 	{
 		if ((found = input_request._path.find(sep, found)) == std::string::npos)
 			found = input_request._path.size();
 		for (Conf::route_list::iterator it = routes.begin(); it != routes.end(); it++)
 		{
-			if (it->_path == input_request._path.substr(0,found)+"/")
+			location = input_request._path.substr(0,found);
+			if (*(location.end() - 1) != '/')
+				location+="/";
+			if (it->_path == location)
 			{
 				output_request._route = *it;
+				std::cout << "hello it->path = " << output_request._route._path << std::endl;
 				if (found < input_request._path.size())
 					file = input_request._path.substr(found + 1, input_request._path.size() - found);
 				else
@@ -453,8 +457,16 @@ Request 			ResponseGenerator::parse_request_route(Request  const &input_request)
 	{
 		if (*(output_request._path.end() - 1) != '/')
 			output_request._path+="/";
-		if (output_request._route._default_file != "") // check if default file is defined
-			output_request._path+=output_request._route._default_file; // adding default file to path
+		if (output_request._route._default_file != "")
+		{
+			if (*(input_request._path.end() - 1) != '/')
+				output_request._redir = std::make_pair(301, input_request._path+"/"+output_request._route._default_file);
+			else
+				output_request._redir = std::make_pair(301, input_request._path+output_request._route._default_file);
+		}	
 	}
+	std::cout << "input = " << input_request._path << ", output = " << output_request._route._path << std::endl;
+	if (input_request._path == output_request._route._path && output_request._route._redir != Route::redir_type())
+		output_request._redir = output_request._route._redir;
 	return (output_request);
 }
