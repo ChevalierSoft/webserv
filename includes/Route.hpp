@@ -24,6 +24,7 @@ class Route {
 		path_type			_upload_path;
 		cgi_list            _cgi;
 
+		// ? where is error type???????!!!
 		std::string			_error_message;
 		bool				_err;
 

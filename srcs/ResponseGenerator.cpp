@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ResponseGenerator.cpp                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
+/*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/27 16:59:43 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/28 02:16:54 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -297,6 +297,10 @@ std::string			ResponseGenerator::cgi_handling (Client & client, std::string url)
 	return (response);
 }
 
+std::string		ResponseGenerator::get_redirection(const Route::redir_type & redir) const {
+	return ("HTTP/1.1 " + std::to_string(redir.first) + " " + _ss_error_messages.at(redir.first) + "\r\nLocation: " + redir.second + "\r\n\r\n");
+}
+
 /**
  * @brief generate a response following GET method specificationns.
  * 
@@ -308,6 +312,10 @@ std::string			ResponseGenerator::perform_GET_method(const Request & rq) const
 {
 	struct stat s;
 
+	// ? redirects if there is a redirection in appropriate route AND if what is typed in the url corresponds to location in conf
+	if (rq._route._redir.first && rq._path == rq._route._location + rq._route._default_file) {
+		return (get_redirection(rq._route._redir));
+	}
 	if ( !(stat((rq._path).c_str(), &s)) )
 	{
 		if (s.st_mode & S_IFDIR)	// ? the requested path is a directory
@@ -364,7 +372,7 @@ bool				ResponseGenerator::generate(Client& client) const
 	if (rc < 0) {
 		// TODO : send the client an error page
 		perror("	access to route failed");
-		return (true);
+		// return (true);
 	}
 
 	// ? check which method should be called

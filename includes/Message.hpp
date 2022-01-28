@@ -51,6 +51,9 @@ public:
 	
 	Message(void) {
 		clear();
+		_method = std::string();
+		_path = std::string();
+		_http_version = std::string();
 		_line_index = 0;
 		_body_index = 0;
 		_in_header = true;
@@ -340,7 +343,7 @@ public:
 		return _buffer;
 	}
 
-	void		d_output() {
+	void		d_output() const {
 		it_header _it_header;
 		_it_header = _header.begin();
 		std::cout << GRN << "HEADER" << RST << std::endl;
