@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/28 03:21:36 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/28 04:16:58 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -182,13 +182,29 @@ std::string			ResponseGenerator::get_file_content(const std::string &path) const
 void				ResponseGenerator::set_cgi_env (Client & client, std::vector<std::string> & s_envs, std::vector<char *> & a_envs) const
 {
 	// TODO : add the rest + add env passed to main()
+	s_envs.push_back("SERVER_NAME=" + _conf->_name);
+	// s_envs.push_back("SCRIPT_NAME=" + );
+	// s_envs.push_back("SCRIPT_FILE_NAME=" + );
+	// s_envs.push_back("DOCUMENT_ROOT" + );	 // TODO : add location or route here
 	s_envs.push_back("PWD=" + std::string("./"));
-	s_envs.push_back("REQUEST_SCHEME=http");
-	s_envs.push_back("SERVER_PROTOCOL=HTTP/1.1");
+	s_envs.push_back("GATEWAY_INTERFACE=CGI/1.1");
+	s_envs.push_back("REMOTE_ADDR=" + client._ip);
+	s_envs.push_back("REMOTE_PORT=" + client._port);
 	s_envs.push_back("SERVER_ADDR=" + this->_conf->_hosts.begin()->first);
 	s_envs.push_back("SERVER_PORT=" + ft_to_string(this->_conf->_hosts.begin()->second));
-	s_envs.push_back("QUERY_STRING=");	// ? add GET arguments here
+	// s_envs.push_back("QUERY_STRING=");		// TODO add GET arguments here
+	s_envs.push_back("REQUEST_SCHEME=http");
 	s_envs.push_back("REQUEST_METHOD=" + client._request._method);
+	s_envs.push_back("SERVER_ADMIN=dait-atm or lpellier or ljurdan @student.42.fr"); // not sure about this one
+	s_envs.push_back("SERVER_SIGNATURE=Webserv 42");
+	// s_envs.push_back("CONTEXT_PREFIX=/cgi-bin/");
+	s_envs.push_back("SERVER_PROTOCOL=HTTP/1.1");
+	s_envs.push_back("SHLVL=1");
+	s_envs.push_back("PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin");	// #sharingan
+	s_envs.push_back("REQUEST_SCHEME=http");
+	// CONTEXT_DOCUMENT_ROOT= // ? add cgi complete link
+
+	// TODO : add request's headers
 
 	int i = 0;
 	for (std::vector<std::string>::const_iterator cit = s_envs.begin();
