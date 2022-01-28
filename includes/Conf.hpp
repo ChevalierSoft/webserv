@@ -41,7 +41,8 @@ class Conf {
 		typedef std::vector<route_type>			route_list;
 		typedef bool                            errno_type;
 		typedef std::string                     error_message_type;
-		typedef std::vector<file_type>	        cgi_list;
+		typedef std::pair<name_type, path_type>	cgi_type;
+		typedef std::map<name_type, path_type>	cgi_list;
 
 		name_type			_name;
 		host_list			_hosts;
@@ -51,7 +52,7 @@ class Conf {
 		dir_listing_type	_dir_listing;
 		path_type			_upload_path;
 		route_list			_routes;
-		cgi_list			_cgi;
+		cgi_list			_cgis;
 
 		std::string			_error_message;
 		bool				_err;
@@ -71,7 +72,6 @@ class Conf {
 		method_list						string_to_methods(std::string value);
 		dir_listing_type				string_to_dir_listing(std::string value);
 		route_type    					string_to_route(std::string value);
-		cgi_list						string_to_cgi(std::string value);
 	
 		bool        set_name(name_type name);
 		bool		add_host(host_pair host);
@@ -80,7 +80,7 @@ class Conf {
 		bool        set_client_body_size(size_type client_body_size);
 		bool        add_method(method_type method);
 		bool		set_methods(method_list methods);
-		bool        add_cgi(file_type cgi);
+		bool        add_cgi(cgi_type cgi);
 		bool		set_cgi(cgi_list cgi);
 		bool        set_dir_listing(dir_listing_type dir_listing);
 		bool        set_upload_path(path_type upload_path);
