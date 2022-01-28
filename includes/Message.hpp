@@ -41,6 +41,7 @@ public:
 	std::string							_method; // from header first line
 	std::string							_path; // from header first line
 	std::string							_http_version; // from header first line
+	std::string							_get_query;
 	bool								_in_header;
 	int									_error;
 	
@@ -54,6 +55,7 @@ public:
 		_method = std::string();
 		_path = std::string();
 		_http_version = std::string();
+		_get_query = std::string();
 		_line_index = 0;
 		_body_index = 0;
 		_in_header = true;
@@ -78,6 +80,7 @@ public:
 		_error = src._error;
 		_body_index = src._body_index;
 		_content_length = src._content_length;
+		_get_query = src._get_query;
 	}
 	
 	Message &	operator=(const Message & src) {
@@ -93,6 +96,7 @@ public:
 		_error = src._error;
 		_body_index = src._body_index;
 		_content_length = src._content_length;
+		_get_query = src._get_query;
 		return *this;
 	}
 
@@ -218,6 +222,7 @@ public:
 		_buffer.clear();
 		_method.clear();
 		_path.clear();
+		_get_query.clear();
 		_http_version.clear();
 		_line_index = 0;
 		_body_index = 0;
@@ -289,7 +294,7 @@ public:
 					std::cout << "\'" << *end_path << "\'" << " ";
 					end_path++;
 				}
-				_body.push_back(std::string(_buffer.begin(), end_path));
+				_get_query = std::string(_buffer.begin(), end_path);
 				_buffer.erase(_buffer.begin(), end_path);
 			}
 		}
@@ -350,6 +355,7 @@ public:
 		std::cout << RED << "Method: " << _method << RST << std::endl;
 		std::cout << RED << "path: " << _path << RST << std::endl;
 		std::cout << RED << "http-version: " << _http_version << RST << std::endl;
+		std::cout << RED << "get_query: " << _get_query << RST << std::endl;
 		for (; _it_header != _header.end(); _it_header++) {
 			std::cout << RED << (*(_it_header)).first << ": ";
 			it_value	head_it = (*(_it_header)).second.begin();
