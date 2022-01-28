@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 10:06:11 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/28 02:58:27 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/28 04:27:12 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,5 +76,7 @@ private:
 	Request				parse_request_route(Request  const & input_request) const;
 
 	bool				is_directory(const std::string path) const;
+
+	std::string			get_redirection(const Route::redir_type & redir) const;
 
 }; // * ________________________________________________________________________

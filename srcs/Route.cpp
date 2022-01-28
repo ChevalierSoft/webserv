@@ -9,6 +9,7 @@ _dir_listing(-1),
 _upload_path(path_type()), 
 _cgi(cgi_list()),
 _error_message(std::string()), 
+_default_file(std::string()), 
 _err(0){
 
 }
