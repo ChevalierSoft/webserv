@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/27 16:59:43 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/28 02:33:31 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -181,7 +181,7 @@ std::string			ResponseGenerator::get_file_content(const std::string &path) const
 	return (s_full_content);
 }
 
-void				ResponseGenerator::set_cgi_env (Client & client, std::vector<std::string> s_envs, std::vector<char *> a_envs) const
+void				ResponseGenerator::set_cgi_env (Client & client, std::vector<std::string> & s_envs, std::vector<char *> & a_envs) const
 {
 	// TODO : add the rest
 	s_envs.push_back("PWD=" + std::string("./"));
@@ -209,6 +209,9 @@ void				ResponseGenerator::start_cgi (Client & client, std::string url, int cgi_
 	std::vector<char *>			a_envs;
 
 	set_cgi_env(client, s_envs, a_envs);
+	std::cerr << ":o" << std::endl;
+	for (auto & it : s_envs)
+		std::cout << it << std::endl;
 	exe[0] = &url[0];
 	exe[1] = NULL;
 	dup2(cgi_pipe[0], 0);
@@ -219,7 +222,7 @@ void				ResponseGenerator::start_cgi (Client & client, std::string url, int cgi_
 	exit(66);
 }
 
-std::string			ResponseGenerator::listen_cgi ( Client & client,
+std::string			ResponseGenerator::listen_cgi (Client & client,
 													std::string url,
 													int cgi_pipe[2],
 													pid_t child ) const
@@ -247,15 +250,31 @@ std::string			ResponseGenerator::listen_cgi ( Client & client,
 	return (response);
 }
 
-bool				ResponseGenerator::cgi_send_body (Client & client, int cgi_pipe[2]) const
+bool				ResponseGenerator::cgi_send_body (Client & client, int cgi_pipe[2], bool * body_sent) const
 {
-	// TODO : send request's body in case of POST
-	// TODO : maybe use a static for the first time in this function ?
-	// std::cerr << "sending body" << std::endl;
-	// err = write(cgi_pipe[1], "", 0);
-	// if (err < 0)
-	// 	return (get_error_file(500));
-	// std::cerr << "body sent" << std::endl;
+	int	err;
+
+	if (client._request._method != "POST")
+	{
+		*body_sent = true;
+		return (false);
+	}
+
+	std::cerr << "sending body" << std::endl;
+
+	// TODO : when non blocking will be a thing, iterate piece by piece
+	for (std::vector<std::string>::const_iterator cit = client._request.begin_body();
+		cit != client._request.end_body(); ++cit)
+	{
+		err = write(cgi_pipe[1], cit->c_str(), cit->length());
+		if (err < 0)
+			return (true);
+	}
+	
+	// TODO : if (cit == client._request.end_body())
+	std::cerr << "body sent" << std::endl;
+	*body_sent = true;
+
 	return (false);
 }
 
@@ -285,11 +304,8 @@ std::string			ResponseGenerator::cgi_handling (Client & client, std::string url)
 
 	if (body_sent == false)
 	{
-		cgi_send_body(client, cgi_pipe);
-
-		// ! this will depend if the request's parsing set request_ready to 
-		// ! true if the entier body is stored 
-		body_sent = true;
+		if (cgi_send_body(client, cgi_pipe, &body_sent))
+			return (get_error_file(500));
 	}
 
 	response = listen_cgi(client, url, cgi_pipe, child);
@@ -345,27 +361,19 @@ std::string			ResponseGenerator::perform_GET_method(const Request & rq) const
  * @return true internal error, need to close the client connexion without sending response
  * @return false all good
  */
-
 bool				ResponseGenerator::generate(Client& client) const
 {
 	// ! clear at the creation of the client. here it will erase the response each loop 
 	client._response.clear();
 
 	// ? __testing cgi __
-	// std::cout << *_conf->_cgi.begin() << std::endl;
-	// client._response_ready = true;
-	// client._response.append_buffer(this->cgi_handling(client, *_conf->_cgi.begin()));
-	// return (false);
+	std::cout << *_conf->_cgi.begin() << std::endl;
+	client._response_ready = true;
+	client._response.append_buffer(this->cgi_handling(client, *_conf->_cgi.begin()));
+	return (false);
 	// ? ________________
 
 	Request request(parse_request_route(client._request));
-	// ;
-	int	rc = access(request._path.c_str(), (client._request._method == "GET" ? R_OK : W_OK) | F_OK);
-	if (rc < 0) {
-		// TODO : send the client an error page
-		perror("	access to route failed");
-		return (true);
-	}
 
 	// ? check which method should be called
 	if (client._request._method == "GET")
@@ -382,7 +390,7 @@ bool				ResponseGenerator::generate(Client& client) const
 }
 
 bool				ResponseGenerator::is_directory(const std::string path) const{
-	struct stat s;
+	struct stat	s;
 
 	if ( lstat(path.c_str(), &s) == 0 )
     	if (S_ISDIR(s.st_mode))
