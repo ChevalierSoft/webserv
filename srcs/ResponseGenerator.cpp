@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/28 02:33:31 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/28 03:21:36 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,7 +87,7 @@ std::string			ResponseGenerator::set_header (int err, std::string ext, size_t si
 
 	s_header = "HTTP/1.1 " + ft_to_string(err) + " " + _ss_error_messages.find(err)->second + "\r\n";
 	s_header += "webser: 42\r\n";								// TODO : set a cool header
-	s_header += this->set_file_content_type( ext );
+	s_header += this->set_file_content_type(ext);
 	s_header += "Content-Length: ";
 	s_header += ft_to_string(size);
 	s_header += "\r\n\r\n";
@@ -113,8 +113,6 @@ std::string			ResponseGenerator::get_error_file (Conf::code_type err) const
 	std::ifstream						i_file;
 	std::string							tmp;
 	Conf::error_list::const_iterator	it = _conf->_error_pages.find(err);
-
-	// TODO : if the Accept is not html, just return a header with the correct error code
 
 	if (it == _conf->_error_pages.end())
 		return (generic_error(err));
@@ -183,7 +181,7 @@ std::string			ResponseGenerator::get_file_content(const std::string &path) const
 
 void				ResponseGenerator::set_cgi_env (Client & client, std::vector<std::string> & s_envs, std::vector<char *> & a_envs) const
 {
-	// TODO : add the rest
+	// TODO : add the rest + add env passed to main()
 	s_envs.push_back("PWD=" + std::string("./"));
 	s_envs.push_back("REQUEST_SCHEME=http");
 	s_envs.push_back("SERVER_PROTOCOL=HTTP/1.1");
@@ -209,9 +207,6 @@ void				ResponseGenerator::start_cgi (Client & client, std::string url, int cgi_
 	std::vector<char *>			a_envs;
 
 	set_cgi_env(client, s_envs, a_envs);
-	std::cerr << ":o" << std::endl;
-	for (auto & it : s_envs)
-		std::cout << it << std::endl;
 	exe[0] = &url[0];
 	exe[1] = NULL;
 	dup2(cgi_pipe[0], 0);
@@ -228,7 +223,8 @@ std::string			ResponseGenerator::listen_cgi (Client & client,
 													pid_t child ) const
 {
 	int							err;
-	std::string					response = "";
+	std::string					response;
+	std::string					page;
 	char						buff[CGI_BUFF_SIZE];
 
 	// ! need to use WNOHANG and check every loop (when it will be implemented)
@@ -247,16 +243,23 @@ std::string			ResponseGenerator::listen_cgi (Client & client,
 		response += buff;
 		// std::cerr << ">>>>[" << response << "]<<<<" << std::endl;
 	}
-	return (response);
+
+	page = "HTTP/1.1 200 OK\r\n";
+	page += "Sever: Webserv 42\r\n";	// TODO : set a cool header
+	page += "Content-Length: ";
+	page += ft_to_string(response.length()) + "\r\n";
+	page += response;
+
+	return (page);
 }
 
-bool				ResponseGenerator::cgi_send_body (Client & client, int cgi_pipe[2], bool * body_sent) const
+bool				ResponseGenerator::cgi_send_body (Client & client, int cgi_pipe[2]) const
 {
 	int	err;
 
 	if (client._request._method != "POST")
 	{
-		*body_sent = true;
+		client._body_sent = true;
 		return (false);
 	}
 
@@ -273,7 +276,7 @@ bool				ResponseGenerator::cgi_send_body (Client & client, int cgi_pipe[2], bool
 	
 	// TODO : if (cit == client._request.end_body())
 	std::cerr << "body sent" << std::endl;
-	*body_sent = true;
+	client._body_sent = true;
 
 	return (false);
 }
@@ -283,7 +286,6 @@ std::string			ResponseGenerator::cgi_handling (Client & client, std::string url)
 	int				cgi_pipe[2];
 	pid_t			child;
 	std::string		response;
-	static bool		body_sent = false;
 	
 	if (pipe(cgi_pipe))
 		return (get_error_file(500));
@@ -302,9 +304,9 @@ std::string			ResponseGenerator::cgi_handling (Client & client, std::string url)
 	else if (!child)
 		this->start_cgi(client, url, cgi_pipe);
 
-	if (body_sent == false)
+	if (client._body_sent == false)
 	{
-		if (cgi_send_body(client, cgi_pipe, &body_sent))
+		if (cgi_send_body(client, cgi_pipe))
 			return (get_error_file(500));
 	}
 
@@ -333,7 +335,7 @@ std::string			ResponseGenerator::perform_GET_method(const Request & rq) const
 				return (directory_listing(rq._path));
 			}
 			else
-				return ("HTTP/1.1 403 Forbidden\r\n\r\n"); // TODO : 403 forbidden 
+				return (get_error_file(403));
 		}
 		else if (s.st_mode & S_IFREG)	// ? the requested path is a file
 		{
@@ -343,7 +345,7 @@ std::string			ResponseGenerator::perform_GET_method(const Request & rq) const
 		{
 			// ? error: it's there, but it's not a directory or a file.
 			// ? not sure if symlinks must work.
-			get_error_file(418);
+			return (get_error_file(418));
 		}
 	}
 	else

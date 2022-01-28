@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 10:06:11 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/28 02:33:06 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/28 02:58:27 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,7 +67,7 @@ private:
 
 	std::string			listen_cgi (Client & client, std::string url, int cgi_pipe[2], pid_t child) const;
 
-	bool				cgi_send_body (Client & client, int cgi_pipe[2], bool * body_sent) const;
+	bool				cgi_send_body (Client & client, int cgi_pipe[2]) const;
 
 	std::string			cgi_handling (Client & client, std::string url) const;
 

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
+/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/26 18:32:11 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/01/28 02:53:55 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@
  * 
  */
 Client::Client ()
-: _request_ready(false), _response_ready(false), _ip(), _port()
+: _request_ready(false), _response_ready(false), _ip(), _port(), _body_sent(false)
 {
 	gettimeofday(&_life_time, NULL);
 }
@@ -30,7 +30,7 @@ Client::Client ()
  * 
  */
 Client::Client (const Conf* c, std::string ip, std::string port)
-: _request_ready(false), _response_ready(false), _ip(ip), _port(port)
+: _request_ready(false), _response_ready(false), _ip(ip), _port(port), _body_sent(false)
 {
 	gettimeofday(&_life_time, NULL);
 }
@@ -71,6 +71,7 @@ Client&		Client::operator= (const Client& copy)
 		_life_time = copy._life_time;
 		_ip = copy._ip;
 		_port = copy._port;
+		_body_sent = copy._body_sent;
 	}
 	return (*this);
 }
