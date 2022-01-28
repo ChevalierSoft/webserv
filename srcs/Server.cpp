@@ -86,8 +86,8 @@ bool			Server::socket_bind ()
 
 	memset(&addr, 0, sizeof(addr));
 	addr.sin_family = AF_INET;
-	addr.sin_addr.s_addr = inet_addr(_conf._host.c_str());
-	addr.sin_port = htons(_conf._port);
+	addr.sin_addr.s_addr = inet_addr(_conf._hosts.begin()->first.c_str());
+	addr.sin_port = htons(_conf._hosts.begin()->second);
 	rc = bind(_listen_sd, (struct sockaddr *)&addr, sizeof(addr));
 	if (rc < 0)
 	{
@@ -143,7 +143,7 @@ int				Server::init (const Conf& c)
 	if (this->socket_bind() == false)
 		return (4);
 	
-	std::cout << "ready to listen on port " << _conf._port << std::endl;
+	std::cout << "ready to listen on port " << _conf._hosts.begin()->second << std::endl;
 	return (0);
 }
 

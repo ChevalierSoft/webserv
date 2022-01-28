@@ -26,6 +26,8 @@ class Conf {
 		typedef std::string                     name_type;
 		typedef std::string                     host_type;
 		typedef int                             port_type;
+		typedef std::pair<host_type, port_type>	host_pair;
+		typedef std::vector<host_pair>			host_list;
 		typedef std::string                     file_type;
 		typedef int                             code_type;
 		typedef std::pair<code_type, file_type> error_type;
@@ -42,8 +44,7 @@ class Conf {
 		typedef std::vector<file_type>	        cgi_list;
 
 		name_type			_name;
-		host_type			_host;
-		port_type			_port;
+		host_list			_hosts;
 		error_list			_error_pages;
 		size_type			_client_body_size;
 		method_list			_methods;
@@ -62,6 +63,8 @@ class Conf {
 		~Conf();
 
 		port_type                       string_to_port(std::string value);
+		host_pair						string_to_host_pair(std::string value);
+		host_list						string_to_hosts(std::string value);
 		code_type                       string_to_code(std::string value);
 		error_type                      string_to_error(std::string error);
 		size_type                       string_to_client_body_size(std::string value);
@@ -71,8 +74,8 @@ class Conf {
 		cgi_list						string_to_cgi(std::string value);
 	
 		bool        set_name(name_type name);
-		bool        set_host(host_type host);
-		bool        set_port(port_type port);
+		bool		add_host(host_pair host);
+		bool        set_hosts(host_list hosts);
 		bool        add_error(error_type  error);
 		bool        set_client_body_size(size_type client_body_size);
 		bool        add_method(method_type method);

@@ -69,6 +69,7 @@ bool    Parser::parse_file(std::ifstream &ifs) {
 			}
 			params.clear();
 		}
+
 	}
 	return (check());
 }
@@ -115,10 +116,8 @@ bool	Parser::zero_indent(param_type param, std::string value)
 
 	if (param == "server_name")
 		return (conf.set_name(value));
-	else if (param == "host")
-		return (conf.set_host(value));
-	else if (param == "port")
-		return (conf.set_port(conf.string_to_port(value)));
+	else if (param == "hosts")
+		return (conf.set_hosts(conf.string_to_hosts(value)));
 	else if (param == "client_body_size")
 		return (conf.set_client_body_size(conf.string_to_client_body_size(value)));
 	else if (param == "methods")
@@ -164,7 +163,7 @@ bool	Parser::two_indent(param_list params, std::string value)
 			return (route.set_default_file(value));
 		else if (params[2] == "uploads")
 			return (route.set_upload_path(value));
-		else if (params[2] == "redirections")
+		else if (params[2] == "redirection")
 			return (true);
 		else if (params[2] == "cgi")
 			return (route.set_cgi(conf.string_to_cgi(value)));
@@ -178,7 +177,7 @@ bool	Parser::three_indent(param_list params, std::string value) {
 	if (params[0] == "routes")
 	{
 		Route	&route = conf._routes.back();
-		if (params[2] == "redirections")
+		if (params[2] == "redirection")
 			return (route.set_redir(std::make_pair(conf.string_to_code(params[3]), value)));
 	}
 	return (set_error_message("Invalid parameter"));
@@ -201,9 +200,17 @@ bool		Parser::set_error_message(std::string error_message) {
 	return (false);
 }
 
+
 bool	Parser::check() {
 	for (conf_list::iterator it = _confs.begin(); it != _confs.end(); it++)
+	{
 		if (!it->check())
 			return (set_error_message(it->_error_message));
+	}
 	return (true);
+}
+
+void	Parser::print() {
+	for (conf_list::iterator it = _confs.begin(); it != _confs.end(); it++)
+		it->print();
 }

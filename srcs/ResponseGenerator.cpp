@@ -350,6 +350,7 @@ std::string			ResponseGenerator::perform_GET_method(const Request & rq) const
 	// ? redirects if there is a redirection in appropriate route AND if what is typed in the url corresponds to location in conf
 	if (rq._redir != Route::redir_type())
 		return (get_redirection(rq._redir));
+
 	if ( !(stat((rq._path).c_str(), &s)) )
 	{
 		if (s.st_mode & S_IFDIR)	// ? the requested path is a directory

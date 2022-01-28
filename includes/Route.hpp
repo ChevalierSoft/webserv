@@ -24,6 +24,7 @@ class Route {
 		path_type			_upload_path;
 		cgi_list            _cgi;
 
+		// ? where is error type???????!!!
 		std::string			_error_message;
 		bool				_err;
 
@@ -31,6 +32,7 @@ class Route {
 		Route(const path_type path, method_list methods, dir_listing_type dir_listing, path_type upload_path, cgi_list cgi);
 		Route(Route const &copy);
 		Route 	&operator=(const Route &rhs);
+		bool	operator==(const Route &rhs) const;
 		~Route();
 
 		bool        add_method(method_type method);

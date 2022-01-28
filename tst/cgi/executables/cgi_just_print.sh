@@ -3,6 +3,8 @@
 echo "Content-type: text/html"
 echo ""
 
+sleep 2
+
 echo '<html>'
 echo '<head>'
 echo '<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">'
