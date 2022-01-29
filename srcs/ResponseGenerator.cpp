@@ -349,7 +349,6 @@ std::string			ResponseGenerator::perform_GET_method(const Request & rq) const
 	// ? redirects if there is a redirection in appropriate route AND if what is typed in the url corresponds to location in conf
 	if (rq._redir != Route::redir_type())
 		return (get_redirection(rq._redir));
-
 	if ( !(stat((rq._path).c_str(), &s)) )
 	{
 		if (s.st_mode & S_IFDIR)	// ? the requested path is a directory
@@ -439,12 +438,11 @@ Request 			ResponseGenerator::parse_request_route(Request  const &input_request)
 		for (Conf::route_list::iterator it = routes.begin(); it != routes.end(); it++)
 		{
 			location = input_request._path.substr(0,found);
-			if (*(location.end() - 1) != '/')
-				location+="/";
-			if (it->_path == location)
+			// if (*(location.end() - 1) != '/')
+			// 	location+="/";
+			if (it->_path == location+"/")
 			{
 				output_request._route = *it;
-				std::cout << "hello it->path = " << output_request._route._path << std::endl;
 				if (found < input_request._path.size())
 					file = input_request._path.substr(found + 1, input_request._path.size() - found);
 				else
@@ -461,7 +459,7 @@ Request 			ResponseGenerator::parse_request_route(Request  const &input_request)
 		if (*(output_request._path.end() - 1) != '/')
 			output_request._path+="/";
 		// Define redirection if there is a default file
-		if (output_request._route._default_file != "")
+		if (output_request._route._default_file != Route::file_type())
 		{
 			if (*(input_request._path.end() - 1) != '/')
 				output_request._redir = std::make_pair(301, input_request._path+"/"+output_request._route._default_file);
@@ -470,7 +468,8 @@ Request 			ResponseGenerator::parse_request_route(Request  const &input_request)
 		}	
 	}
 	// If the inut_path is exactly the name of a route and this route has a redirection defined, add it
-	if (input_request._path == output_request._route._path && output_request._route._redir != Route::redir_type())
+
+	if (output_request._route._redir != Route::redir_type() && input_request._path == output_request._route._path)
 		output_request._redir = output_request._route._redir;
 	return (output_request);
 }

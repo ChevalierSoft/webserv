@@ -19,6 +19,7 @@ public:
 	}
 	
 	Request &	operator=(const Request & src) {
+		Message::operator=(src);
 		_route = src._route;
 		_redir = src._redir;
 		return *this;

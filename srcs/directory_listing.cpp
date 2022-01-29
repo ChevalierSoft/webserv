@@ -64,10 +64,9 @@ std::string		directory_listing (std::string path)	// , const char *client_path)
 	// std::cout << (root + path).c_str() << std::endl;
 
 	dir = opendir((path).c_str());
-
 	if (dir == NULL)
 		return (send_403());
-
+	path = &path[1];
 	body += "<!DOCTYPE html>\r\n";
 	body += "<meta charset=\"UTF-8\">\r\n";
 	body += "<html>\r\n";
