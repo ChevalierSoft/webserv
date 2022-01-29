@@ -149,17 +149,20 @@ std::string			ResponseGenerator::get_error_file (Conf::code_type err) const
  * @return std::string file content as string
  */
 
-std::string			ResponseGenerator::get_file_content(const std::string &path) const
+std::string			ResponseGenerator::get_file_content(const Request &rq, Client & client) const
 {
-	std::ifstream	i_file;
-	std::string		tmp;
-	std::string		s_file_content = "";
-	std::string		s_full_content;
+	std::ifstream					i_file;
+	std::string						tmp;
+	std::string						s_file_content = "";
+	std::string						s_full_content;
+	Route::cgi_list::const_iterator	cgi;	
 
-	i_file.open((path).c_str());
+	i_file.open((rq._path).c_str());
 
 	if (i_file.is_open())
 	{
+		if ((cgi = rq._route._cgis.find(get_file_extention((rq._path)))) != rq._route._cgis.end())
+			return (cgi_handling(client, cgi->second, rq._path)); // ! c'est ici qu'on retourne la reponse du cgi maintenant
 		while (i_file.good())
 		{
 			std::getline(i_file, tmp);
@@ -172,7 +175,7 @@ std::string			ResponseGenerator::get_file_content(const std::string &path) const
 		return (this->get_error_file(403));	// 403 ?
 	}
 
-	s_full_content = set_header(0, get_file_extention(get_file_name(path)), s_file_content.size());
+	s_full_content = set_header(0, get_file_extention(get_file_name(rq._path)), s_file_content.size());
 
 	s_full_content += s_file_content;
 
@@ -195,7 +198,7 @@ void				ResponseGenerator::set_cgi_env (Client & client, std::vector<std::string
 	// s_envs.push_back("QUERY_STRING=");		// TODO add GET arguments here
 	s_envs.push_back("REQUEST_SCHEME=http");
 	s_envs.push_back("REQUEST_METHOD=" + client._request._method);
-	s_envs.push_back("SERVER_ADMIN=dait-atm or lpellier or ljurdan @student.42.fr"); // not sure about this one
+	s_envs.push_back("SERVER_ADMIN=dait-atm or lpellier or ljurdant @student.42.fr"); // not sure about this one
 	s_envs.push_back("SERVER_SIGNATURE=Webserv 42");
 	// s_envs.push_back("CONTEXT_PREFIX=/cgi-bin/");
 	s_envs.push_back("SERVER_PROTOCOL=HTTP/1.1");
@@ -216,14 +219,15 @@ void				ResponseGenerator::set_cgi_env (Client & client, std::vector<std::string
 	return ;
 }
 
-void				ResponseGenerator::start_cgi (Client & client, std::string url, int cgi_pipe[2]) const
+void				ResponseGenerator::start_cgi (Client & client, std::string url, std::string path, int cgi_pipe[2]) const
 {
-	char						*exe[2];
+	char						*exe[3];
 	std::vector<std::string>	s_envs;
 	std::vector<char *>			a_envs;
 
 	set_cgi_env(client, s_envs, a_envs);
 	exe[0] = &url[0];
+	exe[1] = &path[0];
 	exe[1] = NULL;
 	dup2(cgi_pipe[0], 0);
 	dup2(cgi_pipe[1], 1);
@@ -297,7 +301,7 @@ bool				ResponseGenerator::cgi_send_body (Client & client, int cgi_pipe[2]) cons
 	return (false);
 }
 
-std::string			ResponseGenerator::cgi_handling (Client & client, std::string url) const
+std::string			ResponseGenerator::cgi_handling (Client & client, std::string url, std::string path) const
 {
 	int				cgi_pipe[2];
 	pid_t			child;
@@ -318,7 +322,7 @@ std::string			ResponseGenerator::cgi_handling (Client & client, std::string url)
 		return (get_error_file(500));
 	}
 	else if (!child)
-		this->start_cgi(client, url, cgi_pipe);
+		this->start_cgi(client, url, path, cgi_pipe);
 
 	if (client._body_sent == false)
 	{
@@ -342,7 +346,7 @@ std::string		ResponseGenerator::get_redirection(const Route::redir_type & redir)
  * 
  * @return std::string a string containing the response to the client.
  */
-std::string			ResponseGenerator::perform_GET_method(const Request & rq) const
+std::string			ResponseGenerator::perform_GET_method(const Request & rq, Client &cl) const
 {
 	struct stat s;
 
@@ -361,7 +365,7 @@ std::string			ResponseGenerator::perform_GET_method(const Request & rq) const
 		}
 		else if (s.st_mode & S_IFREG)	// ? the requested path is a file
 		{
-			return (get_file_content(rq._path));
+			return (get_file_content(rq, cl));
 		}
 		else
 		{
@@ -401,7 +405,7 @@ bool				ResponseGenerator::generate(Client& client) const
 
 	// ? check which method should be called
 	if (client._request._method == "GET")
-		client._response.append_buffer(this->perform_GET_method(request));
+		client._response.append_buffer(this->perform_GET_method(request, client));
 	else
 	{
 		std::cerr << CYN << "(client._request._method != \"GET\")" << std::endl;
@@ -444,7 +448,6 @@ Request 			ResponseGenerator::parse_request_route(Request  const &input_request)
 			if (it->_path == location)
 			{
 				output_request._route = *it;
-				std::cout << "hello it->path = " << output_request._route._path << std::endl;
 				if (found < input_request._path.size())
 					file = input_request._path.substr(found + 1, input_request._path.size() - found);
 				else
@@ -469,7 +472,7 @@ Request 			ResponseGenerator::parse_request_route(Request  const &input_request)
 				output_request._redir = std::make_pair(301, input_request._path+output_request._route._default_file);
 		}	
 	}
-	// If the inut_path is exactly the name of a route and this route has a redirection defined, add it
+	// If the input_path is exactly the name of a route and this route has a redirection defined, add it
 	if (input_request._path == output_request._route._path && output_request._route._redir != Route::redir_type())
 		output_request._redir = output_request._route._redir;
 	return (output_request);

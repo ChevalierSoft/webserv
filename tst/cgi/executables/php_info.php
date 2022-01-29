@@ -1,5 +1,4 @@
-<?
-echo "Content-type: text/html\r\n"
-echo "\r\n"
+<?php
 phpinfo();
+// echo "hello";
 ?>
