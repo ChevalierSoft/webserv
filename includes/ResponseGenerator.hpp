@@ -51,7 +51,7 @@ public:
 
 private:
 
-	std::string			get_file_content (const std::string & path) const;
+	std::string			get_file_content (const Request &rq, Client & client) const;
   
 	std::string			set_file_content_type (const std::string & extention) const;
 
@@ -63,15 +63,15 @@ private:
 
 	void				set_cgi_env (Client & client, std::vector<std::string> & se, std::vector<char *> & ae) const;
 
-	void				start_cgi (Client & client, std::string url, int cgi_pipe[2]) const;
+	void				start_cgi (Client & client, std::string url, std::string path, int cgi_pipe[2]) const;
 
 	std::string			listen_cgi (Client & client, std::string url, int cgi_pipe[2], pid_t child) const;
 
 	bool				cgi_send_body (Client & client, int cgi_pipe[2]) const;
 
-	std::string			cgi_handling (Client & client, std::string url) const;
+	std::string			cgi_handling (Client & client, std::string url, std::string path) const;
 
-	std::string			perform_GET_method (const Request & rq) const;
+	std::string			perform_GET_method (const Request & rq, Client & client) const;
 
 	Request				parse_request_route(Request  const & input_request) const;
 
