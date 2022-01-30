@@ -84,8 +84,13 @@ std::string			ResponseGenerator::set_file_content_type (const std::string & exte
 std::string			ResponseGenerator::set_header (int err, std::string ext, size_t size) const
 {
 	std::string		s_header;
-
-	s_header = "HTTP/1.1 " + ft_to_string(err) + " " + _ss_error_messages.find(err)->second + "\r\n";
+	if (!err)
+	{
+		err = 200;
+		s_header = "HTTP/1.1 " + ft_to_string(err) + " OK" + "\r\n";
+	}
+	else
+		s_header = "HTTP/1.1 " + ft_to_string(err) + " " + _ss_error_messages.find(err)->second + "\r\n";
 	s_header += "webser: 42\r\n";								// TODO : set a cool header
 	s_header += this->set_file_content_type(ext);
 	s_header += "Content-Length: ";
@@ -159,6 +164,7 @@ std::string			ResponseGenerator::get_file_content(const Request &rq, Client & cl
 
 	i_file.open((rq._path).c_str());
 
+
 	if (i_file.is_open())
 	{
 		if ((cgi = rq._route._cgis.find(get_file_extention((rq._path)))) != rq._route._cgis.end())
@@ -178,7 +184,6 @@ std::string			ResponseGenerator::get_file_content(const Request &rq, Client & cl
 	s_full_content = set_header(0, get_file_extention(get_file_name(rq._path)), s_file_content.size());
 
 	s_full_content += s_file_content;
-
 	return (s_full_content);
 }
 
@@ -353,7 +358,6 @@ std::string			ResponseGenerator::perform_GET_method(const Request & rq, Client &
 	// ? redirects if there is a redirection in appropriate route AND if what is typed in the url corresponds to location in conf
 	if (rq._redir != Route::redir_type())
 		return (get_redirection(rq._redir));
-
 	if ( !(stat((rq._path).c_str(), &s)) )
 	{
 		if (s.st_mode & S_IFDIR)	// ? the requested path is a directory
@@ -406,6 +410,8 @@ bool				ResponseGenerator::generate(Client& client) const
 	// ? check which method should be called
 	if (client._request._method == "GET")
 		client._response.append_buffer(this->perform_GET_method(request, client));
+
+
 	else
 	{
 		std::cerr << CYN << "(client._request._method != \"GET\")" << std::endl;
@@ -443,9 +449,9 @@ Request 			ResponseGenerator::parse_request_route(Request  const &input_request)
 		for (Conf::route_list::iterator it = routes.begin(); it != routes.end(); it++)
 		{
 			location = input_request._path.substr(0,found);
-			if (*(location.end() - 1) != '/')
-				location+="/";
-			if (it->_path == location)
+			// if (*(location.end() - 1) != '/')
+			// 	location+="/";
+			if (it->_path == location+"/")
 			{
 				output_request._route = *it;
 				if (found < input_request._path.size())
@@ -464,7 +470,7 @@ Request 			ResponseGenerator::parse_request_route(Request  const &input_request)
 		if (*(output_request._path.end() - 1) != '/')
 			output_request._path+="/";
 		// Define redirection if there is a default file
-		if (output_request._route._default_file != "")
+		if (output_request._route._default_file != Route::file_type())
 		{
 			if (*(input_request._path.end() - 1) != '/')
 				output_request._redir = std::make_pair(301, input_request._path+"/"+output_request._route._default_file);
@@ -472,8 +478,10 @@ Request 			ResponseGenerator::parse_request_route(Request  const &input_request)
 				output_request._redir = std::make_pair(301, input_request._path+output_request._route._default_file);
 		}	
 	}
-	// If the input_path is exactly the name of a route and this route has a redirection defined, add it
-	if (input_request._path == output_request._route._path && output_request._route._redir != Route::redir_type())
+
+	// If the inut_path is exactly the name of a route and this route has a redirection defined, add it
+
+	if (output_request._route._redir != Route::redir_type() && input_request._path == output_request._route._path)
 		output_request._redir = output_request._route._redir;
 	return (output_request);
 }
