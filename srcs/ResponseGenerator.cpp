@@ -84,8 +84,13 @@ std::string			ResponseGenerator::set_file_content_type (const std::string & exte
 std::string			ResponseGenerator::set_header (int err, std::string ext, size_t size) const
 {
 	std::string		s_header;
-
-	s_header = "HTTP/1.1 " + ft_to_string(err) + " " + _ss_error_messages.find(err)->second + "\r\n";
+	if (!err)
+	{
+		err = 200;
+		s_header = "HTTP/1.1 " + ft_to_string(err) + " OK" + "\r\n";
+	}
+	else
+		s_header = "HTTP/1.1 " + ft_to_string(err) + " " + _ss_error_messages.find(err)->second + "\r\n";
 	s_header += "webser: 42\r\n";								// TODO : set a cool header
 	s_header += this->set_file_content_type(ext);
 	s_header += "Content-Length: ";
@@ -157,7 +162,6 @@ std::string			ResponseGenerator::get_file_content(const std::string &path) const
 	std::string		s_full_content;
 
 	i_file.open((path).c_str());
-
 	if (i_file.is_open())
 	{
 		while (i_file.good())
@@ -175,7 +179,6 @@ std::string			ResponseGenerator::get_file_content(const std::string &path) const
 	s_full_content = set_header(0, get_file_extention(get_file_name(path)), s_file_content.size());
 
 	s_full_content += s_file_content;
-
 	return (s_full_content);
 }
 
@@ -400,7 +403,10 @@ bool				ResponseGenerator::generate(Client& client) const
 
 	// ? check which method should be called
 	if (client._request._method == "GET")
+	{
 		client._response.append_buffer(this->perform_GET_method(request));
+		std::cout << client._response.get_buffer() << std::endl;
+	}
 	else
 	{
 		std::cerr << CYN << "(client._request._method != \"GET\")" << std::endl;

@@ -41,7 +41,7 @@ std::string		send_403 ()
 }
 
 /**
- * @brief send to the client a html file containing the listing of the path dir
+ * @brief send to the client a html file containing the listing of the root dir
  * 
  * @param fd the client fd
  * @param root where is located the site
@@ -57,6 +57,7 @@ std::string		directory_listing (std::string path)	// , const char *client_path)
 	std::string		page = "";
 	std::string		body = "";
 	std::string		tmp;
+	std::string		root;
 
 	// ? DEBUG
 	// std::cout << "root : " << root << std::endl;
@@ -66,7 +67,11 @@ std::string		directory_listing (std::string path)	// , const char *client_path)
 	dir = opendir((path).c_str());
 	if (dir == NULL)
 		return (send_403());
-	path = &path[1];
+	root = path;
+	tmp = path.substr(0, path.size() - 1);
+	if (tmp.rfind('/') != std::string::npos)
+		root = path.substr(tmp.rfind('/') + 1, tmp.size() - tmp.rfind('/'));
+
 	body += "<!DOCTYPE html>\r\n";
 	body += "<meta charset=\"UTF-8\">\r\n";
 	body += "<html>\r\n";
@@ -103,7 +108,7 @@ std::string		directory_listing (std::string path)	// , const char *client_path)
 		else
 		{
 			body += "<li><a href=\"";
-			body += path;
+			// body += root;
 			body += entry->d_name;
 			body += "\">";
 
