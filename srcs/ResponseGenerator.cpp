@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/31 04:45:22 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/31 06:10:42 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -190,28 +190,33 @@ std::string			ResponseGenerator::get_file_content(const Request &rq, Client & cl
 void				ResponseGenerator::set_cgi_env (Client & client, std::vector<std::string> & s_envs, std::vector<char *> & a_envs) const
 {
 	// TODO : add the rest + add env passed to main()
-	s_envs.push_back("SERVER_NAME=" + _conf->_name);
-	// s_envs.push_back("SCRIPT_NAME=" + );
-	// s_envs.push_back("SCRIPT_FILE_NAME=" + );
-	// s_envs.push_back("DOCUMENT_ROOT" + );	 // TODO : add location or route here
-	s_envs.push_back("PWD=" + std::string("./"));
-	s_envs.push_back("GATEWAY_INTERFACE=CGI/1.1");
+	char cwd[1024];
+	getcwd(cwd, sizeof(cwd));
+
+	// s_envs.push_back("SERVER_NAME=" + std::string(cwd) + client._request._path);					// ? causing troubles
+	// // s_envs.push_back("SCRIPT_NAME=" + );
+	// // s_envs.push_back("SCRIPT_FILE_NAME=" + );
+	// // s_envs.push_back("DOCUMENT_ROOT" + );	 // TODO : add location or route here
+	// s_envs.push_back("PWD=" + std::string("./"));
+	// s_envs.push_back("GATEWAY_INTERFACE=CGI/1.1");					// ? causing troubles
 	s_envs.push_back("REMOTE_ADDR=" + client._ip);
 	s_envs.push_back("REMOTE_PORT=" + client._port);
 	s_envs.push_back("SERVER_ADDR=" + this->_conf->_hosts.begin()->first);
 	s_envs.push_back("SERVER_PORT=" + ft_to_string(this->_conf->_hosts.begin()->second));
-	// s_envs.push_back("QUERY_STRING=");		// TODO add GET arguments here
+	s_envs.push_back("QUERY_STRING=");		// TODO add GET arguments here
 	s_envs.push_back("REQUEST_SCHEME=http");
-	s_envs.push_back("REQUEST_METHOD=" + client._request._method);
-	s_envs.push_back("SERVER_ADMIN=dait-atm or lpellier or ljurdant @student.42.fr"); // not sure about this one
-	s_envs.push_back("SERVER_SIGNATURE=Webserv 42");
-	// s_envs.push_back("CONTEXT_PREFIX=/cgi-bin/");
+	// s_envs.push_back("REQUEST_METHOD=" + client._request._method);	// ? causing troubles with 'GET'
+	s_envs.push_back("SERVER_SIGNATURE=42|webserv");
+	// // s_envs.push_back("CONTEXT_PREFIX=/cgi-bin/");
 	s_envs.push_back("SERVER_PROTOCOL=HTTP/1.1");
-	s_envs.push_back("SHLVL=1");
+	s_envs.push_back("SHLVL=2");
 	s_envs.push_back("PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin");	// #sharingan
 	s_envs.push_back("REQUEST_SCHEME=http");
-	// CONTEXT_DOCUMENT_ROOT= // ? add cgi complete link
+	// // CONTEXT_DOCUMENT_ROOT= // ? add a complete link
 
+	s_envs.push_back("PATH_INFO=" + std::string(cwd) + client._request._path);
+	std::cout << "PATH_INFO=" << std::string(cwd) + client._request._path << std::endl;
+	
 	// TODO : add request's headers
 
 	int i = 0;
@@ -230,7 +235,7 @@ void				ResponseGenerator::start_cgi (Client & client, std::string cgi_url, std:
 	std::vector<std::string>	s_envs;
 	std::vector<char *>			a_envs;
 
-	// set_cgi_env(client, s_envs, a_envs);
+	set_cgi_env(client, s_envs, a_envs);
 	exe[0] = &cgi_url[0];
 	exe[1] = &path[0];
 	exe[2] = NULL;
@@ -238,8 +243,8 @@ void				ResponseGenerator::start_cgi (Client & client, std::string cgi_url, std:
 	dup2(cgi_pipe[0], 0);
 	dup2(cgi_pipe[1], 1);
 
-	// execve(exe[0], exe, a_envs.data());
-	execve(exe[0], exe, NULL);
+	execve(exe[0], exe, a_envs.data());
+
 	// TODO : clean memory. maybe by an ugly exception
 	std::cerr << CYN << "execve_failed" << std::endl;
 	exit(66);
@@ -259,6 +264,9 @@ std::string			ResponseGenerator::listen_cgi (Client & client,
 	// ? https://cboard.cprogramming.com/c-programming/138057-waitpid-non-blocking-fork.html
 	waitpid(-1, &child, 0);
 
+	if (WIFEXITED(child))
+		std::cerr << "CGI returned : " << WEXITSTATUS(child) << std::endl;
+
 	// ! avoid this loop by entering/leaving this function until child is exited
 	while (1)
 	{
@@ -272,6 +280,7 @@ std::string			ResponseGenerator::listen_cgi (Client & client,
 		// std::cerr << ">>>>[" << response << "]<<<<" << std::endl;
 	}
 
+	// ? php might give this content so we need to double check the cgi's response
 	page = "HTTP/1.1 200 OK\r\n";
 	page += "Server: Webserv 42\r\n";	// TODO : set a cool header
 	page += "Content-Length: ";
