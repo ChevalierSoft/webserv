@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/31 06:12:51 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/31 06:25:13 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -275,9 +275,8 @@ std::string			ResponseGenerator::listen_cgi (Client & client,
 		err = read(cgi_pipe[0], buff, CGI_BUFF_SIZE - 1);
 		if (err <= 0)
 			break ;
-
 		response += buff;
-		std::cerr << ">>>>[" << response << "]<<<<" << std::endl;
+		// std::cerr << ">>>>[" << response << "]<<<<" << std::endl;
 	}
 
 	// ? php might give this content so we need to double check the cgi's response
