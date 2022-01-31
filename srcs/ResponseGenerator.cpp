@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/31 06:10:42 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/01/31 06:12:51 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -215,7 +215,7 @@ void				ResponseGenerator::set_cgi_env (Client & client, std::vector<std::string
 	// // CONTEXT_DOCUMENT_ROOT= // ? add a complete link
 
 	s_envs.push_back("PATH_INFO=" + std::string(cwd) + client._request._path);
-	std::cout << "PATH_INFO=" << std::string(cwd) + client._request._path << std::endl;
+	// std::cout << "PATH_INFO=" << std::string(cwd) + client._request._path << std::endl;
 	
 	// TODO : add request's headers
 
@@ -264,8 +264,8 @@ std::string			ResponseGenerator::listen_cgi (Client & client,
 	// ? https://cboard.cprogramming.com/c-programming/138057-waitpid-non-blocking-fork.html
 	waitpid(-1, &child, 0);
 
-	if (WIFEXITED(child))
-		std::cerr << "CGI returned : " << WEXITSTATUS(child) << std::endl;
+	// if (WIFEXITED(child))
+	// 	std::cerr << "CGI returned : " << WEXITSTATUS(child) << std::endl;
 
 	// ! avoid this loop by entering/leaving this function until child is exited
 	while (1)
@@ -410,23 +410,11 @@ bool				ResponseGenerator::generate(Client& client) const
 	// ! clear at the creation of the client. here it will erase the response each loop 
 	client._response.clear();
 
-	// ? __testing cgi __
-	// std::cout << *_conf->_cgi.begin() << std::endl;
-	// client._response_ready = true;
-	// std::string		mycgi = client._request._route._cgis.find(get_file_extention(client._request._path));
-	// if (mycgi)
-	// std::cout << mycgi << std::endl;
-	// client._response.append_buffer(this->cgi_handling(client, mycgi, client._request._path));
-	// return (false);
-	// ? ________________
-
 	Request request(parse_request_route(client._request));
 
 	// ? check which method should be called
 	if (client._request._method == "GET")
 		client._response.append_buffer(this->perform_GET_method(request, client));
-
-
 	else
 	{
 		std::cerr << CYN << "(client._request._method != \"GET\")" << std::endl;
