@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ResponseGenerator.cpp                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
+/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/28 21:21:07 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/01/31 04:45:22 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -224,19 +224,22 @@ void				ResponseGenerator::set_cgi_env (Client & client, std::vector<std::string
 	return ;
 }
 
-void				ResponseGenerator::start_cgi (Client & client, std::string url, std::string path, int cgi_pipe[2]) const
+void				ResponseGenerator::start_cgi (Client & client, std::string cgi_url, std::string path, int cgi_pipe[2]) const
 {
 	char						*exe[3];
 	std::vector<std::string>	s_envs;
 	std::vector<char *>			a_envs;
 
-	set_cgi_env(client, s_envs, a_envs);
-	exe[0] = &url[0];
+	// set_cgi_env(client, s_envs, a_envs);
+	exe[0] = &cgi_url[0];
 	exe[1] = &path[0];
-	exe[1] = NULL;
+	exe[2] = NULL;
+
 	dup2(cgi_pipe[0], 0);
 	dup2(cgi_pipe[1], 1);
-	execve(exe[0], exe, a_envs.data());
+
+	// execve(exe[0], exe, a_envs.data());
+	execve(exe[0], exe, NULL);
 	// TODO : clean memory. maybe by an ugly exception
 	std::cerr << CYN << "execve_failed" << std::endl;
 	exit(66);
@@ -306,12 +309,12 @@ bool				ResponseGenerator::cgi_send_body (Client & client, int cgi_pipe[2]) cons
 	return (false);
 }
 
-std::string			ResponseGenerator::cgi_handling (Client & client, std::string url, std::string path) const
+std::string			ResponseGenerator::cgi_handling (Client & client, std::string cgi_url, std::string path) const
 {
 	int				cgi_pipe[2];
 	pid_t			child;
 	std::string		response;
-	
+
 	if (pipe(cgi_pipe))
 		return (get_error_file(500));
 
@@ -327,7 +330,7 @@ std::string			ResponseGenerator::cgi_handling (Client & client, std::string url,
 		return (get_error_file(500));
 	}
 	else if (!child)
-		this->start_cgi(client, url, path, cgi_pipe);
+		this->start_cgi(client, cgi_url, path, cgi_pipe);
 
 	if (client._body_sent == false)
 	{
@@ -335,12 +338,12 @@ std::string			ResponseGenerator::cgi_handling (Client & client, std::string url,
 			return (get_error_file(500));
 	}
 
-	response = listen_cgi(client, url, cgi_pipe, child);
+	response = listen_cgi(client, cgi_url, cgi_pipe, child);
 
 	return (response);
 }
 
-std::string		ResponseGenerator::get_redirection(const Route::redir_type & redir) const {
+std::string			ResponseGenerator::get_redirection(const Route::redir_type & redir) const {
 	return ("HTTP/1.1 " + ft_to_string(redir.first) + " " + _ss_error_messages.at(redir.first) + "\r\nLocation: " + redir.second + "\r\n\r\n");
 }
 
@@ -401,7 +404,10 @@ bool				ResponseGenerator::generate(Client& client) const
 	// ? __testing cgi __
 	// std::cout << *_conf->_cgi.begin() << std::endl;
 	// client._response_ready = true;
-	// client._response.append_buffer(this->cgi_handling(client, *_conf->_cgi.begin()));
+	// std::string		mycgi = client._request._route._cgis.find(get_file_extention(client._request._path));
+	// if (mycgi)
+	// std::cout << mycgi << std::endl;
+	// client._response.append_buffer(this->cgi_handling(client, mycgi, client._request._path));
 	// return (false);
 	// ? ________________
 
