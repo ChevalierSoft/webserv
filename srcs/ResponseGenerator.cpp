@@ -200,7 +200,7 @@ void				ResponseGenerator::set_cgi_env (Client & client, std::vector<std::string
 	s_envs.push_back("REMOTE_PORT=" + client._port);
 	s_envs.push_back("SERVER_ADDR=" + this->_conf->_hosts.begin()->first);
 	s_envs.push_back("SERVER_PORT=" + ft_to_string(this->_conf->_hosts.begin()->second));
-	// s_envs.push_back("QUERY_STRING=");		// TODO add GET arguments here
+	s_envs.push_back("QUERY_STRING=");		// TODO add GET arguments here
 	s_envs.push_back("REQUEST_SCHEME=http");
 	s_envs.push_back("REQUEST_METHOD=" + client._request._method);
 	s_envs.push_back("SERVER_ADMIN=dait-atm or lpellier or ljurdant @student.42.fr"); // not sure about this one
@@ -232,11 +232,13 @@ void				ResponseGenerator::start_cgi (Client & client, std::string url, std::str
 
 	set_cgi_env(client, s_envs, a_envs);
 	exe[0] = &url[0];
+	// path = "/mnt/c/Users/louis/OneDrive/Documents/42/webserv_cgi/tst/cgi/executables/php_info.php";
+	// std::cout << "url = " << url << ", path = " << path << std::endl;
 	exe[1] = &path[0];
 	exe[1] = NULL;
 	dup2(cgi_pipe[0], 0);
 	dup2(cgi_pipe[1], 1);
-	execve(exe[0], exe, a_envs.data());
+	execve(exe[0], exe, NULL);
 	// TODO : clean memory. maybe by an ugly exception
 	std::cerr << CYN << "execve_failed" << std::endl;
 	exit(66);
@@ -261,12 +263,11 @@ std::string			ResponseGenerator::listen_cgi (Client & client,
 	{
 		memset(buff, 0, CGI_BUFF_SIZE);
 		err = read(cgi_pipe[0], buff, CGI_BUFF_SIZE - 1);
-
 		if (err <= 0)
 			break ;
 
 		response += buff;
-		// std::cerr << ">>>>[" << response << "]<<<<" << std::endl;
+		std::cerr << ">>>>[" << response << "]<<<<" << std::endl;
 	}
 
 	page = "HTTP/1.1 200 OK\r\n";
@@ -336,7 +337,7 @@ std::string			ResponseGenerator::cgi_handling (Client & client, std::string url,
 	}
 
 	response = listen_cgi(client, url, cgi_pipe, child);
-
+	// std::cout << "response = " << response << std::endl;
 	return (response);
 }
 
@@ -410,8 +411,6 @@ bool				ResponseGenerator::generate(Client& client) const
 	// ? check which method should be called
 	if (client._request._method == "GET")
 		client._response.append_buffer(this->perform_GET_method(request, client));
-
-
 	else
 	{
 		std::cerr << CYN << "(client._request._method != \"GET\")" << std::endl;
