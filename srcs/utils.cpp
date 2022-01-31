@@ -6,7 +6,7 @@
 /*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 17:07:56 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/31 17:51:26 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/01/31 17:55:42 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -107,7 +107,7 @@ std::map<int, std::string>	set_error_map ()
 	m[451] = "Unavailable For Legal Reasons"; // USELESS // // ? User requested an illegal resource -> Server calls the cops
 
 	// ? Server error responses
-	m[500] = "Internal Server Error"; // ? Server encountered a situation that it's unable to handle
+	m[500] = "Internal Server Error"; // // // ? Server encountered a situation that it's unable to handle
 	m[501] = "Not Implemented"; // ? Unsupported by the server
 	m[502] = "Bad Gateway"; // USELESS // // ? Server received invalid response while working as a gateway to handle the response
 	m[503] = "Service Unavailable"; // USELESS // // ? Server currently not ready to handle request commonly due to maintenance
