@@ -236,6 +236,7 @@ void				ResponseGenerator::start_cgi (Client & client, std::string cgi_url, std:
 	std::vector<char *>			a_envs;
 
 	set_cgi_env(client, s_envs, a_envs);
+
 	exe[0] = &cgi_url[0];
 	exe[1] = &path[0];
 	exe[2] = NULL;
@@ -272,12 +273,11 @@ std::string			ResponseGenerator::listen_cgi (Client & client,
 	{
 		memset(buff, 0, CGI_BUFF_SIZE);
 		err = read(cgi_pipe[0], buff, CGI_BUFF_SIZE - 1);
-
 		if (err <= 0)
 			break ;
 
 		response += buff;
-		// std::cerr << ">>>>[" << response << "]<<<<" << std::endl;
+		std::cerr << ">>>>[" << response << "]<<<<" << std::endl;
 	}
 
 	// ? php might give this content so we need to double check the cgi's response

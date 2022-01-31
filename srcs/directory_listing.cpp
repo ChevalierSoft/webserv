@@ -108,7 +108,7 @@ std::string		directory_listing (std::string path)	// , const char *client_path)
 		else
 		{
 			body += "<li><a href=\"";
-			// body += root;
+			body += root;
 			body += entry->d_name;
 			body += "\">";
 
