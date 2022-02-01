@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ResponseGenerator.cpp                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
+/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/01 16:04:56 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/02/01 17:07:31 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -153,7 +153,6 @@ std::string			ResponseGenerator::get_error_file (Conf::code_type err) const
  * @param path the requested file
  * @return std::string file content as string
  */
-
 std::string			ResponseGenerator::get_file_content(const Request &rq, Client & client) const
 {
 	std::ifstream					i_file;
@@ -187,43 +186,72 @@ std::string			ResponseGenerator::get_file_content(const Request &rq, Client & cl
 	return (s_full_content);
 }
 
-void				ResponseGenerator::set_cgi_env (Client & client, std::vector<std::string> & s_envs, std::vector<char *> & a_envs) const
+#include <algorithm> 
+void				ResponseGenerator::set_cgi_env (Client & client, std::string path, std::vector<std::string> & s_envs, std::vector<char *> & a_envs) const
 {
 	// TODO : add the rest + add env passed to main()
 	char cwd[1024];
 	getcwd(cwd, sizeof(cwd));
 
-	// s_envs.push_back("SERVER_NAME=" + std::string(cwd) + client._request._path);					// ? causing troubles
-	// // s_envs.push_back("SCRIPT_NAME=" + );
-	// // s_envs.push_back("SCRIPT_FILE_NAME=" + );
-	// // s_envs.push_back("DOCUMENT_ROOT" + );	 // TODO : add location or route here
-	// s_envs.push_back("PWD=" + std::string("./"));
-	// s_envs.push_back("GATEWAY_INTERFACE=CGI/1.1");					// ? causing troubles
+	s_envs.push_back("QUERY_STRING=" + client._request._get_query);
+	// std::cout << GRN << client._request._get_query << RST << std::endl;
+	// std::cout << GRN << cwd << "/" << path << RST << std::endl;
+
+	if (client._request._method == "POST")
+	{
+		// ! using a vector of string is confusing. need to use the full size there
+		s_envs.push_back("CONTENT_LENGTH=" + ft_to_string(client._request.begin_body()->size()));
+		// s_envs.push_back("CONTENT_TYPE=application/x-www-form-urlencoded");							// TODO : use the one from request
+		s_envs.push_back("CONTENT_TYPE=" + client._request.find_header("Content-Type"));
+	}
+
+	s_envs.push_back("AUTH_TYPE=BASIC");
+
+	s_envs.push_back("GATEWAY_INTERFACE=CGI/1.1");
+	s_envs.push_back("REQUEST_METHOD=" + client._request._method);
+	s_envs.push_back("SERVER_NAME=" + std::string(cwd) + client._request._path);
+	s_envs.push_back("SCRIPT_FILENAME="+ std::string(cwd) + "/" + path);			// b word
+
+	s_envs.push_back("SCRIPT_NAME=" + client._request._path);
+	s_envs.push_back("SCRIPT_FILE_NAME=" + client._request._path);
+	s_envs.push_back("REDIRECT_STATUS=200");
+	s_envs.push_back("REQUEST_URI=" + client._request._path + "?" + client._request._get_query);
 	s_envs.push_back("REMOTE_ADDR=" + client._ip);
 	s_envs.push_back("REMOTE_PORT=" + client._port);
 	s_envs.push_back("SERVER_ADDR=" + this->_conf->_hosts.begin()->first);
 	s_envs.push_back("SERVER_PORT=" + ft_to_string(this->_conf->_hosts.begin()->second));
-	s_envs.push_back("QUERY_STRING=");		// TODO add GET arguments here
 	s_envs.push_back("REQUEST_SCHEME=http");
-	// s_envs.push_back("REQUEST_METHOD=" + client._request._method);	// ? causing troubles with 'GET'
 	s_envs.push_back("SERVER_SIGNATURE=42|webserv");
-	// // s_envs.push_back("CONTEXT_PREFIX=/cgi-bin/");
+	// s_envs.push_back("CONTEXT_PREFIX=/`-bin/");
 	s_envs.push_back("SERVER_PROTOCOL=HTTP/1.1");
 	s_envs.push_back("SHLVL=2");
-	s_envs.push_back("PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin");	// #sharingan
+	s_envs.push_back("PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin");	// todo use the one from main
 	s_envs.push_back("REQUEST_SCHEME=http");
-	// // CONTEXT_DOCUMENT_ROOT= // ? add a complete link
+	// CONTEXT_DOCUMENT_ROOT= // ? add a complete link
+	s_envs.push_back("PATH_TRANSLATED=" + client._request._path);
+	s_envs.push_back("PATH_INFO=" + client._request._path);
 
-	s_envs.push_back("PATH_INFO=" + std::string(cwd) + client._request._path);
-	// std::cout << "PATH_INFO=" << std::string(cwd) + client._request._path << std::endl;
-	
 	// TODO : add request's headers
+	// for (Message::it_header it = client._request.begin_header();
+	// 		it != client._request.end_header(); ++it)
+	// {
+	// 	// s_envs.push_back()
+	// 	std::transform(it->first.begin(), it->first.end(), it->first.begin(), static_cast<int (*)(int)>(&std::toupper));
+	// }
+
+	// s_envs.push_back("HTTP_ACCEPT=text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8");
+	// s_envs.push_back("HTTP_ACCEPT_CHARSET=utf-8;q=0.5");
+	// s_envs.push_back("HTTP_ACCEPT_ENCODING=compress;q=0.5");
+	s_envs.push_back("HTTP_ACCEPT_LANGUAGE=" +  client._request.find_header("Accept-Language"));
+	// s_envs.push_back("HTTP_HOST=localhost:12345");
+	// s_envs.push_back("HTTP_REFERER=http://localhost:12345/home/sub4/form_POST.html");
+	// s_envs.push_back("ORIGIN=http://localhost:12345");
 
 	int i = 0;
 	for (std::vector<std::string>::const_iterator cit = s_envs.begin();
 			cit != s_envs.end() ; ++cit)
 		a_envs.push_back(&s_envs[i++][0]);
-	
+
 	a_envs.push_back(NULL);
 
 	return ;
@@ -235,7 +263,7 @@ void				ResponseGenerator::start_cgi (Client & client, std::string cgi_url, std:
 	std::vector<std::string>	s_envs;
 	std::vector<char *>			a_envs;
 
-	set_cgi_env(client, s_envs, a_envs);
+	set_cgi_env(client, path, s_envs, a_envs);
 
 	exe[0] = &cgi_url[0];
 	exe[1] = &path[0];
@@ -279,6 +307,11 @@ std::string			ResponseGenerator::listen_cgi (Client & client,
 		// std::cerr << ">>>>[" << response << "]<<<<" << std::endl;
 	}
 
+	close(cgi_pipe[0]);
+	close(cgi_pipe[1]);
+
+	// std::cout << response << std::endl;
+
 	// ? php might give this content so we need to double check the cgi's response
 	page = "HTTP/1.1 200 OK\r\n";
 	page += "Server: Webserv 42\r\n";	// TODO : set a cool header
@@ -305,11 +338,14 @@ bool				ResponseGenerator::cgi_send_body (Client & client, int cgi_pipe[2]) cons
 	for (std::vector<std::string>::const_iterator cit = client._request.begin_body();
 		cit != client._request.end_body(); ++cit)
 	{
+		// std::cout << GRN << cit->c_str() << RST << std::endl;
 		err = write(cgi_pipe[1], cit->c_str(), cit->length());
 		if (err < 0)
 			return (true);
 	}
-	
+
+	close(cgi_pipe[1]);
+
 	// TODO : if (cit == client._request.end_body())
 	std::cerr << "body sent" << std::endl;
 	client._body_sent = true;
@@ -420,13 +456,12 @@ bool				ResponseGenerator::generate(Client& client) const
 	Request request(parse_request_route(client._request));
 
 	// ? check which method should be called
-	if (client._request._method == "GET")
+	if (client._request._method == "GET"
+		|| client._request._method == "POST"
+		|| client._request._method == "DELETE")
 		client._response.append_buffer(this->perform_GET_method(request, client));
 	else
-	{
-		std::cerr << CYN << "(client._request._method != \"GET\")" << std::endl;
 		client._response.append_buffer(get_error_file(501));
-	}
 
 	client._response_ready = true;
 

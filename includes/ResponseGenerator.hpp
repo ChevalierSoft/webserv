@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ResponseGenerator.hpp                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
+/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 10:06:11 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/01 16:12:09 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/02/01 17:01:30 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,7 +61,7 @@ private:
 
 	std::string			get_error_file (int err) const;
 
-	void				set_cgi_env (Client & client, std::vector<std::string> & se, std::vector<char *> & ae) const;
+	void				set_cgi_env (Client & client, std::string path, std::vector<std::string> & se, std::vector<char *> & ae) const;
 
 	void				start_cgi (Client & client, std::string url, std::string path, int cgi_pipe[2]) const;
 
