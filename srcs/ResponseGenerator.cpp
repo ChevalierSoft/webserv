@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/31 06:25:13 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/01 01:11:33 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -153,7 +153,6 @@ std::string			ResponseGenerator::get_error_file (Conf::code_type err) const
  * @param path the requested file
  * @return std::string file content as string
  */
-
 std::string			ResponseGenerator::get_file_content(const Request &rq, Client & client) const
 {
 	std::ifstream					i_file;
@@ -193,37 +192,44 @@ void				ResponseGenerator::set_cgi_env (Client & client, std::vector<std::string
 	char cwd[1024];
 	getcwd(cwd, sizeof(cwd));
 
-	// s_envs.push_back("SERVER_NAME=" + std::string(cwd) + client._request._path);					// ? causing troubles
-	// // s_envs.push_back("SCRIPT_NAME=" + );
-	// // s_envs.push_back("SCRIPT_FILE_NAME=" + );
-	// // s_envs.push_back("DOCUMENT_ROOT" + );	 // TODO : add location or route here
-	// s_envs.push_back("PWD=" + std::string("./"));
-	// s_envs.push_back("GATEWAY_INTERFACE=CGI/1.1");					// ? causing troubles
+	s_envs.push_back("QUERY_STRING=" + client._request._get_query);
+	std::cout << GRN << client._request._get_query << RST << std::endl;
+	// s_envs.push_back("QUERY_STRING=v1=a&v2=3" + client._request._get_query);
+
+	// s_envs.push_back("CONTENT_LENGTH=0");										// ! when POST is used
+
+	// s_envs.push_back("GATEWAY_INTERFACE=CGI/1.1");								// ? causing troubles
+	// s_envs.push_back("REQUEST_METHOD=GET");// + client._request._method);		// ? causing troubles with 'GET'
+	// s_envs.push_back("SERVER_NAME=" + std::string(cwd) + client._request._path);	// ? causing troubles
+	// s_envs.push_back("SERVER_NAME=localhost");									// ? causing troubles
+
+	s_envs.push_back("SCRIPT_NAME=" + client._request._path);
+	s_envs.push_back("SCRIPT_FILE_NAME=" + client._request._path);
+	// s_envs.push_back("PWD=" + std::string("/usr/lib/cgi-bin/"));
+	s_envs.push_back("REDIRECT_STATUS=200");
+	s_envs.push_back("REQUEST_URI=" + client._request._path + "?" + client._request._get_query);
 	s_envs.push_back("REMOTE_ADDR=" + client._ip);
 	s_envs.push_back("REMOTE_PORT=" + client._port);
 	s_envs.push_back("SERVER_ADDR=" + this->_conf->_hosts.begin()->first);
 	s_envs.push_back("SERVER_PORT=" + ft_to_string(this->_conf->_hosts.begin()->second));
-	s_envs.push_back("QUERY_STRING=");		// TODO add GET arguments here
 	s_envs.push_back("REQUEST_SCHEME=http");
-	// s_envs.push_back("REQUEST_METHOD=" + client._request._method);	// ? causing troubles with 'GET'
 	s_envs.push_back("SERVER_SIGNATURE=42|webserv");
-	// // s_envs.push_back("CONTEXT_PREFIX=/cgi-bin/");
+	// s_envs.push_back("CONTEXT_PREFIX=/`-bin/");
 	s_envs.push_back("SERVER_PROTOCOL=HTTP/1.1");
 	s_envs.push_back("SHLVL=2");
-	s_envs.push_back("PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin");	// #sharingan
+	s_envs.push_back("PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin");	// todo use the one from main
 	s_envs.push_back("REQUEST_SCHEME=http");
-	// // CONTEXT_DOCUMENT_ROOT= // ? add a complete link
+	// CONTEXT_DOCUMENT_ROOT= // ? add a complete link
+	s_envs.push_back("PATH_TRANSLATED=" + client._request._path);
+	s_envs.push_back("PATH_INFO=" + client._request._path);
 
-	s_envs.push_back("PATH_INFO=" + std::string(cwd) + client._request._path);
-	// std::cout << "PATH_INFO=" << std::string(cwd) + client._request._path << std::endl;
-	
 	// TODO : add request's headers
 
 	int i = 0;
 	for (std::vector<std::string>::const_iterator cit = s_envs.begin();
 			cit != s_envs.end() ; ++cit)
 		a_envs.push_back(&s_envs[i++][0]);
-	
+
 	a_envs.push_back(NULL);
 
 	return ;
@@ -278,6 +284,8 @@ std::string			ResponseGenerator::listen_cgi (Client & client,
 		response += buff;
 		// std::cerr << ">>>>[" << response << "]<<<<" << std::endl;
 	}
+
+	// std::cout << response << std::endl;
 
 	// ? php might give this content so we need to double check the cgi's response
 	page = "HTTP/1.1 200 OK\r\n";
