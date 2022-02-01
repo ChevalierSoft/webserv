@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/01 07:06:38 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/01 16:07:10 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -186,6 +186,7 @@ std::string			ResponseGenerator::get_file_content(const Request &rq, Client & cl
 	return (s_full_content);
 }
 
+#include <algorithm> 
 void				ResponseGenerator::set_cgi_env (Client & client, std::vector<std::string> & s_envs, std::vector<char *> & a_envs) const
 {
 	// TODO : add the rest + add env passed to main()
@@ -193,19 +194,24 @@ void				ResponseGenerator::set_cgi_env (Client & client, std::vector<std::string
 	getcwd(cwd, sizeof(cwd));
 
 	s_envs.push_back("QUERY_STRING=" + client._request._get_query);
-	std::cout << GRN << client._request._get_query << RST << std::endl;
+	// std::cout << GRN << client._request._get_query << RST << std::endl;
 
 	if (client._request._method == "POST")
-		s_envs.push_back("CONTENT_LENGTH=" + ft_to_string(client._request.begin_body()->size()));		// ! when POST is used
+	{
+		// ! using a vector of string is confusing. need to use the full size there
+		s_envs.push_back("CONTENT_LENGTH=" + ft_to_string(client._request.begin_body()->size()));
+		s_envs.push_back("CONTENT_TYPE=application/x-www-form-urlencoded");
+	}
 
-	// s_envs.push_back("GATEWAY_INTERFACE=CGI/1.1");								// ? causing troubles
-	// s_envs.push_back("REQUEST_METHOD=" + client._request._method);					// ? causing troubles with 'GET'
-	// s_envs.push_back("SERVER_NAME=" + std::string(cwd) + client._request._path);	// ? causing troubles
-	// s_envs.push_back("SERVER_NAME=localhost");									// ? causing troubles
+	s_envs.push_back("AUTH_TYPE=BASIC");
+
+	s_envs.push_back("GATEWAY_INTERFACE=CGI/1.1");
+	s_envs.push_back("REQUEST_METHOD=" + client._request._method);
+	s_envs.push_back("SERVER_NAME=" + std::string(cwd) + client._request._path);
+	s_envs.push_back("SCRIPT_FILENAME=/mnt/d/Git/webserv/site/sub4/print_POST.php");
 
 	s_envs.push_back("SCRIPT_NAME=" + client._request._path);
 	s_envs.push_back("SCRIPT_FILE_NAME=" + client._request._path);
-	// s_envs.push_back("PWD=" + std::string("/usr/lib/cgi-bin/"));
 	s_envs.push_back("REDIRECT_STATUS=200");
 	s_envs.push_back("REQUEST_URI=" + client._request._path + "?" + client._request._get_query);
 	s_envs.push_back("REMOTE_ADDR=" + client._ip);
@@ -224,6 +230,20 @@ void				ResponseGenerator::set_cgi_env (Client & client, std::vector<std::string
 	s_envs.push_back("PATH_INFO=" + client._request._path);
 
 	// TODO : add request's headers
+	// for (Message::it_header it = client._request.begin_header();
+	// 		it != client._request.end_header(); ++it)
+	// {
+	// 	// s_envs.push_back()
+	// 	std::transform(it->first.begin(), it->first.end(), it->first.begin(), static_cast<int (*)(int)>(&std::toupper));
+	// }
+
+	// s_envs.push_back("HTTP_ACCEPT=text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8");
+	// s_envs.push_back("HTTP_ACCEPT_CHARSET=utf-8;q=0.5");
+	// s_envs.push_back("HTTP_ACCEPT_ENCODING=compress;q=0.5");
+	// s_envs.push_back("HTTP_ACCEPT_LANGUAGE=en;q=0.5");
+	// s_envs.push_back("HTTP_HOST=localhost:12345");
+	// s_envs.push_back("HTTP_REFERER=http://localhost:12345/home/sub4/form_POST.html");
+	// s_envs.push_back("ORIGIN=http://localhost:12345");
 
 	int i = 0;
 	for (std::vector<std::string>::const_iterator cit = s_envs.begin();
@@ -316,7 +336,7 @@ bool				ResponseGenerator::cgi_send_body (Client & client, int cgi_pipe[2]) cons
 	for (std::vector<std::string>::const_iterator cit = client._request.begin_body();
 		cit != client._request.end_body(); ++cit)
 	{
-		std::cout << GRN << cit->c_str() << RST << std::endl;
+		// std::cout << GRN << cit->c_str() << RST << std::endl;
 		err = write(cgi_pipe[1], cit->c_str(), cit->length());
 		if (err < 0)
 			return (true);
