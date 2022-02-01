@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/01 17:05:09 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/01 17:07:31 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -242,7 +242,7 @@ void				ResponseGenerator::set_cgi_env (Client & client, std::string path, std::
 	// s_envs.push_back("HTTP_ACCEPT=text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8");
 	// s_envs.push_back("HTTP_ACCEPT_CHARSET=utf-8;q=0.5");
 	// s_envs.push_back("HTTP_ACCEPT_ENCODING=compress;q=0.5");
-	// s_envs.push_back("HTTP_ACCEPT_LANGUAGE=en;q=0.5");
+	s_envs.push_back("HTTP_ACCEPT_LANGUAGE=" +  client._request.find_header("Accept-Language"));
 	// s_envs.push_back("HTTP_HOST=localhost:12345");
 	// s_envs.push_back("HTTP_REFERER=http://localhost:12345/home/sub4/form_POST.html");
 	// s_envs.push_back("ORIGIN=http://localhost:12345");
