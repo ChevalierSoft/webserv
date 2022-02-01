@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ResponseGenerator.cpp                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
+/*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/31 06:25:13 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/01 16:04:56 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -408,6 +408,14 @@ bool				ResponseGenerator::generate(Client& client) const
 {
 	// ! clear at the creation of the client. here it will erase the response each loop 
 	client._response.clear();
+
+	int	error_code;
+
+	if ((error_code = client._request.request_error())) {
+		client._response.append_buffer(get_error_file(error_code));
+		client._response_ready = true;
+		return (false);
+	}
 
 	Request request(parse_request_route(client._request));
 

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
+/*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/28 04:27:24 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/01 16:56:57 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,9 +86,7 @@ void		Client::parse_response ()
 	while (this->_request._in_header && (end_of_request = this->_request.update_header()) == 0);
 	if (this->_request._error > 0) {
 		this->_request_ready = true;
-		this->_request.d_output();
 		std::cout << RED << "Error in header : " << this->_request._error << " (refer to errors enum)" << RST << std::endl;
-		return ;
 	}
 
 	if (!this->_request._in_header && this->_request._method != "POST") {
@@ -103,8 +101,6 @@ void		Client::parse_response ()
 		this->_request.d_output();
 		this->_request_ready = true;
 	}
-
-	return ;
 }
 
 /**
@@ -144,6 +140,7 @@ bool		Client::send_response (int sd_out)
 	}
 	// ? Setting generated response to false after each send for now
 	this->_request_ready = false;
+	this->_response.clear();
 	return true;
 }
 
