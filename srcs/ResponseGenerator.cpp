@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/01 16:07:10 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/01 16:50:01 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -187,7 +187,7 @@ std::string			ResponseGenerator::get_file_content(const Request &rq, Client & cl
 }
 
 #include <algorithm> 
-void				ResponseGenerator::set_cgi_env (Client & client, std::vector<std::string> & s_envs, std::vector<char *> & a_envs) const
+void				ResponseGenerator::set_cgi_env (Client & client, std::string path, std::vector<std::string> & s_envs, std::vector<char *> & a_envs) const
 {
 	// TODO : add the rest + add env passed to main()
 	char cwd[1024];
@@ -195,12 +195,13 @@ void				ResponseGenerator::set_cgi_env (Client & client, std::vector<std::string
 
 	s_envs.push_back("QUERY_STRING=" + client._request._get_query);
 	// std::cout << GRN << client._request._get_query << RST << std::endl;
+	// std::cout << GRN << cwd << "/" << path << RST << std::endl;
 
 	if (client._request._method == "POST")
 	{
 		// ! using a vector of string is confusing. need to use the full size there
 		s_envs.push_back("CONTENT_LENGTH=" + ft_to_string(client._request.begin_body()->size()));
-		s_envs.push_back("CONTENT_TYPE=application/x-www-form-urlencoded");
+		s_envs.push_back("CONTENT_TYPE=application/x-www-form-urlencoded");							// TODO : use the one from request
 	}
 
 	s_envs.push_back("AUTH_TYPE=BASIC");
@@ -208,7 +209,7 @@ void				ResponseGenerator::set_cgi_env (Client & client, std::vector<std::string
 	s_envs.push_back("GATEWAY_INTERFACE=CGI/1.1");
 	s_envs.push_back("REQUEST_METHOD=" + client._request._method);
 	s_envs.push_back("SERVER_NAME=" + std::string(cwd) + client._request._path);
-	s_envs.push_back("SCRIPT_FILENAME=/mnt/d/Git/webserv/site/sub4/print_POST.php");
+	s_envs.push_back("SCRIPT_FILENAME="+ std::string(cwd) + "/" + path);			// b word
 
 	s_envs.push_back("SCRIPT_NAME=" + client._request._path);
 	s_envs.push_back("SCRIPT_FILE_NAME=" + client._request._path);
@@ -261,7 +262,7 @@ void				ResponseGenerator::start_cgi (Client & client, std::string cgi_url, std:
 	std::vector<std::string>	s_envs;
 	std::vector<char *>			a_envs;
 
-	set_cgi_env(client, s_envs, a_envs);
+	set_cgi_env(client, path, s_envs, a_envs);
 
 	exe[0] = &cgi_url[0];
 	exe[1] = &path[0];
