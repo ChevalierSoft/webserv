@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/01 16:50:01 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/01 17:03:26 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -201,7 +201,7 @@ void				ResponseGenerator::set_cgi_env (Client & client, std::string path, std::
 	{
 		// ! using a vector of string is confusing. need to use the full size there
 		s_envs.push_back("CONTENT_LENGTH=" + ft_to_string(client._request.begin_body()->size()));
-		s_envs.push_back("CONTENT_TYPE=application/x-www-form-urlencoded");							// TODO : use the one from request
+		// s_envs.push_back("CONTENT_TYPE=application/x-www-form-urlencoded");							// TODO : use the one from request
 	}
 
 	s_envs.push_back("AUTH_TYPE=BASIC");
@@ -443,6 +443,14 @@ bool				ResponseGenerator::generate(Client& client) const
 {
 	// ! clear at the creation of the client. here it will erase the response each loop 
 	client._response.clear();
+
+	int	error_code;
+
+	if ((error_code = client._request.request_error())) {
+		client._response.append_buffer(get_error_file(error_code));
+		client._response_ready = true;
+		return (false);
+	}
 
 	Request request(parse_request_route(client._request));
 

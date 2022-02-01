@@ -6,12 +6,6 @@
 #include <cstring>
 #include "color.h"
 #include <cstdlib>
-// #include "ft_print_memory.hpp"
-
-
-// TODO difference between content-length and actual size of body may be an error
-
-// TODO Content-Length if there is one overrides \r\n to detect end of body -> needed for upload or post probably
 
 # define BUFFER_SIZE	64
 
@@ -29,7 +23,7 @@ enum errors {
 class Message {
 
 protected:
-	std::map<std::string, std::vector<std::string> >	_header; // header contents stored in a map of key-values
+	std::map<std::string, std::string>	_header; // header contents stored in a map of key-values
 	std::vector<std::string>			_body; // body contents stored in a vector of strings
 
 	std::string							_buffer; // internal buffer to keep track of packets
@@ -45,10 +39,9 @@ public:
 	bool								_in_header;
 	int									_error;
 	
-	typedef std::vector<std::string>						str_vec;
-	typedef std::pair<std::string, str_vec>					value_type;
-	typedef std::map<std::string, str_vec>::const_iterator	it_header;
-	typedef str_vec::const_iterator							it_value;
+	typedef std::pair<std::string, std::string>					value_type;
+	typedef std::map<std::string, std::string>::const_iterator	it_header;
+	typedef std::vector<std::string>::const_iterator							it_value;
 	
 	Message(void) {
 		clear();
@@ -112,8 +105,8 @@ public:
 	}
 
 
-	str_vec	split_values(std::string::const_iterator _begin, std::string::const_iterator _end) {
-		str_vec	ret;
+	std::vector<std::string>	split_values(std::string::const_iterator _begin, std::string::const_iterator _end) {
+		std::vector<std::string>	ret;
 
 		while (_begin != _end) {
 			std::string::const_iterator	new_str_begin = _begin;
@@ -141,7 +134,7 @@ public:
 		int found;
 
 		if ((found = str.find(":")) != str.npos)
-			ret = value_type(std::string(str.begin(), str.begin() + found), split_values(str.begin() + found + 2, str.end()));
+			ret = value_type(std::string(str.begin(), str.begin() + found), std::string(str.begin() + found + 2, str.end()));
 		return ret;
 	}
 
@@ -175,6 +168,15 @@ public:
 		return true;
 	}
 	
+	int	cl_error(std::string cl) {
+		std::string::iterator it = cl.begin();
+		while (it != cl.end()) {
+			if (!std::isdigit(*it))
+				return (1);
+			it++;
+		}
+		return (0);
+	}
 	/**
 	 * @brief updates header map with buffer contentt
 	 * 
@@ -209,12 +211,13 @@ public:
 			_buffer.erase(_buffer.begin(), _buffer.begin() + 2);
 			_line_index++;
 			it_header cl_key = _header.find("Content-Length");
-			if (cl_key != _header.end())
-				_content_length = std::atoi(((*cl_key).second).begin()->c_str());
+			if (cl_key != _header.end() && !cl_error((*cl_key).second))
+				_content_length = std::atoi(((*cl_key).second).c_str());
 			_in_header = false;
 		}
 		return (1);
 	}
+	
 
 	void	clear() {
 		_header.clear();
@@ -327,11 +330,11 @@ public:
 		return (_header.begin());
 	}
 
-	str_vec::iterator	begin_body() {
+	std::vector<std::string>::iterator	begin_body() {
 		return (_body.begin());
 	}
 
-	str_vec::iterator	end_body() {
+	std::vector<std::string>::iterator	end_body() {
 		return (_body.end());
 	}
 
@@ -348,6 +351,13 @@ public:
 		return _buffer;
 	}
 
+	std::string	find_header(const std::string & key) {
+		it_header it = _header.find(key);
+		if (it == _header.end())
+			return (std::string());
+		return (*it).second;
+	}
+
 	void		d_output() const {
 		it_header _it_header;
 		_it_header = _header.begin();
@@ -356,16 +366,24 @@ public:
 		std::cout << RED << "path: " << _path << RST << std::endl;
 		std::cout << RED << "http-version: " << _http_version << RST << std::endl;
 		std::cout << RED << "get_query: " << _get_query << RST << std::endl;
-		for (; _it_header != _header.end(); _it_header++) {
-			std::cout << RED << (*(_it_header)).first << ": ";
-			it_value	head_it = (*(_it_header)).second.begin();
-			for (; head_it != (*(_it_header)).second.end() - 1; head_it++)
-				std::cout<< (*head_it) << ", ";
-			std::cout << (*head_it) << RST << std::endl;
-		}
+		for (; _it_header != _header.end(); _it_header++)
+			std::cout << RED << (*(_it_header)).first << ": " << (*(_it_header)).second << std::endl;
 		it_value it_test = _body.begin();
 		std::cout << GRN << "BODY" << RST << std::endl;
 		for (; it_test != _body.end(); it_test++)
 			std::cout << RED << *it_test << RST << std::endl;
+	}
+
+
+	int	request_error() {
+		if (_error == UNDEFINED_HTTP_VERSION)
+			return (505);
+		else if (_error == UNDEFINED_METHOD)
+			return (405);
+		else if (_error == UNDEFINED_PATH || _error == WRONG_LINE_HEADER || _error == WRONG_VALUE_HEADER)
+			return (400);
+		else if (_method == "POST" && _content_length < 0)
+			return (411);
+		return (0);
 	}
 };
