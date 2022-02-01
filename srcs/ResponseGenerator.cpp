@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/01 17:03:26 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/01 17:05:09 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -202,6 +202,7 @@ void				ResponseGenerator::set_cgi_env (Client & client, std::string path, std::
 		// ! using a vector of string is confusing. need to use the full size there
 		s_envs.push_back("CONTENT_LENGTH=" + ft_to_string(client._request.begin_body()->size()));
 		// s_envs.push_back("CONTENT_TYPE=application/x-www-form-urlencoded");							// TODO : use the one from request
+		s_envs.push_back("CONTENT_TYPE=" + client._request.find_header("Content-Type"));
 	}
 
 	s_envs.push_back("AUTH_TYPE=BASIC");
@@ -309,7 +310,7 @@ std::string			ResponseGenerator::listen_cgi (Client & client,
 	close(cgi_pipe[0]);
 	close(cgi_pipe[1]);
 
-	std::cout << response << std::endl;
+	// std::cout << response << std::endl;
 
 	// ? php might give this content so we need to double check the cgi's response
 	page = "HTTP/1.1 200 OK\r\n";
