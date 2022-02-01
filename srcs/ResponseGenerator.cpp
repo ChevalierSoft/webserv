@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/01 01:11:33 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/01 07:06:38 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -194,12 +194,12 @@ void				ResponseGenerator::set_cgi_env (Client & client, std::vector<std::string
 
 	s_envs.push_back("QUERY_STRING=" + client._request._get_query);
 	std::cout << GRN << client._request._get_query << RST << std::endl;
-	// s_envs.push_back("QUERY_STRING=v1=a&v2=3" + client._request._get_query);
 
-	// s_envs.push_back("CONTENT_LENGTH=0");										// ! when POST is used
+	if (client._request._method == "POST")
+		s_envs.push_back("CONTENT_LENGTH=" + ft_to_string(client._request.begin_body()->size()));		// ! when POST is used
 
 	// s_envs.push_back("GATEWAY_INTERFACE=CGI/1.1");								// ? causing troubles
-	// s_envs.push_back("REQUEST_METHOD=GET");// + client._request._method);		// ? causing troubles with 'GET'
+	// s_envs.push_back("REQUEST_METHOD=" + client._request._method);					// ? causing troubles with 'GET'
 	// s_envs.push_back("SERVER_NAME=" + std::string(cwd) + client._request._path);	// ? causing troubles
 	// s_envs.push_back("SERVER_NAME=localhost");									// ? causing troubles
 
@@ -285,7 +285,10 @@ std::string			ResponseGenerator::listen_cgi (Client & client,
 		// std::cerr << ">>>>[" << response << "]<<<<" << std::endl;
 	}
 
-	// std::cout << response << std::endl;
+	close(cgi_pipe[0]);
+	close(cgi_pipe[1]);
+
+	std::cout << response << std::endl;
 
 	// ? php might give this content so we need to double check the cgi's response
 	page = "HTTP/1.1 200 OK\r\n";
@@ -313,11 +316,14 @@ bool				ResponseGenerator::cgi_send_body (Client & client, int cgi_pipe[2]) cons
 	for (std::vector<std::string>::const_iterator cit = client._request.begin_body();
 		cit != client._request.end_body(); ++cit)
 	{
+		std::cout << GRN << cit->c_str() << RST << std::endl;
 		err = write(cgi_pipe[1], cit->c_str(), cit->length());
 		if (err < 0)
 			return (true);
 	}
-	
+
+	close(cgi_pipe[1]);
+
 	// TODO : if (cit == client._request.end_body())
 	std::cerr << "body sent" << std::endl;
 	client._body_sent = true;
@@ -420,13 +426,12 @@ bool				ResponseGenerator::generate(Client& client) const
 	Request request(parse_request_route(client._request));
 
 	// ? check which method should be called
-	if (client._request._method == "GET")
+	if (client._request._method == "GET"
+		|| client._request._method == "POST"
+		|| client._request._method == "DELETE")
 		client._response.append_buffer(this->perform_GET_method(request, client));
 	else
-	{
-		std::cerr << CYN << "(client._request._method != \"GET\")" << std::endl;
 		client._response.append_buffer(get_error_file(501));
-	}
 
 	client._response_ready = true;
 
