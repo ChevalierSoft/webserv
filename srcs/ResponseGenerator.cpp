@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/02 04:34:08 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/02 05:16:18 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -287,6 +287,7 @@ std::string			ResponseGenerator::listen_cgi (Client & client,
 	std::string					response;
 	std::string					page;
 	char						buff[CGI_BUFF_SIZE];
+	int							cgi_header_size;
 
 	// ! need to use WNOHANG and check every loop (when it will be implemented)
 	// ? https://cboard.cprogramming.com/c-programming/138057-waitpid-non-blocking-fork.html
@@ -303,22 +304,24 @@ std::string			ResponseGenerator::listen_cgi (Client & client,
 		if (err <= 0)
 			break ;
 		response += buff;
-		// std::cerr << ">>>>[" << response << "]<<<<" << std::endl;
 	}
 
 	close(cgi_pipe[0]);
 	close(cgi_pipe[1]);
 
-	// std::cout << response << std::endl;
-
 	// ? php might give this content so we need to double check the cgi's response
 	page = "HTTP/1.1 200 OK\r\n";
 	page += "Server: Webserv 42\r\n";	// TODO : set a cool header
 	page += "Content-Length: ";
-	page += ft_to_string(response.length()) + "\r\n";
-	page += response;
 
-	ft_print_memory(&response[0], response.length());
+	cgi_header_size = response.find("\r\n\r\n");
+	if (cgi_header_size == -1)
+		page += "0\r\n";
+	else
+	{
+		page += ft_to_string(response.length() - (cgi_header_size + 4)) + "\r\n";
+		page += response;
+	}
 
 	return (page);
 }
