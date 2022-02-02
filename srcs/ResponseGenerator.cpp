@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/01 17:07:31 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/02 04:34:08 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -201,17 +201,13 @@ void				ResponseGenerator::set_cgi_env (Client & client, std::string path, std::
 	{
 		// ! using a vector of string is confusing. need to use the full size there
 		s_envs.push_back("CONTENT_LENGTH=" + ft_to_string(client._request.begin_body()->size()));
-		// s_envs.push_back("CONTENT_TYPE=application/x-www-form-urlencoded");							// TODO : use the one from request
 		s_envs.push_back("CONTENT_TYPE=" + client._request.find_header("Content-Type"));
 	}
-
-	s_envs.push_back("AUTH_TYPE=BASIC");
 
 	s_envs.push_back("GATEWAY_INTERFACE=CGI/1.1");
 	s_envs.push_back("REQUEST_METHOD=" + client._request._method);
 	s_envs.push_back("SERVER_NAME=" + std::string(cwd) + client._request._path);
-	s_envs.push_back("SCRIPT_FILENAME="+ std::string(cwd) + "/" + path);			// b word
-
+	s_envs.push_back("SCRIPT_FILENAME="+ std::string(cwd) + "/" + path);
 	s_envs.push_back("SCRIPT_NAME=" + client._request._path);
 	s_envs.push_back("SCRIPT_FILE_NAME=" + client._request._path);
 	s_envs.push_back("REDIRECT_STATUS=200");
@@ -222,31 +218,34 @@ void				ResponseGenerator::set_cgi_env (Client & client, std::string path, std::
 	s_envs.push_back("SERVER_PORT=" + ft_to_string(this->_conf->_hosts.begin()->second));
 	s_envs.push_back("REQUEST_SCHEME=http");
 	s_envs.push_back("SERVER_SIGNATURE=42|webserv");
-	// s_envs.push_back("CONTEXT_PREFIX=/`-bin/");
 	s_envs.push_back("SERVER_PROTOCOL=HTTP/1.1");
 	s_envs.push_back("SHLVL=2");
-	s_envs.push_back("PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin");	// todo use the one from main
+	s_envs.push_back("PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin");	// TODO : use the one from main
 	s_envs.push_back("REQUEST_SCHEME=http");
-	// CONTEXT_DOCUMENT_ROOT= // ? add a complete link
 	s_envs.push_back("PATH_TRANSLATED=" + client._request._path);
 	s_envs.push_back("PATH_INFO=" + client._request._path);
+	// s_envs.push_back("CONTEXT_PREFIX=/`-bin/");
+	// CONTEXT_DOCUMENT_ROOT= // ? add a complete link
+	// s_envs.push_back("AUTH_TYPE=BASIC");	// ? not needed
 
-	// TODO : add request's headers
-	// for (Message::it_header it = client._request.begin_header();
-	// 		it != client._request.end_header(); ++it)
-	// {
-	// 	// s_envs.push_back()
-	// 	std::transform(it->first.begin(), it->first.end(), it->first.begin(), static_cast<int (*)(int)>(&std::toupper));
-	// }
+	// ? this adds request's headers
+	for (Message::it_header it = client._request.begin_header();
+			it != client._request.end_header(); ++it)
+	{
+		if (it->first == "Content-Type")
+			continue ;
+		std::string tmp = it->first;
+		for (std::string::iterator sit = tmp.begin(); sit != tmp.end(); ++sit)
+		{
+			if (*sit >= 'a' && *sit <= 'z')
+				*sit -= 'a' - 'A';
+			else if (*sit == '-')
+				*sit = '_';
+		}
+		s_envs.push_back("HTML_" + tmp + "=" + it->second);
+	}
 
-	// s_envs.push_back("HTTP_ACCEPT=text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8");
-	// s_envs.push_back("HTTP_ACCEPT_CHARSET=utf-8;q=0.5");
-	// s_envs.push_back("HTTP_ACCEPT_ENCODING=compress;q=0.5");
-	s_envs.push_back("HTTP_ACCEPT_LANGUAGE=" +  client._request.find_header("Accept-Language"));
-	// s_envs.push_back("HTTP_HOST=localhost:12345");
-	// s_envs.push_back("HTTP_REFERER=http://localhost:12345/home/sub4/form_POST.html");
-	// s_envs.push_back("ORIGIN=http://localhost:12345");
-
+	// ? feeding the vector of char*
 	int i = 0;
 	for (std::vector<std::string>::const_iterator cit = s_envs.begin();
 			cit != s_envs.end() ; ++cit)
@@ -318,6 +317,8 @@ std::string			ResponseGenerator::listen_cgi (Client & client,
 	page += "Content-Length: ";
 	page += ft_to_string(response.length()) + "\r\n";
 	page += response;
+
+	ft_print_memory(&response[0], response.length());
 
 	return (page);
 }
