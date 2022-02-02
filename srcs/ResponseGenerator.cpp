@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/02 05:24:59 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/02 05:30:48 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 #include <sys/wait.h>			// waitpid
 #include <sys/types.h>			// waitpid
 #include <fcntl.h>				// fcntl
+#include <limits.h>				// PATH_MAX
 #include "ResponseGenerator.hpp"
 #include "webserv.hpp"
 #include "ft_to_string.hpp"
@@ -189,7 +190,7 @@ std::string			ResponseGenerator::get_file_content(const Request &rq, Client & cl
 void				ResponseGenerator::set_cgi_env (Client & client, std::string path, std::vector<std::string> & s_envs, std::vector<char *> & a_envs) const
 {
 	// TODO : this could be interesting to add env passed to main()
-	char	cwd[1024];
+	char	cwd[PATH_MAX];
 	
 	getcwd(cwd, sizeof(cwd));
 
