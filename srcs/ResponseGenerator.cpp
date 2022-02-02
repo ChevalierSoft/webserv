@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ResponseGenerator.cpp                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
+/*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/02 05:30:48 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/02 14:35:04 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -316,7 +316,7 @@ std::string			ResponseGenerator::listen_cgi (Client & client,
 	else
 		page += ft_to_string(response.length() - (cgi_header_size + 4)) + "\r\n";
 	page += response;
-
+	page += "\r\n\r\n";
 	return (page);
 }
 
