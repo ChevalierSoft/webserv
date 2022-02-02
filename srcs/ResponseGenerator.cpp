@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/02 05:16:18 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/02 05:24:59 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -186,20 +186,17 @@ std::string			ResponseGenerator::get_file_content(const Request &rq, Client & cl
 	return (s_full_content);
 }
 
-#include <algorithm> 
 void				ResponseGenerator::set_cgi_env (Client & client, std::string path, std::vector<std::string> & s_envs, std::vector<char *> & a_envs) const
 {
-	// TODO : add the rest + add env passed to main()
-	char cwd[1024];
+	// TODO : this could be interesting to add env passed to main()
+	char	cwd[1024];
+	
 	getcwd(cwd, sizeof(cwd));
 
 	s_envs.push_back("QUERY_STRING=" + client._request._get_query);
-	// std::cout << GRN << client._request._get_query << RST << std::endl;
-	// std::cout << GRN << cwd << "/" << path << RST << std::endl;
 
 	if (client._request._method == "POST")
 	{
-		// ! using a vector of string is confusing. need to use the full size there
 		s_envs.push_back("CONTENT_LENGTH=" + ft_to_string(client._request.begin_body()->size()));
 		s_envs.push_back("CONTENT_TYPE=" + client._request.find_header("Content-Type"));
 	}
@@ -228,7 +225,7 @@ void				ResponseGenerator::set_cgi_env (Client & client, std::string path, std::
 	// CONTEXT_DOCUMENT_ROOT= // ? add a complete link
 	// s_envs.push_back("AUTH_TYPE=BASIC");	// ? not needed
 
-	// ? this adds request's headers
+	// ? this adds request's headers to env
 	for (Message::it_header it = client._request.begin_header();
 			it != client._request.end_header(); ++it)
 	{
@@ -245,12 +242,11 @@ void				ResponseGenerator::set_cgi_env (Client & client, std::string path, std::
 		s_envs.push_back("HTML_" + tmp + "=" + it->second);
 	}
 
-	// ? feeding the vector of char*
+	// ? feeding the vector of char* with the pointers from s_envs
 	int i = 0;
 	for (std::vector<std::string>::const_iterator cit = s_envs.begin();
 			cit != s_envs.end() ; ++cit)
 		a_envs.push_back(&s_envs[i++][0]);
-
 	a_envs.push_back(NULL);
 
 	return ;
@@ -309,19 +305,16 @@ std::string			ResponseGenerator::listen_cgi (Client & client,
 	close(cgi_pipe[0]);
 	close(cgi_pipe[1]);
 
-	// ? php might give this content so we need to double check the cgi's response
+	// ? adding the first part of the header
 	page = "HTTP/1.1 200 OK\r\n";
 	page += "Server: Webserv 42\r\n";	// TODO : set a cool header
 	page += "Content-Length: ";
-
 	cgi_header_size = response.find("\r\n\r\n");
 	if (cgi_header_size == -1)
 		page += "0\r\n";
 	else
-	{
 		page += ft_to_string(response.length() - (cgi_header_size + 4)) + "\r\n";
-		page += response;
-	}
+	page += response;
 
 	return (page);
 }
@@ -342,7 +335,6 @@ bool				ResponseGenerator::cgi_send_body (Client & client, int cgi_pipe[2]) cons
 	for (std::vector<std::string>::const_iterator cit = client._request.begin_body();
 		cit != client._request.end_body(); ++cit)
 	{
-		// std::cout << GRN << cit->c_str() << RST << std::endl;
 		err = write(cgi_pipe[1], cit->c_str(), cit->length());
 		if (err < 0)
 			return (true);
@@ -395,14 +387,7 @@ std::string			ResponseGenerator::get_redirection(const Route::redir_type & redir
 	return ("HTTP/1.1 " + ft_to_string(redir.first) + " " + _ss_error_messages.at(redir.first) + "\r\nLocation: " + redir.second + "\r\n\r\n");
 }
 
-/**
- * @brief generate a response following GET method specificationns.
- * 
- * @details https://greenbytes.de/tech/webdav/draft-ietf-httpbis-p2-semantics-26.html#GET
- * 
- * @return std::string a string containing the response to the client.
- */
-std::string			ResponseGenerator::perform_GET_method(const Request & rq, Client &cl) const
+std::string			ResponseGenerator::perform_method (const Request & rq, Client & cl) const
 {
 	struct stat s;
 
@@ -463,11 +448,11 @@ bool				ResponseGenerator::generate(Client& client) const
 	if (client._request._method == "GET"
 		|| client._request._method == "POST"
 		|| client._request._method == "DELETE")
-		client._response.append_buffer(this->perform_GET_method(request, client));
+		client._response.append_buffer(this->perform_method(request, client));
 	else
 		client._response.append_buffer(get_error_file(501));
 
-	client._response_ready = true;
+	client._response_ready = true;	// this will not be set here in the future
 
 	return (false);
 }
