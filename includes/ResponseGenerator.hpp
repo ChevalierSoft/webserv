@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 10:06:11 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/01 17:01:30 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/02 05:20:47 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,7 +71,7 @@ private:
 
 	std::string			cgi_handling (Client & client, std::string url, std::string path) const;
 
-	std::string			perform_GET_method (const Request & rq, Client & client) const;
+	std::string			perform_method (const Request & rq, Client & client) const;
 
 	Request				parse_request_route(Request  const & input_request) const;
 

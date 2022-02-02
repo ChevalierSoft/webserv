@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/01 17:07:31 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/02 05:30:48 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 #include <sys/wait.h>			// waitpid
 #include <sys/types.h>			// waitpid
 #include <fcntl.h>				// fcntl
+#include <limits.h>				// PATH_MAX
 #include "ResponseGenerator.hpp"
 #include "webserv.hpp"
 #include "ft_to_string.hpp"
@@ -186,32 +187,25 @@ std::string			ResponseGenerator::get_file_content(const Request &rq, Client & cl
 	return (s_full_content);
 }
 
-#include <algorithm> 
 void				ResponseGenerator::set_cgi_env (Client & client, std::string path, std::vector<std::string> & s_envs, std::vector<char *> & a_envs) const
 {
-	// TODO : add the rest + add env passed to main()
-	char cwd[1024];
+	// TODO : this could be interesting to add env passed to main()
+	char	cwd[PATH_MAX];
+	
 	getcwd(cwd, sizeof(cwd));
 
 	s_envs.push_back("QUERY_STRING=" + client._request._get_query);
-	// std::cout << GRN << client._request._get_query << RST << std::endl;
-	// std::cout << GRN << cwd << "/" << path << RST << std::endl;
 
 	if (client._request._method == "POST")
 	{
-		// ! using a vector of string is confusing. need to use the full size there
 		s_envs.push_back("CONTENT_LENGTH=" + ft_to_string(client._request.begin_body()->size()));
-		// s_envs.push_back("CONTENT_TYPE=application/x-www-form-urlencoded");							// TODO : use the one from request
 		s_envs.push_back("CONTENT_TYPE=" + client._request.find_header("Content-Type"));
 	}
-
-	s_envs.push_back("AUTH_TYPE=BASIC");
 
 	s_envs.push_back("GATEWAY_INTERFACE=CGI/1.1");
 	s_envs.push_back("REQUEST_METHOD=" + client._request._method);
 	s_envs.push_back("SERVER_NAME=" + std::string(cwd) + client._request._path);
-	s_envs.push_back("SCRIPT_FILENAME="+ std::string(cwd) + "/" + path);			// b word
-
+	s_envs.push_back("SCRIPT_FILENAME="+ std::string(cwd) + "/" + path);
 	s_envs.push_back("SCRIPT_NAME=" + client._request._path);
 	s_envs.push_back("SCRIPT_FILE_NAME=" + client._request._path);
 	s_envs.push_back("REDIRECT_STATUS=200");
@@ -222,36 +216,38 @@ void				ResponseGenerator::set_cgi_env (Client & client, std::string path, std::
 	s_envs.push_back("SERVER_PORT=" + ft_to_string(this->_conf->_hosts.begin()->second));
 	s_envs.push_back("REQUEST_SCHEME=http");
 	s_envs.push_back("SERVER_SIGNATURE=42|webserv");
-	// s_envs.push_back("CONTEXT_PREFIX=/`-bin/");
 	s_envs.push_back("SERVER_PROTOCOL=HTTP/1.1");
 	s_envs.push_back("SHLVL=2");
-	s_envs.push_back("PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin");	// todo use the one from main
+	s_envs.push_back("PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin");	// TODO : use the one from main
 	s_envs.push_back("REQUEST_SCHEME=http");
-	// CONTEXT_DOCUMENT_ROOT= // ? add a complete link
 	s_envs.push_back("PATH_TRANSLATED=" + client._request._path);
 	s_envs.push_back("PATH_INFO=" + client._request._path);
+	// s_envs.push_back("CONTEXT_PREFIX=/`-bin/");
+	// CONTEXT_DOCUMENT_ROOT= // ? add a complete link
+	// s_envs.push_back("AUTH_TYPE=BASIC");	// ? not needed
 
-	// TODO : add request's headers
-	// for (Message::it_header it = client._request.begin_header();
-	// 		it != client._request.end_header(); ++it)
-	// {
-	// 	// s_envs.push_back()
-	// 	std::transform(it->first.begin(), it->first.end(), it->first.begin(), static_cast<int (*)(int)>(&std::toupper));
-	// }
+	// ? this adds request's headers to env
+	for (Message::it_header it = client._request.begin_header();
+			it != client._request.end_header(); ++it)
+	{
+		if (it->first == "Content-Type")
+			continue ;
+		std::string tmp = it->first;
+		for (std::string::iterator sit = tmp.begin(); sit != tmp.end(); ++sit)
+		{
+			if (*sit >= 'a' && *sit <= 'z')
+				*sit -= 'a' - 'A';
+			else if (*sit == '-')
+				*sit = '_';
+		}
+		s_envs.push_back("HTML_" + tmp + "=" + it->second);
+	}
 
-	// s_envs.push_back("HTTP_ACCEPT=text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8");
-	// s_envs.push_back("HTTP_ACCEPT_CHARSET=utf-8;q=0.5");
-	// s_envs.push_back("HTTP_ACCEPT_ENCODING=compress;q=0.5");
-	s_envs.push_back("HTTP_ACCEPT_LANGUAGE=" +  client._request.find_header("Accept-Language"));
-	// s_envs.push_back("HTTP_HOST=localhost:12345");
-	// s_envs.push_back("HTTP_REFERER=http://localhost:12345/home/sub4/form_POST.html");
-	// s_envs.push_back("ORIGIN=http://localhost:12345");
-
+	// ? feeding the vector of char* with the pointers from s_envs
 	int i = 0;
 	for (std::vector<std::string>::const_iterator cit = s_envs.begin();
 			cit != s_envs.end() ; ++cit)
 		a_envs.push_back(&s_envs[i++][0]);
-
 	a_envs.push_back(NULL);
 
 	return ;
@@ -288,6 +284,7 @@ std::string			ResponseGenerator::listen_cgi (Client & client,
 	std::string					response;
 	std::string					page;
 	char						buff[CGI_BUFF_SIZE];
+	int							cgi_header_size;
 
 	// ! need to use WNOHANG and check every loop (when it will be implemented)
 	// ? https://cboard.cprogramming.com/c-programming/138057-waitpid-non-blocking-fork.html
@@ -304,19 +301,20 @@ std::string			ResponseGenerator::listen_cgi (Client & client,
 		if (err <= 0)
 			break ;
 		response += buff;
-		// std::cerr << ">>>>[" << response << "]<<<<" << std::endl;
 	}
 
 	close(cgi_pipe[0]);
 	close(cgi_pipe[1]);
 
-	// std::cout << response << std::endl;
-
-	// ? php might give this content so we need to double check the cgi's response
+	// ? adding the first part of the header
 	page = "HTTP/1.1 200 OK\r\n";
 	page += "Server: Webserv 42\r\n";	// TODO : set a cool header
 	page += "Content-Length: ";
-	page += ft_to_string(response.length()) + "\r\n";
+	cgi_header_size = response.find("\r\n\r\n");
+	if (cgi_header_size == -1)
+		page += "0\r\n";
+	else
+		page += ft_to_string(response.length() - (cgi_header_size + 4)) + "\r\n";
 	page += response;
 
 	return (page);
@@ -338,7 +336,6 @@ bool				ResponseGenerator::cgi_send_body (Client & client, int cgi_pipe[2]) cons
 	for (std::vector<std::string>::const_iterator cit = client._request.begin_body();
 		cit != client._request.end_body(); ++cit)
 	{
-		// std::cout << GRN << cit->c_str() << RST << std::endl;
 		err = write(cgi_pipe[1], cit->c_str(), cit->length());
 		if (err < 0)
 			return (true);
@@ -391,14 +388,7 @@ std::string			ResponseGenerator::get_redirection(const Route::redir_type & redir
 	return ("HTTP/1.1 " + ft_to_string(redir.first) + " " + _ss_error_messages.at(redir.first) + "\r\nLocation: " + redir.second + "\r\n\r\n");
 }
 
-/**
- * @brief generate a response following GET method specificationns.
- * 
- * @details https://greenbytes.de/tech/webdav/draft-ietf-httpbis-p2-semantics-26.html#GET
- * 
- * @return std::string a string containing the response to the client.
- */
-std::string			ResponseGenerator::perform_GET_method(const Request & rq, Client &cl) const
+std::string			ResponseGenerator::perform_method (const Request & rq, Client & cl) const
 {
 	struct stat s;
 
@@ -459,11 +449,11 @@ bool				ResponseGenerator::generate(Client& client) const
 	if (client._request._method == "GET"
 		|| client._request._method == "POST"
 		|| client._request._method == "DELETE")
-		client._response.append_buffer(this->perform_GET_method(request, client));
+		client._response.append_buffer(this->perform_method(request, client));
 	else
 		client._response.append_buffer(get_error_file(501));
 
-	client._response_ready = true;
+	client._response_ready = true;	// this will not be set here in the future
 
 	return (false);
 }
