@@ -6,7 +6,7 @@
 /*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/28 02:16:54 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/02/03 14:42:17 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 #include <sys/wait.h>			// waitpid
 #include <sys/types.h>			// waitpid
 #include <fcntl.h>				// fcntl
+#include <sstream>				
 #include "ResponseGenerator.hpp"
 #include "webserv.hpp"
 #include "ft_to_string.hpp"
@@ -298,7 +299,9 @@ std::string			ResponseGenerator::cgi_handling (Client & client, std::string url)
 }
 
 std::string		ResponseGenerator::get_redirection(const Route::redir_type & redir) const {
-	return ("HTTP/1.1 " + std::to_string(redir.first) + " " + _ss_error_messages.at(redir.first) + "\r\nLocation: " + redir.second + "\r\n\r\n");
+	std::stringstream ss;
+	ss << redir.first;
+	return ("HTTP/1.1 " + std::string(ss.str()) + " " + _ss_error_messages.at(redir.first) + "\r\nLocation: " + redir.second + "\r\n\r\n");
 }
 
 /**
