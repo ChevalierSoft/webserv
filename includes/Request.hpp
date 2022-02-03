@@ -24,4 +24,13 @@ public:
 		_redir = src._redir;
 		return *this;
 	}
+
+	bool	is_upload() {
+		std::string	ct = find_header("Content-Type");
+		size_t		found_ct = ct.find("multiform/form-data");
+		size_t		found_bound = ct.find("boundary=");
+		if (_method == "POST" && found_ct != -1 && found_bound != -1) {
+			
+		}
+	}
 };
