@@ -41,7 +41,7 @@ std::string		send_403 ()
 }
 
 /**
- * @brief send to the client a html file containing the listing of the path dir
+ * @brief send to the client a html file containing the listing of the root dir
  * 
  * @param fd the client fd
  * @param root where is located the site
@@ -57,11 +57,7 @@ std::string		directory_listing (std::string path)	// , const char *client_path)
 	std::string		page = "";
 	std::string		body = "";
 	std::string		tmp;
-
-	// TODO : check if the given root in the config file have a '/' at the end 
-
-	if (path[path.length() - 1] != '/')			// ? ensuring there is a '/' at the end
-		path += "/";
+	std::string		root;
 
 	// ? DEBUG
 	// std::cout << "root : " << root << std::endl;
@@ -69,9 +65,12 @@ std::string		directory_listing (std::string path)	// , const char *client_path)
 	// std::cout << (root + path).c_str() << std::endl;
 
 	dir = opendir((path).c_str());
-
 	if (dir == NULL)
 		return (send_403());
+	root = path;
+	tmp = path.substr(0, path.size() - 1);
+	if (tmp.rfind('/') != std::string::npos)
+		root = path.substr(tmp.rfind('/') + 1, tmp.size() - tmp.rfind('/'));
 
 	body += "<!DOCTYPE html>\r\n";
 	body += "<meta charset=\"UTF-8\">\r\n";
@@ -98,7 +97,7 @@ std::string		directory_listing (std::string path)	// , const char *client_path)
 		{
 			body += "<li><a href=\"";			
 			// body += std::filesystem::path("foo/bar").remove_filename();	// ? c++17
-			tmp = path;				// TODO : client_path should be used
+			tmp = path;
 			tmp[tmp.rfind('/')] = '\0';
 			tmp[tmp.rfind('/')] = '\0';
 			if (tmp.empty() || tmp[0] == '\0')
@@ -109,7 +108,7 @@ std::string		directory_listing (std::string path)	// , const char *client_path)
 		else
 		{
 			body += "<li><a href=\"";
-			body += path;				// TODO : client_path should be used
+			body += root;
 			body += entry->d_name;
 			body += "\">";
 

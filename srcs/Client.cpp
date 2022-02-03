@@ -6,7 +6,7 @@
 /*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/28 01:09:08 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/02/01 16:56:57 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@
  * 
  */
 Client::Client ()
-: _request_ready(false), _response_ready(false), _ip(), _port()
+: _request_ready(false), _response_ready(false), _ip(), _port(), _body_sent(false)
 {
 	gettimeofday(&_life_time, NULL);
 }
@@ -30,7 +30,7 @@ Client::Client ()
  * 
  */
 Client::Client (const Conf* c, std::string ip, std::string port)
-: _request_ready(false), _response_ready(false), _ip(ip), _port(port)
+: _request_ready(false), _response_ready(false), _ip(ip), _port(port), _body_sent(false)
 {
 	gettimeofday(&_life_time, NULL);
 }
@@ -71,6 +71,7 @@ Client&		Client::operator= (const Client& copy)
 		_life_time = copy._life_time;
 		_ip = copy._ip;
 		_port = copy._port;
+		_body_sent = copy._body_sent;
 	}
 	return (*this);
 }
@@ -85,9 +86,7 @@ void		Client::parse_response ()
 	while (this->_request._in_header && (end_of_request = this->_request.update_header()) == 0);
 	if (this->_request._error > 0) {
 		this->_request_ready = true;
-		this->_request.d_output();
 		std::cout << RED << "Error in header : " << this->_request._error << " (refer to errors enum)" << RST << std::endl;
-		return ;
 	}
 
 	if (!this->_request._in_header && this->_request._method != "POST") {
@@ -102,8 +101,6 @@ void		Client::parse_response ()
 		this->_request.d_output();
 		this->_request_ready = true;
 	}
-
-	return ;
 }
 
 /**
@@ -143,6 +140,7 @@ bool		Client::send_response (int sd_out)
 	}
 	// ? Setting generated response to false after each send for now
 	this->_request_ready = false;
+	this->_response.clear();
 	return true;
 }
 

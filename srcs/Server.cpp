@@ -6,7 +6,7 @@
 /*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/25 23:53:46 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/02/01 17:12:46 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -239,9 +239,11 @@ bool			Server::record_client_input (const int &i)
 
 	if (_clients[_fds[i].fd].is_request_parsed() == false)
 		_clients[_fds[i].fd].parse_response();
-	
+	// ? If needed, this is where we could send 100 Continue
+
 	if (_clients[_fds[i].fd].is_request_parsed() == true)
 		close_conn = this->_response_generator.generate(_clients[_fds[i].fd]);
+	// ? If needed, this is where we could send 202 Accepted
 
 	if (_clients[_fds[i].fd].is_response_ready() == true)
 		close_conn = _clients[_fds[i].fd].send_response(_fds[i].fd);
@@ -269,6 +271,7 @@ void			Server::check_timed_out_client (const int i)
 		return ;
 	if (_clients[_fds[i].fd].is_timed_out() == true)
 	{
+		// ? If needed, this is where we could send 408 Request Timeout
 		std::cerr << "kicked fd : " << RED << _fds[i].fd << RST << std::endl;
 		remove_client(i);
 	}

@@ -15,7 +15,7 @@ _methods(method_list()),
 _dir_listing(-1),
 _upload_path(path_type()),
 _routes(route_list()),
-_cgi(cgi_list()),
+_cgis(cgi_list()),
 _error_message(std::string()),
 _err(0) {
 	// std::string	error_path = "./resources/error_pages/html/";
@@ -45,7 +45,7 @@ Conf	&Conf::operator=(Conf const &rhs) {
 	_dir_listing = rhs._dir_listing;
 	_upload_path = rhs._upload_path;
 	_routes = rhs._routes;
-	_cgi = rhs._cgi;
+	_cgis = rhs._cgis;
 	_error_message = rhs._error_message;
 	_err = rhs._err;
 
@@ -118,7 +118,7 @@ Conf::code_type     Conf::string_to_code(std::string value) {
 Conf::route_type    Conf::string_to_route(std::string value) {
 	if (*(value.end() -1) != '/')
 		value+="/";
-	return (Route(value, _methods, _dir_listing, _upload_path, _cgi));
+	return (Route(value, _methods, _dir_listing, _upload_path, _cgis));
 }
 
 
@@ -151,22 +151,6 @@ Conf::method_list		Conf::string_to_methods(std::string value) {
 		start = ++end;
 	}
 	return (methods);
-}
-
-Conf::cgi_list		Conf::string_to_cgi(std::string value) {
-	const char	sep = ',';
-	size_t		start = 0;
-	size_t		end;
-	cgi_list	cgis;
-
-	while (start <= value.size())
-	{
-		if ((end = value.find(sep, start)) == std::string::npos)
-			end = value.size();
-		cgis.push_back(value.substr(start, end - start));
-		start = ++end;
-	}
-	return (cgis);
 }
 
 Conf::dir_listing_type	Conf::string_to_dir_listing(std::string value) {
@@ -240,11 +224,10 @@ bool	Conf::set_methods(method_list methods) {
 	return (true);
 }
 
-bool	Conf::add_cgi(file_type cgi) {
-	
-	if (cgi == "")
-		return (set_error_message("Invalid value: cgi"));
-	_cgi.push_back(cgi);
+bool    Conf::add_cgi(cgi_type  cgi) {
+	if (cgi.first == "" || cgi.second == "")
+		return (set_error_message("Invalid value: cgis"));
+	_cgis[cgi.first]=cgi.second;
 	return (true);
 }
 
