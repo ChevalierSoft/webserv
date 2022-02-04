@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/04 21:40:36 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/04 21:52:12 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -297,14 +297,10 @@ std::string			ResponseGenerator::listen_cgi (Client & client,
 	char						buff[CGI_BUFF_SIZE];
 	int							cgi_header_size;
 
-	__DEB("here")
 	// ! need to use WNOHANG and check every loop (when it will be implemented)
 	// ? https://cboard.cprogramming.com/c-programming/138057-waitpid-non-blocking-fork.html
-	// close(client._webserv_pipe[0]);
-	// close(client._cgi_pipe[0]);
-	// close(client._cgi_pipe[1]);
 	waitpid(-1, &child, 0);
-	__DEB("alert")
+
 	// if (WIFEXITED(child))
 	// 	std::cerr << "CGI returned : " << WEXITSTATUS(child) << std::endl;
 
@@ -318,10 +314,7 @@ std::string			ResponseGenerator::listen_cgi (Client & client,
 		response += buff;
 	}
 
-	close(client._cgi_pipe[0]);
-	close(client._cgi_pipe[1]);
 	close(client._webserv_pipe[0]);
-	close(client._webserv_pipe[1]);
 
 	// ? adding the first part of the header
 	page = "HTTP/1.1 200 OK\r\n";
@@ -343,8 +336,6 @@ bool				ResponseGenerator::cgi_send_body (Client & client, int cgi_pipe[2]) cons
 
 	if (client._request._method != "POST")
 	{
-		__DEB("!= POST")
-		// write(client._cgi_pipe[1], "jipepse=oui", 11);
 		close(client._cgi_pipe[1]);
 		client._body_sent = true;
 		return (false);
@@ -388,6 +379,9 @@ std::string			ResponseGenerator::cgi_handling (Client & client, std::string cgi_
 	// ? set non blocking the read part of the pipe
 	if (fcntl(client._cgi_pipe[0], F_SETFL, O_NONBLOCK) < 0)
 		return (get_error_file(500));
+
+	fcntl(client._webserv_pipe[1], F_SETFL, O_NONBLOCK);
+
 	if (fcntl(client._webserv_pipe[0], F_SETFL, O_NONBLOCK) < 0)
 	{
 		close(client._cgi_pipe[0]);
@@ -396,8 +390,6 @@ std::string			ResponseGenerator::cgi_handling (Client & client, std::string cgi_
 		close(client._webserv_pipe[1]);
 		return (get_error_file(500));
 	}
-
-	__DEB("fork()")
 
 	child = fork();
 	if (child < 0)
