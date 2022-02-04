@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/04 06:23:39 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/04 21:40:36 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -232,7 +232,7 @@ void				ResponseGenerator::set_cgi_env (Client & client, std::string path, std::
 	s_envs.push_back("PATH_INFO=" + client._request._path);
 	// s_envs.push_back("CONTEXT_PREFIX=/`-bin/");
 	// CONTEXT_DOCUMENT_ROOT= // ? add a complete link
-	// s_envs.push_back("AUTH_TYPE=BASIC");	// ? not needed
+	s_envs.push_back("AUTH_TYPE=BASIC");	// ? not needed
 
 	// ? this adds request's headers to env
 	for (Message::it_header it = client._request.begin_header();
@@ -273,8 +273,8 @@ void				ResponseGenerator::start_cgi (Client & client, std::string cgi_url, std:
 	exe[1] = &path[0];
 	exe[2] = NULL;
 
-	// close(client._cgi_pipe[1]);
-	// close(client._webserv_pipe[0]);
+	close(client._cgi_pipe[1]);
+	close(client._webserv_pipe[0]);
 
 	dup2(client._cgi_pipe[0], 0);
 	dup2(client._webserv_pipe[1], 1);
@@ -300,6 +300,9 @@ std::string			ResponseGenerator::listen_cgi (Client & client,
 	__DEB("here")
 	// ! need to use WNOHANG and check every loop (when it will be implemented)
 	// ? https://cboard.cprogramming.com/c-programming/138057-waitpid-non-blocking-fork.html
+	// close(client._webserv_pipe[0]);
+	// close(client._cgi_pipe[0]);
+	// close(client._cgi_pipe[1]);
 	waitpid(-1, &child, 0);
 	__DEB("alert")
 	// if (WIFEXITED(child))
@@ -340,8 +343,8 @@ bool				ResponseGenerator::cgi_send_body (Client & client, int cgi_pipe[2]) cons
 
 	if (client._request._method != "POST")
 	{
-		// write(cgi_pipe[1], "", 0);
-		// close(cgi_pipe[1]);
+		__DEB("!= POST")
+		// write(client._cgi_pipe[1], "jipepse=oui", 11);
 		close(client._cgi_pipe[1]);
 		client._body_sent = true;
 		return (false);
@@ -359,7 +362,7 @@ bool				ResponseGenerator::cgi_send_body (Client & client, int cgi_pipe[2]) cons
 			return (true);
 	}
 
-	close(cgi_pipe[1]);
+	close(client._cgi_pipe[1]);
 
 	// TODO : if (cit == client._request.end_body())
 	std::cerr << "body sent" << std::endl;
@@ -394,6 +397,8 @@ std::string			ResponseGenerator::cgi_handling (Client & client, std::string cgi_
 		return (get_error_file(500));
 	}
 
+	__DEB("fork()")
+
 	child = fork();
 	if (child < 0)
 	{
@@ -405,6 +410,9 @@ std::string			ResponseGenerator::cgi_handling (Client & client, std::string cgi_
 	}
 	else if (!child)
 		this->start_cgi(client, cgi_url, path, client._cgi_pipe);
+
+	close(client._webserv_pipe[1]);
+	close(client._cgi_pipe[0]);
 
 	if (client._body_sent == false)
 	{
