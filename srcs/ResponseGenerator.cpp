@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/02 05:30:48 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/04 06:23:39 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,10 @@
 #include "ft_to_string.hpp"
 #include "utils.hpp"
 #include "set_content_types.hpp"
+
+#ifndef __DEB
+# define __DEB(s) std::cerr << GRN << s << RST << std::endl;
+#endif
 
 /**
  * @brief _ss_content_types and _ss_error_messages will be accessible
@@ -201,6 +205,10 @@ void				ResponseGenerator::set_cgi_env (Client & client, std::string path, std::
 		s_envs.push_back("CONTENT_LENGTH=" + ft_to_string(client._request.begin_body()->size()));
 		s_envs.push_back("CONTENT_TYPE=" + client._request.find_header("Content-Type"));
 	}
+	else
+	{
+		s_envs.push_back("CONTENT_LENGTH=0");
+	}
 
 	s_envs.push_back("GATEWAY_INTERFACE=CGI/1.1");
 	s_envs.push_back("REQUEST_METHOD=" + client._request._method);
@@ -265,12 +273,15 @@ void				ResponseGenerator::start_cgi (Client & client, std::string cgi_url, std:
 	exe[1] = &path[0];
 	exe[2] = NULL;
 
-	dup2(cgi_pipe[0], 0);
-	dup2(cgi_pipe[1], 1);
+	// close(client._cgi_pipe[1]);
+	// close(client._webserv_pipe[0]);
+
+	dup2(client._cgi_pipe[0], 0);
+	dup2(client._webserv_pipe[1], 1);
 
 	execve(exe[0], exe, a_envs.data());
 
-	// TODO : clean memory. maybe by an ugly exception
+	// TODO : clean memory / close pipes. maybe by an ugly exception
 	std::cerr << CYN << "execve_failed" << std::endl;
 	exit(66);
 }
@@ -286,10 +297,11 @@ std::string			ResponseGenerator::listen_cgi (Client & client,
 	char						buff[CGI_BUFF_SIZE];
 	int							cgi_header_size;
 
+	__DEB("here")
 	// ! need to use WNOHANG and check every loop (when it will be implemented)
 	// ? https://cboard.cprogramming.com/c-programming/138057-waitpid-non-blocking-fork.html
 	waitpid(-1, &child, 0);
-
+	__DEB("alert")
 	// if (WIFEXITED(child))
 	// 	std::cerr << "CGI returned : " << WEXITSTATUS(child) << std::endl;
 
@@ -297,21 +309,23 @@ std::string			ResponseGenerator::listen_cgi (Client & client,
 	while (1)
 	{
 		memset(buff, 0, CGI_BUFF_SIZE);
-		err = read(cgi_pipe[0], buff, CGI_BUFF_SIZE - 1);
+		err = read(client._webserv_pipe[0], buff, CGI_BUFF_SIZE - 1);
 		if (err <= 0)
 			break ;
 		response += buff;
 	}
 
-	close(cgi_pipe[0]);
-	close(cgi_pipe[1]);
+	close(client._cgi_pipe[0]);
+	close(client._cgi_pipe[1]);
+	close(client._webserv_pipe[0]);
+	close(client._webserv_pipe[1]);
 
 	// ? adding the first part of the header
 	page = "HTTP/1.1 200 OK\r\n";
 	page += "Server: Webserv 42\r\n";	// TODO : set a cool header
 	page += "Content-Length: ";
 	cgi_header_size = response.find("\r\n\r\n");
-	if (cgi_header_size == -1)
+	if (cgi_header_size == std::string::npos)
 		page += "0\r\n";
 	else
 		page += ft_to_string(response.length() - (cgi_header_size + 4)) + "\r\n";
@@ -326,6 +340,9 @@ bool				ResponseGenerator::cgi_send_body (Client & client, int cgi_pipe[2]) cons
 
 	if (client._request._method != "POST")
 	{
+		// write(cgi_pipe[1], "", 0);
+		// close(cgi_pipe[1]);
+		close(client._cgi_pipe[1]);
 		client._body_sent = true;
 		return (false);
 	}
@@ -336,7 +353,8 @@ bool				ResponseGenerator::cgi_send_body (Client & client, int cgi_pipe[2]) cons
 	for (std::vector<std::string>::const_iterator cit = client._request.begin_body();
 		cit != client._request.end_body(); ++cit)
 	{
-		err = write(cgi_pipe[1], cit->c_str(), cit->length());
+		std::cout << "sending : " << cit->c_str() << std::endl;
+		err = write(client._cgi_pipe[1], cit->c_str(), cit->length());
 		if (err < 0)
 			return (true);
 	}
@@ -352,34 +370,49 @@ bool				ResponseGenerator::cgi_send_body (Client & client, int cgi_pipe[2]) cons
 
 std::string			ResponseGenerator::cgi_handling (Client & client, std::string cgi_url, std::string path) const
 {
-	int				cgi_pipe[2];
 	pid_t			child;
 	std::string		response;
 
-	if (pipe(cgi_pipe))
+	if (pipe(client._cgi_pipe))
 		return (get_error_file(500));
+	if (pipe(client._webserv_pipe))
+	{
+		close(client._cgi_pipe[0]);
+		close(client._cgi_pipe[1]);
+		return (get_error_file(500));
+	}
 
 	// ? set non blocking the read part of the pipe
-	if (fcntl(cgi_pipe[0], F_SETFL, O_NONBLOCK) < 0)
+	if (fcntl(client._cgi_pipe[0], F_SETFL, O_NONBLOCK) < 0)
 		return (get_error_file(500));
+	if (fcntl(client._webserv_pipe[0], F_SETFL, O_NONBLOCK) < 0)
+	{
+		close(client._cgi_pipe[0]);
+		close(client._cgi_pipe[1]);
+		close(client._webserv_pipe[0]);
+		close(client._webserv_pipe[1]);
+		return (get_error_file(500));
+	}
 
 	child = fork();
 	if (child < 0)
 	{
-		close(cgi_pipe[0]);
-		close(cgi_pipe[1]);
+		close(client._cgi_pipe[0]);
+		close(client._cgi_pipe[1]);
+		close(client._webserv_pipe[0]);
+		close(client._webserv_pipe[1]);
 		return (get_error_file(500));
 	}
 	else if (!child)
-		this->start_cgi(client, cgi_url, path, cgi_pipe);
+		this->start_cgi(client, cgi_url, path, client._cgi_pipe);
 
 	if (client._body_sent == false)
 	{
-		if (cgi_send_body(client, cgi_pipe))
+		if (cgi_send_body(client, client._cgi_pipe))
 			return (get_error_file(500));
 	}
 
-	response = listen_cgi(client, cgi_url, cgi_pipe, child);
+	response = listen_cgi(client, cgi_url, client._cgi_pipe, child);
 
 	return (response);
 }

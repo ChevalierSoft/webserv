@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
+/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 00:54:13 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/01 16:12:26 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/02/02 16:23:21 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,6 +51,9 @@ private:
 	std::string				_ip;
 	std::string				_port;
 	bool					_body_sent;
+
+	int						_webserv_pipe[2];
+	int						_cgi_pipe[2];
 
 	/// * Constructors & Destructors ___________________________________________
 
