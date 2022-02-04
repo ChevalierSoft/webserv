@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/04 21:52:12 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/04 21:58:11 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -377,12 +377,16 @@ std::string			ResponseGenerator::cgi_handling (Client & client, std::string cgi_
 	}
 
 	// ? set non blocking the read part of the pipe
-	if (fcntl(client._cgi_pipe[0], F_SETFL, O_NONBLOCK) < 0)
+	if (fcntl(client._cgi_pipe[0], F_SETFL, O_NONBLOCK) < 0
+		|| fcntl(client._webserv_pipe[1], F_SETFL, O_NONBLOCK) < 0)
+	{
+		close(client._cgi_pipe[0]);
+		close(client._cgi_pipe[1]);
 		return (get_error_file(500));
+	}
 
-	fcntl(client._webserv_pipe[1], F_SETFL, O_NONBLOCK);
-
-	if (fcntl(client._webserv_pipe[0], F_SETFL, O_NONBLOCK) < 0)
+	if (fcntl(client._webserv_pipe[0], F_SETFL, O_NONBLOCK) < 0
+		|| fcntl(client._webserv_pipe[1], F_SETFL, O_NONBLOCK) < 0)
 	{
 		close(client._cgi_pipe[0]);
 		close(client._cgi_pipe[1]);
