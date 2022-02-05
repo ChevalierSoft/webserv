@@ -79,4 +79,6 @@ private:
 
 	std::string			get_redirection(const Route::redir_type & redir) const;
 
+	std::string			perform_delete(const Request & rq) const;
+
 }; // * ________________________________________________________________________
