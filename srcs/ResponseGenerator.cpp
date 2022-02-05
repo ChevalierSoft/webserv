@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/04 21:58:11 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/05 07:03:59 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -292,6 +292,7 @@ std::string			ResponseGenerator::listen_cgi (Client & client,
 													pid_t child ) const
 {
 	int							err;
+	int							wt;
 	std::string					response;
 	std::string					page;
 	char						buff[CGI_BUFF_SIZE];
@@ -299,21 +300,33 @@ std::string			ResponseGenerator::listen_cgi (Client & client,
 
 	// ! need to use WNOHANG and check every loop (when it will be implemented)
 	// ? https://cboard.cprogramming.com/c-programming/138057-waitpid-non-blocking-fork.html
-	waitpid(-1, &child, 0);
-
-	// if (WIFEXITED(child))
-	// 	std::cerr << "CGI returned : " << WEXITSTATUS(child) << std::endl;
+	// waitpid(-1, &child, 0);
 
 	// ! avoid this loop by entering/leaving this function until child is exited
-	while (1)
+	// while (1)
+	// {
+	// 	memset(buff, 0, CGI_BUFF_SIZE);
+	// 	err = read(client._webserv_pipe[0], buff, CGI_BUFF_SIZE - 1);
+	// 	if (err <= 0)
+	// 		break ;
+	// 	response += buff;
+	// }
+
+	do
 	{
 		memset(buff, 0, CGI_BUFF_SIZE);
+		wt = waitpid(-1, &child, WNOHANG);
 		err = read(client._webserv_pipe[0], buff, CGI_BUFF_SIZE - 1);
 		if (err <= 0)
-			break ;
-		response += buff;
-	}
-
+			;
+		else
+		{
+			// __DEB("non blocking read loop")
+			// std::cout << buff << std::endl;
+			response += buff;
+		}
+	} while (!wt);
+	
 	close(client._webserv_pipe[0]);
 
 	// ? adding the first part of the header
@@ -378,7 +391,7 @@ std::string			ResponseGenerator::cgi_handling (Client & client, std::string cgi_
 
 	// ? set non blocking the read part of the pipe
 	if (fcntl(client._cgi_pipe[0], F_SETFL, O_NONBLOCK) < 0
-		|| fcntl(client._webserv_pipe[1], F_SETFL, O_NONBLOCK) < 0)
+		|| fcntl(client._cgi_pipe[1], F_SETFL, O_NONBLOCK) < 0)
 	{
 		close(client._cgi_pipe[0]);
 		close(client._cgi_pipe[1]);
