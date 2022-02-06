@@ -81,4 +81,6 @@ private:
 
 	std::string			perform_delete(const Request & rq) const;
 
+	bool				is_method(std::string method, Request const & rq) const;
+
 }; // * ________________________________________________________________________
