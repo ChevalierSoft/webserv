@@ -24,6 +24,7 @@
 #include "ft_to_string.hpp"
 #include "utils.hpp"
 #include "set_content_types.hpp"
+#include <algorithm>
 
 #ifndef __DEB
 # define __DEB(s) std::cerr << GRN << s << RST << std::endl;
@@ -459,7 +460,21 @@ std::string			ResponseGenerator::perform_method (const Request & rq, Client & cl
 	}
 	return (get_error_file(404));
 }
-
+std::string			ResponseGenerator::perform_delete(const Request & rq) const {
+	std::string header;
+	std::string	file_content;
+	if (std::remove(rq._path.c_str()) != 0)
+		return (get_error_file(404));
+	else
+	{
+		file_content = "<html>\n";
+		file_content += "\t<body>\n";
+		file_content += "\t\t<h1>File deleted.</h1>\n";
+		file_content += "\t</body>\n";
+		file_content += "</html>\n";
+		return (set_header(0, ".html", file_content.size()) + file_content);	
+	}
+}
 /**
  * @brief generate the response for the client
  * 
@@ -467,6 +482,11 @@ std::string			ResponseGenerator::perform_method (const Request & rq, Client & cl
  * @return true internal error, need to close the client connexion without sending response
  * @return false all good
  */
+
+bool				ResponseGenerator::is_method(std::string method, Request const &rq) const {
+	return (method == rq._method && (std::find(rq._route._methods.begin(), rq._route._methods.end(), method) !=  rq._route._methods.end()));
+}
+
 bool				ResponseGenerator::generate(Client& client) const
 {
 	// ! clear at the creation of the client. here it will erase the response each loop 
@@ -483,10 +503,10 @@ bool				ResponseGenerator::generate(Client& client) const
 	Request request(parse_request_route(client._request));
 
 	// ? check which method should be called
-	if (client._request._method == "GET"
-		|| client._request._method == "POST"
-		|| client._request._method == "DELETE")
+	if (is_method("GET", request) || is_method("POST", request))
 		client._response.append_buffer(this->perform_method(request, client));
+	else if (is_method("DELET", request))
+		client._response.append_buffer(this->perform_delete(request));
 	else
 		client._response.append_buffer(get_error_file(501));
 
@@ -510,7 +530,7 @@ Request 			ResponseGenerator::parse_request_route(Request  const &input_request)
 	Conf::route_list			routes((*_conf)._routes);
 	std::string					file = std::string();
 	std::string					path;
-	Request						output_request;
+	Request						output_request(input_request);
 	std::string					location;
 	
 	// Loop to find the route and set it to output request route
