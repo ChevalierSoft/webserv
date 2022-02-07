@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/07 22:06:42 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/08 00:12:11 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -303,14 +303,13 @@ void				ResponseGenerator::listen_cgi (Client & client, std::string url) const
 
 	memset(buff, 0, CGI_BUFF_SIZE);
 	err = read(client._webserv_pipe[0], buff, CGI_BUFF_SIZE - 1);
-	if (err <= 0)	// ? cgi is to slow or there is nothing to send anymore
+	if (err <= 0)	// ? cgi is too slow or there is nothing to send anymore
 	{
 		if (waitpid(-1, &client._child, WNOHANG))	// ? checks if _child is closed
 			client._response_ready = true;
 	}
 	else
 		client.tmp_response += buff;
-
 
 	if (client._response_ready)
 	{
@@ -441,7 +440,7 @@ std::string			ResponseGenerator::get_redirection(const Route::redir_type & redir
 
 void				ResponseGenerator::perform_method (Client & client) const
 {
-	struct stat s;
+	struct stat	s;
 
 	// ? redirects if there is a redirection in appropriate route AND if what is typed in the url corresponds to location in conf
 	if (client._request._redir != Route::redir_type())
@@ -450,6 +449,8 @@ void				ResponseGenerator::perform_method (Client & client) const
 		client._response_ready = true;
 		return ;
 	}
+
+	std::cout << client._request._path << std::endl;
 
 	if ( !(stat((client._request._path).c_str(), &s)) )
 	{
@@ -462,6 +463,7 @@ void				ResponseGenerator::perform_method (Client & client) const
 		}
 		else if (s.st_mode & S_IFREG)	// ? the requested path is a file
 		{
+			__DEB("S_IFREG")
 			client.cgi = client._request._route._cgis.find(get_file_extention((client._request._path)));
 			if (client.cgi != client._request._route._cgis.end())
 				cgi_handling(client, client.cgi->second, client._request._path);
@@ -507,13 +509,6 @@ void				ResponseGenerator::perform_delete(Client & client) const
 	client._response_ready = true;
 }
 
-/**
- * @brief generate the response for the client
- * 
- * @param rq 
- * @return true internal error, need to close the client connexion without sending response
- * @return false all good
- */
 bool				ResponseGenerator::is_method(std::string method, Request const &rq) const {
 	return (method == rq._method && (std::find(rq._route._methods.begin(), rq._route._methods.end(), method) !=  rq._route._methods.end()));
 }
