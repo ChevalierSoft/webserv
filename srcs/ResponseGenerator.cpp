@@ -25,6 +25,7 @@
 #include "utils.hpp"
 #include "set_content_types.hpp"
 #include <algorithm>
+#include <cstdio>
 
 #ifndef __DEB
 # define __DEB(s) std::cerr << GRN << s << RST << std::endl;
@@ -463,7 +464,7 @@ std::string			ResponseGenerator::perform_method (const Request & rq, Client & cl
 std::string			ResponseGenerator::perform_delete(const Request & rq) const {
 	std::string header;
 	std::string	file_content;
-	if (std::remove(rq._path.c_str()) != 0)
+	if (remove(rq._path.c_str()) != 0)
 		return (get_error_file(404));
 	else
 	{
@@ -505,7 +506,7 @@ bool				ResponseGenerator::generate(Client& client) const
 	// ? check which method should be called
 	if (is_method("GET", request) || is_method("POST", request))
 		client._response.append_buffer(this->perform_method(request, client));
-	else if (is_method("DELET", request))
+	else if (is_method("DELETE", request))
 		client._response.append_buffer(this->perform_delete(request));
 	else
 		client._response.append_buffer(get_error_file(501));
