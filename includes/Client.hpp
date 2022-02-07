@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 00:54:13 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/02 16:23:21 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/07 21:56:12 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,8 @@
 #define CLIENT_TIMEOUT 10 		// time (s) after which the client connection will be closed if there is no event
 
 class ResponseGenerator;
+
+enum e_preform_fast_forward { FF_NOT_SET = 0, FF_GET_FILE, FF_GET_CGI };
 
 /**
  * @brief Client will store inputs and outputs
@@ -51,9 +53,16 @@ private:
 	std::string				_ip;
 	std::string				_port;
 	bool					_body_sent;
-
 	int						_webserv_pipe[2];
 	int						_cgi_pipe[2];
+
+	e_preform_fast_forward			_fast_forward;
+	Route::cgi_list::const_iterator	cgi;
+	std::string						tmp_response;
+	pid_t							_child;
+	std::ifstream					input_file;
+
+	int						tmp_counter;
 
 	/// * Constructors & Destructors ___________________________________________
 

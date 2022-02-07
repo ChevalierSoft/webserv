@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
+/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/01 16:56:57 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/02/07 21:56:07 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,8 +20,9 @@
  * 
  */
 Client::Client ()
-: _request_ready(false), _response_ready(false), _ip(), _port(), _body_sent(false)
+: _request_ready(false), _response_ready(false), _ip(), _port(), _body_sent(false), _fast_forward(FF_NOT_SET)
 {
+	tmp_counter = 0;
 	gettimeofday(&_life_time, NULL);
 }
 
@@ -30,8 +31,9 @@ Client::Client ()
  * 
  */
 Client::Client (const Conf* c, std::string ip, std::string port)
-: _request_ready(false), _response_ready(false), _ip(ip), _port(port), _body_sent(false)
+: _request_ready(false), _response_ready(false), _ip(ip), _port(port), _body_sent(false), _fast_forward(FF_NOT_SET)
 {
+	tmp_counter = 0;
 	gettimeofday(&_life_time, NULL);
 }
 

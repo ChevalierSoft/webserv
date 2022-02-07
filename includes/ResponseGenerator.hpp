@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 10:06:11 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/02 05:20:47 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/07 20:52:34 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,7 +51,7 @@ public:
 
 private:
 
-	std::string			get_file_content (const Request &rq, Client & client) const;
+	void				get_file_content (Client & client) const;
   
 	std::string			set_file_content_type (const std::string & extention) const;
 
@@ -59,28 +59,28 @@ private:
 
 	std::string			generic_error (int err) const;
 
-	std::string			get_error_file (int err) const;
+	void				get_error_file (Client & client, int err) const;
 
 	void				set_cgi_env (Client & client, std::string path, std::vector<std::string> & se, std::vector<char *> & ae) const;
 
 	void				start_cgi (Client & client, std::string url, std::string path, int cgi_pipe[2]) const;
 
-	std::string			listen_cgi (Client & client, std::string url, int cgi_pipe[2], pid_t child) const;
+	void				listen_cgi (Client & client, std::string url) const;
 
 	bool				cgi_send_body (Client & client, int cgi_pipe[2]) const;
 
-	std::string			cgi_handling (Client & client, std::string url, std::string path) const;
+	void				cgi_handling (Client & client, std::string url, std::string path) const;
 
-	std::string			perform_method (const Request & rq, Client & client) const;
+	void				perform_method (Client & client) const;
+
+	void				perform_delete(Client & client) const;
+
+	bool				is_method(std::string method, Request const & rq) const;
 
 	Request				parse_request_route(Request  const & input_request) const;
 
 	bool				is_directory(const std::string path) const;
 
 	std::string			get_redirection(const Route::redir_type & redir) const;
-
-	std::string			perform_delete(const Request & rq) const;
-
-	bool				is_method(std::string method, Request const & rq) const;
 
 }; // * ________________________________________________________________________
