@@ -464,6 +464,7 @@ std::string			ResponseGenerator::perform_method (const Request & rq, Client & cl
 std::string			ResponseGenerator::perform_delete(const Request & rq) const {
 	std::string header;
 	std::string	file_content;
+
 	if (remove(rq._path.c_str()) != 0)
 		return (get_error_file(404));
 	else
