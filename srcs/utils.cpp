@@ -6,7 +6,7 @@
 /*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 17:07:56 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/01 16:26:38 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/02/02 15:53:34 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,7 @@ std::map<int, std::string>	set_error_map ()
 {
 	std::map<int, std::string>	m;
 
-	// Accept-Ranges in header will let us refuse any range request
+	// "Accept-Ranges: none" in header will let us refuse any range request
 	// ? Information responses
 	m[100] = "Continue"; // USELESS // // ? Initial part of request received, the client should either send the rest or ignore is the request is finished
 	m[101] = "Switching Protocols"; // USELESS // // ? If clients sends the "Upgrade" header field request, server responds with 101 to switch to specified protocol
@@ -80,8 +80,8 @@ std::map<int, std::string>	set_error_map ()
 	m[400] = "Bad Request"; // DONE // // ? Invalid syntax in request
 	m[401] = "Unauthorized"; // USELESS // // ? Server requires user authentication
 	m[402] = "Payment Required"; // USELESS // // ? Very rarely used for digital payment systems
-	m[403] = "Forbidden"; // TODO // ? Client does not have rights to access the content 
-	m[404] = "Not Found"; // TODO // ? Resource not found or hidden from unauthorized client
+	m[403] = "Forbidden"; // DONE // // ? Client does not have rights to access the content 
+	m[404] = "Not Found"; // DONE // // ? Resource not found or hidden from unauthorized client
 	m[405] = "Method Not Allowed"; // DONE // // ? Requested method has been disabled by server
 	m[406] = "Not Acceptable"; // USELESS // // ? No content found following criteria given by user agent
 	m[407] = "Proxy Authentication Required"; // USELESS // // ? Client must first be authenticated by a proxy
@@ -115,7 +115,7 @@ std::map<int, std::string>	set_error_map ()
 	m[504] = "Gateway Timeout"; // USELESS // // ? Server acting as a gateway could not get a response time
 	m[505] = "HTTP Version Not Supported"; // DONE // // ? Version of HTTP used in the request is not supported by the server
 	m[506] = "Variant Also Negotiates"; // USELESS // // ? Look up doc, I don't understand any of it
-	m[507] = "Insufficient Storage"; // USELESS // ? Method couldn't be performed on the resource because server unable to store representation
+	m[507] = "Insufficient Storage"; // USELESS // // ? Method couldn't be performed on the resource because server unable to store representation
 	m[508] = "Loop Detected"; // USELESS // // ? Detected infinite loop
 	m[510] = "Not Extended"; // USELESS // // ? Further extentions to the request are required for the server to fulfill it
 	m[511] = "Network Authentication Required"; // USELESS // // ? Indicates that the client needs to authenticate to gain network access
