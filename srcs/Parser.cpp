@@ -211,10 +211,28 @@ bool	Parser::check() {
 		if (!it->check())
 			return (set_error_message(it->_error_message));
 	}
+	seperate_confs_into_hosts();
 	return (true);
 }
 
 void	Parser::print() {
 	for (conf_list::iterator it = _confs.begin(); it != _confs.end(); it++)
 		it->print();
+}
+
+void	Parser::seperate_confs_into_hosts() {
+	for (conf_list::iterator it = _confs.begin(); it != _confs.end(); it++)
+	{
+		for (Conf::host_list::iterator it1 = it->_hosts.begin(); it1 != it->_hosts.end(); it1++)
+		{
+			Conf c(*it);
+			Conf::host_list	h(1, *it1);
+			c._hosts = h;
+			conf_list::iterator it2 = _hosts.begin();
+			while (it2 != _hosts.end() && it2->_hosts != h)
+				it2++;
+			if (it2 == _hosts.end())
+				_hosts.push_back(c);
+		}
+	}
 }

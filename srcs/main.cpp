@@ -1,4 +1,4 @@
-#include <iostream>
+	#include <iostream>
 #include <signal.h>			// signal,sigaction
 #include "webserv.hpp"
 #include <pthread.h>
@@ -12,9 +12,10 @@ void	sighandler(int signum)
 
 void	*routine(void *args) {
 	Server	s(*static_cast<Conf *>(args));
+	int		*err = static_cast<int*>(malloc(4));
 	
-	s.start();
-	return (NULL);
+	*err = s.start();
+	return (err);
 }
 
 int main(int argc, char **argv)
@@ -22,36 +23,34 @@ int main(int argc, char **argv)
 	int	err = 0;
 	std::vector<Server>	servers;
 	pthread_t	*threads;
+	// TODO mutex for printing
 	
-	signal(SIGINT, &sighandler);	// making it easy to close the program
-	signal(SIGQUIT, &sighandler);
-	
+	// TODO signal handler that works for threads
+	// signal(SIGINT, &sighandler);	// making it easy to close the program
+	// signal(SIGQUIT, &sighandler);
 	Parser	p("tst/conf/webserv.conf");
 	run = !p._err;
 	
 	// p.print();
+	if (!(threads = static_cast<pthread_t *>(malloc(sizeof(*threads) * p._hosts.size()))))
+		run = false;
 	if (run == false)
 	{
 		std::cerr << "Error: " << p._error_message << std::endl;
-		std::cerr << p.line_number << ": " << p.line << std::endl;
 		return (20);
 	}
 	else
 	{
-		// TODO : loop over the config_object list and create that many Server objects.
-
-		if (!(threads = static_cast<pthread_t *>(malloc(sizeof(*threads) * p._confs.size()))))
-			run = false;
-		int i = 0;
-		for (Parser::conf_list::iterator it = p._confs.begin(); it != p._confs.end(); it++)
-		{
-			pthread_create(&threads[i], NULL, routine, static_cast<void *>(&(*it)));
-			i++;
-		}
+		// Server	s(*(p._hosts.begin()));
+		// TODO Run same host:port with different server names
+		// ?? p._hosts -> one conf file per host:port
+		for (Parser::conf_list::iterator it = p._hosts.begin(); it != p._hosts.end(); it++)
+			pthread_create(&threads[it - p._hosts.begin()], NULL, routine, static_cast<void *>(&(*it)));
 		// err = s.start();
 	}
-	for (int i = 0; i < p._confs.size(); i++)
+	for (int i = 0; i < p._hosts.size(); i++)
 		pthread_join(threads[i], NULL);
-    std::cout << "exit code : " << RED << err <<RST << std::endl;
+	free(threads);
+	std::cout << "exit code : " << RED << err <<RST << std::endl;
     return (err);
 }

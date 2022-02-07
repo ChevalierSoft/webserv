@@ -20,6 +20,7 @@ class Parser {
         std::string _error_message;
         std::string line;
         int         line_number;
+        conf_list   _hosts;
 
         bool	    parse_file_loop(param_list &params);
         bool        parse_file(std::ifstream &ifs);
@@ -40,4 +41,6 @@ class Parser {
         bool        check();
 
         void        print();
+
+        void        seperate_confs_into_hosts();
 };
