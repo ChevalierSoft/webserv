@@ -22,7 +22,6 @@ int main(int argc, char **argv)
 {
 	int	err = 0;
 	std::vector<Server>	servers;
-	pthread_t	*threads;
 	// TODO mutex for printing
 	
 	// TODO signal handler that works for threads
@@ -32,8 +31,7 @@ int main(int argc, char **argv)
 	run = !p._err;
 	
 	// p.print();
-	if (!(threads = static_cast<pthread_t *>(malloc(sizeof(*threads) * p._hosts.size()))))
-		run = false;
+	pthread_t	threads[p._hosts.size()];
 	if (run == false)
 	{
 		std::cerr << "Error: " << p._error_message << std::endl;
@@ -50,7 +48,6 @@ int main(int argc, char **argv)
 	}
 	for (int i = 0; i < p._hosts.size(); i++)
 		pthread_join(threads[i], NULL);
-	free(threads);
 	std::cout << "exit code : " << RED << err <<RST << std::endl;
     return (err);
 }
