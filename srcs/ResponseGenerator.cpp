@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ResponseGenerator.cpp                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
+/*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/02 05:30:48 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/07 20:07:28 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 #include <sys/wait.h>			// waitpid
 #include <sys/types.h>			// waitpid
 #include <fcntl.h>				// fcntl
+#include <sstream>				
 #include <limits.h>				// PATH_MAX
 #include "ResponseGenerator.hpp"
 #include "webserv.hpp"
@@ -395,6 +396,8 @@ std::string			ResponseGenerator::perform_method (const Request & rq, Client & cl
 	// ? redirects if there is a redirection in appropriate route AND if what is typed in the url corresponds to location in conf
 	if (rq._redir != Route::redir_type())
 		return (get_redirection(rq._redir));
+	// if (is_upload_request(rq) && upload_to_server(rq))
+	// 	return (get_error_file(204)); // no content to output
 	if ( !(stat((rq._path).c_str(), &s)) )
 	{
 		if (s.st_mode & S_IFDIR)	// ? the requested path is a directory
@@ -473,7 +476,7 @@ Request 			ResponseGenerator::parse_request_route(Request  const &input_request)
 	Conf::route_list			routes((*_conf)._routes);
 	std::string					file = std::string();
 	std::string					path;
-	Request						output_request;
+	Request						output_request = input_request;
 	std::string					location;
 	
 	// Loop to find the route and set it to output request route
