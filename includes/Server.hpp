@@ -39,7 +39,6 @@ class Server // * ______________________________________________________________
 	/// * Variables ____________________________________________________________
 private:
 	int							_listen_sd;
-	Conf						_conf;
 	std::vector<struct pollfd>	_fds;
 	std::map<int, Client>		_clients;
 
@@ -50,6 +49,7 @@ private:
 	// ? Constructor (1) default construtor that will not be accessible
 	Server ();
 public:
+	Conf						_conf;
 	// ? Constructor (2) taking a port in argument.
 	// TODO After the parsing of a conf file an object will be passed to it
 	Server (const Conf &c);
