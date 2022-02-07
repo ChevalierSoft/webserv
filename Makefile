@@ -13,7 +13,7 @@
 NAME		= webserv
 
 CC			= clang++
-FLAGS		= -I$(INC_DIR) -std=c++98 -g #-Wall -Wextra -Werror
+FLAGS		= -I$(INC_DIR) -std=c++98 -g  -pthread #-Wall -Wextra -Werror
 
 SRC_DIR 	= srcs/
 OBJ_DIR		= objs/
