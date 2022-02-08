@@ -51,7 +51,7 @@ public:
 
 private:
 
-	std::string			get_file_content (const Request &rq, Client & client) const;
+	std::string			get_file_content (Client & client) const;
   
 	std::string			set_file_content_type (const std::string & extention) const;
 
@@ -71,9 +71,9 @@ private:
 
 	std::string			cgi_handling (Client & client, std::string url, std::string path) const;
 
-	std::string			perform_method (const Request & rq, Client & client) const;
+	std::string			perform_method (Client & client) const;
 
-	Request				parse_request_route(Request  const & input_request) const;
+	void				parse_request_route(Client &client) const;
 
 	bool				is_directory(const std::string path) const;
 

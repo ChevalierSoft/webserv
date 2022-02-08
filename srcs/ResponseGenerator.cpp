@@ -6,7 +6,7 @@
 /*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/07 20:10:09 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/02/08 16:06:30 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -161,7 +161,7 @@ std::string			ResponseGenerator::get_error_file (Conf::code_type err) const
  * @param path the requested file
  * @return std::string file content as string
  */
-std::string			ResponseGenerator::get_file_content(const Request &rq, Client & client) const
+std::string			ResponseGenerator::get_file_content(Client & client) const
 {
 	std::ifstream					i_file;
 	std::string						tmp;
@@ -169,13 +169,13 @@ std::string			ResponseGenerator::get_file_content(const Request &rq, Client & cl
 	std::string						s_full_content;
 	Route::cgi_list::const_iterator	cgi;	
 
-	i_file.open((rq._path).c_str());
+	i_file.open((client._request._path).c_str());
 
 
 	if (i_file.is_open())
 	{
-		if ((cgi = rq._route._cgis.find(get_file_extention((rq._path)))) != rq._route._cgis.end())
-			return (cgi_handling(client, cgi->second, rq._path)); // ! c'est ici qu'on retourne la reponse du cgi maintenant
+		if ((cgi = client._request._route._cgis.find(get_file_extention((client._request._path)))) != client._request._route._cgis.end())
+			return (cgi_handling(client, cgi->second, client._request._path)); // ! c'est ici qu'on retourne la reponse du cgi maintenant
 		while (i_file.good())
 		{
 			std::getline(i_file, tmp);
@@ -188,7 +188,7 @@ std::string			ResponseGenerator::get_file_content(const Request &rq, Client & cl
 		return (this->get_error_file(403));	// 403 ?
 	}
 
-	s_full_content = set_header(0, get_file_extention(get_file_name(rq._path)), s_file_content.size());
+	s_full_content = set_header(0, get_file_extention(get_file_name(client._request._path)), s_file_content.size());
 
 	s_full_content += s_file_content;
 	return (s_full_content);
@@ -428,27 +428,28 @@ std::string			ResponseGenerator::get_redirection(const Route::redir_type & redir
 	return ("HTTP/1.1 " + ft_to_string(redir.first) + " " + _ss_error_messages.at(redir.first) + "\r\nLocation: " + redir.second + "\r\n\r\n");
 }
 
-std::string			ResponseGenerator::perform_method (const Request & rq, Client & cl) const
+std::string			ResponseGenerator::perform_method (Client & cl) const
 {
 	struct stat s;
 
-	// ? redirects if there is a redirection in appropriate route AND if what is typed in the url corresponds to location in conf
-	if (rq._redir != Route::redir_type())
-		return (get_redirection(rq._redir));
+
 	// if (is_upload_request(rq) && upload_to_server(rq))
 	// 	return (get_error_file(204)); // no content to output
-	if ( !(stat((rq._path).c_str(), &s)) )
+	// ? redirects if there is a redirection in appropriate route AND if what is typed in the url corresponds to location in conf
+	if (cl._request._redir != Route::redir_type())
+		return (get_redirection(cl._request._redir));
+	if ( !(stat((cl._request._path).c_str(), &s)) )
 	{
 		if (s.st_mode & S_IFDIR)	// ? the requested path is a directory
 		{
-			if (rq._route._dir_listing) // check if directory listing is on
-				return (directory_listing(rq._path));
+			if (cl._request._route._dir_listing) // check if directory listing is on
+				return (directory_listing(cl._request._path));
 			else
 				return (get_error_file(403));
 		}
 		else if (s.st_mode & S_IFREG)	// ? the requested path is a file
 		{
-			return (get_file_content(rq, cl));
+			return (get_file_content(cl));
 		}
 		else
 		{
@@ -467,18 +468,39 @@ std::string			ResponseGenerator::perform_method (const Request & rq, Client & cl
 std::string			ResponseGenerator::perform_delete(const Request & rq) const {
 	std::string header;
 	std::string	file_content;
+	std::string	root;
+	struct stat	s_root;
+	struct stat	s_file;
 
-	if (remove(rq._path.c_str()) != 0)
-		return (get_error_file(404));
-	else
+	root = rq._path;
+	if (*(rq._path.end() - 1) == '/')
+		root = rq._path.substr(0, rq._path.size() - 1);
+	root = root.substr(0, root.rfind('/'));
+	if (root == ".")
+		return (get_error_file(401));
+	if (!stat(root.c_str(), &s_root))
 	{
-		file_content = "<html>\n";
-		file_content += "\t<body>\n";
-		file_content += "\t\t<h1>File deleted.</h1>\n";
-		file_content += "\t</body>\n";
-		file_content += "</html>\n";
-		return (set_header(0, ".html", file_content.size()) + file_content);	
+		if ((s_root.st_mode & S_IWUSR) && (s_root.st_mode & S_IXUSR))
+		{
+			if (!stat(rq._path.c_str(), &s_file))
+			{
+				if (remove(rq._path.c_str()))
+					return (get_error_file(500));
+				file_content = "<html>\n";
+				file_content += "\t<body>\n";
+				file_content += "\t\t<h1>"+rq._path+" deleted.</h1>\n";
+				file_content += "\t</body>\n";
+				file_content += "</html>\n";
+				return (set_header(0, ".html", file_content.size()) + file_content);	
+			}
+			else
+				return (get_error_file(404));
+		}
+		else
+			return (get_error_file(403));
 	}
+	else
+		return (get_error_file(404));
 }
 /**
  * @brief generate the response for the client
@@ -505,13 +527,13 @@ bool				ResponseGenerator::generate(Client& client) const
 		return (false);
 	}
 
-	Request request(parse_request_route(client._request));
+	parse_request_route(client);
 
 	// ? check which method should be called
-	if (is_method("GET", request) || is_method("POST", request))
-		client._response.append_buffer(this->perform_method(request, client));
-	else if (is_method("DELETE", request))
-		client._response.append_buffer(this->perform_delete(request));
+	if (is_method("GET", client._request) || is_method("POST", client._request))
+		client._response.append_buffer(this->perform_method(client));
+	else if (is_method("DELETE", client._request))
+		client._response.append_buffer(this->perform_delete(client._request));
 	else
 		client._response.append_buffer(get_error_file(501));
 
@@ -529,30 +551,29 @@ bool				ResponseGenerator::is_directory(const std::string path) const{
 	return (false);
 }
 
-Request 			ResponseGenerator::parse_request_route(Request  const &input_request) const{
+void 			ResponseGenerator::parse_request_route(Client &client) const{
 	const char					sep = '/';
 	int							found  = 0;
 	Conf::route_list			routes((*_conf)._routes);
 	std::string					file = std::string();
-	std::string					path;
-	Request						output_request(input_request);
+	std::string					input_path(client._request._path);
 	std::string					location;
 	
 	// Loop to find the route and set it to output request route
-	while (found <= input_request._path.size())
+	while (found <= client._request._path.size())
 	{
-		if ((found = input_request._path.find(sep, found)) == std::string::npos)
-			found = input_request._path.size();
+		if ((found = client._request._path.find(sep, found)) == std::string::npos)
+			found = client._request._path.size();
 		for (Conf::route_list::iterator it = routes.begin(); it != routes.end(); it++)
 		{
-			location = input_request._path.substr(0,found);
+			location = client._request._path.substr(0,found);
 			// if (*(location.end() - 1) != '/')
 			// 	location+="/";
 			if (it->_path == location+"/")
 			{
-				output_request._route = *it;
-				if (found < input_request._path.size())
-					file = input_request._path.substr(found + 1, input_request._path.size() - found);
+				client._request._route = *it;
+				if (found < client._request._path.size())
+					file = client._request._path.substr(found + 1, client._request._path.size() - found);
 				else
 					file = "";
 			}
@@ -560,25 +581,24 @@ Request 			ResponseGenerator::parse_request_route(Request  const &input_request)
 		found++;
 	}
 	// once route is found, path is equal to the location + anything after the route name 
-	output_request._path = output_request._route._location+file;
+	client._request._path = client._request._route._location+file;
 	// If file is directory, check for default file
-	if (is_directory(output_request._path))
+	if (is_directory(client._request._path))
 	{
-		if (*(output_request._path.end() - 1) != '/')
-			output_request._path+="/";
+		if (*(client._request._path.end() - 1) != '/')
+			client._request._path+="/";
 		// Define redirection if there is a default file
-		if (output_request._route._default_file != Route::file_type())
+		if (client._request._route._default_file != Route::file_type())
 		{
-			if (*(input_request._path.end() - 1) != '/')
-				output_request._redir = std::make_pair(301, input_request._path+"/"+output_request._route._default_file);
+			if (*(input_path.end() - 1) != '/')
+				client._request._redir = std::make_pair(301, input_path+"/"+client._request._route._default_file);
 			else
-				output_request._redir = std::make_pair(301, input_request._path+output_request._route._default_file);
+				client._request._redir = std::make_pair(301, input_path+client._request._route._default_file);
 		}	
 	}
 
 	// If the inut_path is exactly the name of a route and this route has a redirection defined, add it
 
-	if (output_request._route._redir != Route::redir_type() && input_request._path == output_request._route._path)
-		output_request._redir = output_request._route._redir;
-	return (output_request);
+	if (client._request._route._redir != Route::redir_type() && input_path == client._request._route._path)
+		client._request._redir = client._request._route._redir;
 }
