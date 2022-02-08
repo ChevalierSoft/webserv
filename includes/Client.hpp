@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
+/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 00:54:13 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/08 22:04:14 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/02/08 22:24:29 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,26 +44,21 @@ class Client // * ______________________________________________________________
 	/// * Variables ____________________________________________________________
 
 private:
-	Request					_request;
-	std::string				_response;
-	bool					_request_ready;			// will stop the reading to send o_msg's content
-	bool					_response_ready;
-	struct timeval			_life_time;				// will be updated every event. after CLIENT_TIMEOUT the client is erased and the connection is closed
-	std::string				_ip;
-	std::string				_port;
-	bool					_body_sent;
-	int						_webserv_pipe[2];
-	int						_cgi_pipe[2];
-
+	Request							_request;
+	std::string						_response;
+	bool							_request_ready;			// will stop the reading to send o_msg's content
+	bool							_response_ready;
+	struct timeval					_life_time;				// will be updated every event. after CLIENT_TIMEOUT the client is erased and the connection is closed
+	std::string						_ip;
+	std::string						_port;
+	bool							_body_sent;
+	int								_webserv_pipe[2];
+	int								_cgi_pipe[2];
 	e_preform_fast_forward			_fast_forward;
-	Route::cgi_list::const_iterator	cgi;
-	std::string						tmp_response;
+	Route::cgi_list::const_iterator	_cgi;
 	pid_t							_child;
-	std::ifstream					input_file;
-
-	int								tmp_counter;		// debug
-
-	Request							_tmp_request;		// need to modify _request and remove this one
+	std::ifstream					_input_file;
+	int								_tmp_counter;			// debug ?
 	bool							_request_parsed;
 
 	/// * Constructors & Destructors ___________________________________________
