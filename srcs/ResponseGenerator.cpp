@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/08 00:12:11 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/08 04:10:20 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -165,30 +165,20 @@ void				ResponseGenerator::get_error_file (Client & client, Conf::code_type err)
  */
 void				ResponseGenerator::get_file_content (Client & client) const
 {
-	// std::ifstream					client.input_file;
-	std::string						tmp;
-	// std::string						s_file_content = "";
-	// std::string						page_header;
-	// Route::cgi_list::const_iterator	cgi;
-
-	
+	std::string		tmp;
 
 	client._fast_forward = FF_GET_FILE;
-	// if (client.input_file.is_open())
+
 	if (client.input_file.good())
 	{
-		// while (client.input_file.good())
-		// {
-			std::getline(client.input_file, tmp);
-			// s_file_content += (tmp + "\n");
-			client.tmp_response += (tmp + "\n");
-		// }
+		std::getline(client.input_file, tmp);
+		client.tmp_response += (tmp + "\n");
 	}
 	else
 	{
 		client._response.append_buffer(set_header(200, get_file_extention(get_file_name(client._request._path)), client.tmp_response.size()));
 		client._response.append_buffer(client.tmp_response);
-		// return (this->get_error_file(403));	// 403 ?
+		client._response_ready = true;
 	}
 
 	return ;
@@ -349,7 +339,7 @@ bool				ResponseGenerator::cgi_send_body (Client & client, int cgi_pipe[2]) cons
 	for (std::vector<std::string>::const_iterator cit = client._request.begin_body();
 		cit != client._request.end_body(); ++cit)
 	{
-		std::cout << "sending : " << cit->c_str() << std::endl;
+		// std::cout << "sending : " << cit->c_str() << std::endl;
 		err = write(client._cgi_pipe[1], cit->c_str(), cit->length());
 		if (err < 0)
 			return (true);
@@ -450,28 +440,32 @@ void				ResponseGenerator::perform_method (Client & client) const
 		return ;
 	}
 
-	std::cout << client._request._path << std::endl;
+	std::cout << client._tmp_request._path << std::endl;
 
-	if ( !(stat((client._request._path).c_str(), &s)) )
+	if ( !(stat((client._tmp_request._path).c_str(), &s)) )
 	{
 		if (s.st_mode & S_IFDIR)	// ? the requested path is a directory
 		{
-			if (client._request._route._dir_listing) // check if directory listing is on
-				directory_listing(client._request._path);
+			__DEB("S_IFDIR")
+			if (client._tmp_request._route._dir_listing) // check if directory listing is on
+			{
+				client._response.append_buffer(directory_listing(client._tmp_request._path));
+				client._response_ready = true;
+			}
 			else
 				get_error_file(client, 403);
 		}
 		else if (s.st_mode & S_IFREG)	// ? the requested path is a file
 		{
 			__DEB("S_IFREG")
-			client.cgi = client._request._route._cgis.find(get_file_extention((client._request._path)));
-			if (client.cgi != client._request._route._cgis.end())
-				cgi_handling(client, client.cgi->second, client._request._path);
-			else
-			{
+			// client.cgi = client._request._route._cgis.find(get_file_extention((client._request._path)));
+			// if (client.cgi != client._request._route._cgis.end())
+			// 	cgi_handling(client, client.cgi->second, client._request._path);
+			// else
+			// {
 				client.input_file.open((client._request._path).c_str());
 				get_file_content(client);
-			}
+			// }
 		}
 		else
 		{
@@ -513,11 +507,13 @@ bool				ResponseGenerator::is_method(std::string method, Request const &rq) cons
 	return (method == rq._method && (std::find(rq._route._methods.begin(), rq._route._methods.end(), method) !=  rq._route._methods.end()));
 }
 
-bool				ResponseGenerator::generate(Client& client) const
+bool				ResponseGenerator::generate (Client& client) const
 {
-	int	error_code = client._request.request_error();
-
 	std::cout << "tmp_counter = " << client.tmp_counter++ << std::endl;
+
+	// usleep(1000000);
+
+	int	error_code = client._request.request_error();
 
 	if (error_code)
 	{
@@ -525,22 +521,38 @@ bool				ResponseGenerator::generate(Client& client) const
 		return (false);
 	}
 
-	Request request(parse_request_route(client._request));
+	// Request request(parse_request_route(client._request));
+	if (client._request_parsed == false)
+	{
+		client._tmp_request = parse_request_route(client._request);
+		client._request_parsed = true;
+	}
 
 	// ? check which method should be called
-	if (is_method("GET", request) || is_method("POST", request))
+	if (is_method("GET", client._tmp_request) || is_method("POST", client._tmp_request))
 	{
 		if (client._fast_forward == FF_NOT_SET)
+		{
+			__DEB("FF_NOT_SET")
 			this->perform_method(client);
+		}
 		else if (client._fast_forward == FF_GET_FILE)
+		{
+			__DEB("FF_GET_FILE")
 			get_file_content(client);
+		}
 		else if (client._fast_forward == FF_GET_CGI)
+		{
+			__DEB("FF_GET_CGI")
 			listen_cgi(client, client.cgi->second);
+		}
 	}
-	else if (is_method("DELETE", request))
+	else if (is_method("DELETE", client._tmp_request))
 		this->perform_delete(client);
 	else
 		get_error_file(client, 501);
+
+	__DEB(client.tmp_response);
 
 	return (false);
 }

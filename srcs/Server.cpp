@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
+/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/01 17:12:46 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/02/08 03:17:05 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -121,6 +121,10 @@ int				Server::init (const Conf& c)
 		return (1);
 	}
 
+	rc = fcntl(_listen_sd, F_SETFL, O_NONBLOCK);
+	if (rc == -1)
+		return 38;
+
 	// ? Allow socket descriptor to be reuseable
 	rc = setsockopt(_listen_sd, SOL_SOCKET, SO_REUSEADDR,
 					(char *)&on, sizeof(on));
@@ -143,6 +147,7 @@ int				Server::init (const Conf& c)
 	if (this->socket_bind() == false)
 		return (4);
 	
+
 	std::cout << "ready to listen on port " << _conf._hosts.begin()->second << std::endl;
 	return (0);
 }
@@ -220,6 +225,7 @@ bool			Server::record_client_input (const int &i)
 	// ? update client's _life_time
 	_clients[_fds[i].fd].update();
 
+	// todo : be sure to use non blocking fds
 	rc = recv(_fds[i].fd, buffer, sizeof(buffer) - 1, 0); // MSG_DONTWAIT | MSG_ERRQUEUE);	// ? errors number can be checked with the flag MSG_ERRQUEUE (man recv)
 
 	if (rc == -1 || rc == 0)	// ? error while reading or client closed the connection
@@ -242,8 +248,12 @@ bool			Server::record_client_input (const int &i)
 	// ? If needed, this is where we could send 100 Continue
 
 	if (_clients[_fds[i].fd].is_request_parsed() == true)
+	{
+		_fds[i].events = POLLOUT;	// ? time to generate and send the content
+		// _fds[i].revents = POLLOUT;
 		close_conn = this->_response_generator.generate(_clients[_fds[i].fd]);
-	// ? If needed, this is where we could send 202 Accepted
+		// ? If needed, this is where we could send 202 Accepted
+	}
 
 	if (_clients[_fds[i].fd].is_response_ready() == true)
 		close_conn = _clients[_fds[i].fd].send_response(_fds[i].fd);
@@ -327,25 +337,57 @@ bool			Server::server_poll_loop ()
 			continue;
 		}
  
-		// ? If revents is not POLLIN, it's an unexpected result,
-		// ? so it will be cleaned
-		if (_fds[i].revents != POLLIN)
-		{
-			std::cout << "  error: revents = " << _fds[i].revents << std::endl;
-			close(_fds[i].fd);
-			_fds[i].fd = -1;
-			_fds.erase(_fds.begin() + i);
-			break;
-		}
+		__DEB("poll : ")
+		std::cout << " events : " << _fds[i].events << std::endl;
+		std::cout << " revents : " << _fds[i].revents << std::endl;
+
+		// if (_fds[i].revents != POLLIN)
+		// {
+		// 	std::cout << "  error: revents = " << _fds[i].revents << std::endl;
+		// 	close(_fds[i].fd);
+		// 	_fds[i].fd = -1;
+		// 	_fds.erase(_fds.begin() + i);
+		// 	break;
+		// }
 
 		// ? check if it's a new client
 		if (_fds[i].fd == _listen_sd)
 		{
+			if (_fds[i].revents != POLLIN)
+				// todo : decide if the server must be restarted or closed.
+				std::cout << "error : listen socket's revents is : " << _fds[i].revents << std::endl;
 			add_new_client();
 		}
 		// ? else the event was triggered by a pollfd that is already in _fds
 		else
-			record_client_input(i);
+		{
+			bool	close_conn = false;
+
+			if (_fds[i].revents == POLLIN)
+				record_client_input(i);
+			else if (_fds[i].revents == POLLOUT)
+			{
+				if (_clients[_fds[i].fd].is_request_parsed() == true)
+				{
+					_fds[i].events = POLLOUT;	// ? time to generate and send the content
+					// _fds[i].revents = POLLOUT;
+					close_conn = this->_response_generator.generate(_clients[_fds[i].fd]);
+					// ? If needed, this is where we could send 202 Accepted
+				}
+
+				if (_clients[_fds[i].fd].is_response_ready() == true)
+					close_conn = _clients[_fds[i].fd].send_response(_fds[i].fd);
+
+				if (close_conn)
+				{
+					std::cerr <<MAG<< "close_conn" <<RST<< std::endl;
+					remove_client(i);
+					return (true);
+				}
+			}
+			else
+				remove_client(i);
+		}
 	}
 
 	return (true);
@@ -374,7 +416,7 @@ int				Server::start ()
 	// ? Set up the initial listening socket
 	tmp.fd = _listen_sd;
 	tmp.events = POLLIN;
-	tmp.revents = 0;
+	tmp.revents = 4;
 	_fds.push_back(tmp);
 
 	while (server_poll_loop() == true)

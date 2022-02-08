@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 00:54:13 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/07 21:56:12 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/08 00:36:17 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,7 +62,10 @@ private:
 	pid_t							_child;
 	std::ifstream					input_file;
 
-	int						tmp_counter;
+	int								tmp_counter;		// debug
+
+	Request							_tmp_request;		// need to modify _request and remove this one
+	bool							_request_parsed;
 
 	/// * Constructors & Destructors ___________________________________________
 
