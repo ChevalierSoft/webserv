@@ -437,6 +437,7 @@ void				ResponseGenerator::perform_method (Client & client) const
 	struct stat	s;
 
 	// ? redirects if there is a redirection in appropriate route AND if what is typed in the url corresponds to location in conf
+
 	if (client._request._redir != Route::redir_type())
 	{
 		client._response.append_buffer(get_redirection(client._request._redir));
@@ -496,19 +497,44 @@ void				ResponseGenerator::perform_delete(Client & client) const
 {
 	std::string	header;
 	std::string	file_content;
+	std::string	root;
+	struct stat	s_root;
+	struct stat	s_file;
 
-	if (remove(client._request._path.c_str()) != 0)
-		get_error_file(client, 404);
-	else
+	root = client._request._path;
+	if (*(client._request._path.end() - 1) == '/')
+		root = client._request._path.substr(0, client._request._path.size() - 1);
+	root = root.substr(0, root.rfind('/'));
+	if (root == ".")
+		get_error_file(401);
+	else if (!stat(root.c_str(), &s_root))
 	{
-		file_content = "<html>\n";
-		file_content += "\t<body>\n";
-		file_content += "\t\t<h1>File deleted.</h1>\n";
-		file_content += "\t</body>\n";
-		file_content += "</html>\n";
-		client._response.append_buffer(set_header(0, ".html", file_content.size()) + file_content);
+		if ((s_root.st_mode & S_IWUSR) && (s_root.st_mode & S_IXUSR))
+		{
+			if (!stat(client._request._path.c_str(), &s_file))
+			{
+				if (remove(client._request._path.c_str()))
+					get_error_file(500);
+        else
+        {
+          file_content = "<html>\n";
+          file_content += "\t<body>\n";
+          file_content += "\t\t<h1>"+client._request._path+" deleted.</h1>\n";
+          file_content += "\t</body>\n";
+          file_content += "</html>\n";
+          client._response.append_buffer(set_header(0, ".html", file_content.size()) + file_content);
+          client._response_ready = true;
+          return ;
+        }
+			}
+			else
+				get_error_file(404);
+		}
+		else
+			get_error_file(403);
 	}
-	client._response_ready = true;
+	else
+		get_error_file(404);
 }
 
 bool				ResponseGenerator::is_method(std::string method, Request const &rq) const {
@@ -529,6 +555,7 @@ bool				ResponseGenerator::generate (Client& client) const
 		return (false);
 	}
 
+// <<<<<<< 5_non_blocking_response
 	// Request request(parse_request_route(client._request));
 	if (client._request_parsed == false)
 	{
@@ -557,6 +584,15 @@ bool				ResponseGenerator::generate (Client& client) const
 	}
 	else if (is_method("DELETE", client._tmp_request))
 		this->perform_delete(client);
+// =======
+	parse_request_route(client);
+
+	// ? check which method should be called
+	if (is_method("GET", client._request) || is_method("POST", client._request))
+		client._response.append_buffer(this->perform_method(client));
+	else if (is_method("DELETE", client._request))
+		client._response.append_buffer(this->perform_delete(client._request));
+// >>>>>>> main
 	else
 		get_error_file(client, 501);
 
@@ -574,30 +610,29 @@ bool				ResponseGenerator::is_directory(const std::string path) const{
 	return (false);
 }
 
-Request 			ResponseGenerator::parse_request_route(Request  const &input_request) const{
+void 			ResponseGenerator::parse_request_route(Client &client) const{
 	const char					sep = '/';
 	int							found  = 0;
 	Conf::route_list			routes((*_conf)._routes);
 	std::string					file = std::string();
-	std::string					path;
-	Request						output_request(input_request);
+	std::string					input_path(client._request._path);
 	std::string					location;
 	
 	// Loop to find the route and set it to output request route
-	while (found <= input_request._path.size())
+	while (found <= client._request._path.size())
 	{
-		if ((found = input_request._path.find(sep, found)) == std::string::npos)
-			found = input_request._path.size();
+		if ((found = client._request._path.find(sep, found)) == std::string::npos)
+			found = client._request._path.size();
 		for (Conf::route_list::iterator it = routes.begin(); it != routes.end(); it++)
 		{
-			location = input_request._path.substr(0,found);
+			location = client._request._path.substr(0,found);
 			// if (*(location.end() - 1) != '/')
 			// 	location+="/";
 			if (it->_path == location+"/")
 			{
-				output_request._route = *it;
-				if (found < input_request._path.size())
-					file = input_request._path.substr(found + 1, input_request._path.size() - found);
+				client._request._route = *it;
+				if (found < client._request._path.size())
+					file = client._request._path.substr(found + 1, client._request._path.size() - found);
 				else
 					file = "";
 			}
@@ -605,25 +640,24 @@ Request 			ResponseGenerator::parse_request_route(Request  const &input_request)
 		found++;
 	}
 	// once route is found, path is equal to the location + anything after the route name 
-	output_request._path = output_request._route._location+file;
+	client._request._path = client._request._route._location+file;
 	// If file is directory, check for default file
-	if (is_directory(output_request._path))
+	if (is_directory(client._request._path))
 	{
-		if (*(output_request._path.end() - 1) != '/')
-			output_request._path+="/";
+		if (*(client._request._path.end() - 1) != '/')
+			client._request._path+="/";
 		// Define redirection if there is a default file
-		if (output_request._route._default_file != Route::file_type())
+		if (client._request._route._default_file != Route::file_type())
 		{
-			if (*(input_request._path.end() - 1) != '/')
-				output_request._redir = std::make_pair(301, input_request._path+"/"+output_request._route._default_file);
+			if (*(input_path.end() - 1) != '/')
+				client._request._redir = std::make_pair(301, input_path+"/"+client._request._route._default_file);
 			else
-				output_request._redir = std::make_pair(301, input_request._path+output_request._route._default_file);
+				client._request._redir = std::make_pair(301, input_path+client._request._route._default_file);
 		}	
 	}
 
 	// If the inut_path is exactly the name of a route and this route has a redirection defined, add it
 
-	if (output_request._route._redir != Route::redir_type() && input_request._path == output_request._route._path)
-		output_request._redir = output_request._route._redir;
-	return (output_request);
+	if (client._request._route._redir != Route::redir_type() && input_path == client._request._route._path)
+		client._request._redir = client._request._route._redir;
 }

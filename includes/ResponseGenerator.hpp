@@ -77,7 +77,7 @@ private:
 
 	bool				is_method(std::string method, Request const & rq) const;
 
-	Request				parse_request_route(Request  const & input_request) const;
+	void				parse_request_route(Client &client) const;
 
 	bool				is_directory(const std::string path) const;
 
