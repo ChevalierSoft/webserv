@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/08 19:04:10 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/08 19:07:01 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -177,7 +177,7 @@ void				ResponseGenerator::get_file_content (Client & client) const
 	}
 	else
 	{
-		__DEB("input_file not good")
+		// __DEB("input_file not good")
 		// client._response.clear();
 		client._response.append_buffer(set_header(200, get_file_extention(get_file_name(client._request._path)), client.tmp_response.size()));
 		client._response.append_buffer(client.tmp_response);
@@ -451,7 +451,7 @@ void				ResponseGenerator::perform_method (Client & client) const
 	{
 		if (s.st_mode & S_IFDIR)	// ? the requested path is a directory
 		{
-			__DEB("S_IFDIR")
+			// __DEB("S_IFDIR")
 			if (client._request._route._dir_listing) // check if directory listing is on
 			{
 				client._response.append_buffer(directory_listing(client._request._path));
@@ -462,7 +462,7 @@ void				ResponseGenerator::perform_method (Client & client) const
 		}
 		else if (s.st_mode & S_IFREG)	// ? the requested path is a file
 		{
-			__DEB("S_IFREG")
+			// __DEB("S_IFREG")
 			client.cgi = client._request._route._cgis.find(get_file_extention((client._request._path)));
 			if (client.cgi != client._request._route._cgis.end())
 				cgi_handling(client, client.cgi->second, client._request._path);
@@ -543,7 +543,7 @@ bool				ResponseGenerator::is_method(std::string method, Request const &rq) cons
 
 bool				ResponseGenerator::generate (Client& client) const
 {
-	std::cout << "tmp_counter = " << client.tmp_counter++ << std::endl;
+	// std::cout << "tmp_counter = " << client.tmp_counter++ << std::endl;
 
 	int	error_code = client._request.request_error();
 
@@ -564,17 +564,17 @@ bool				ResponseGenerator::generate (Client& client) const
 	{
 		if (client._fast_forward == FF_NOT_SET)
 		{
-			__DEB("FF_NOT_SET")
+			// __DEB("FF_NOT_SET")
 			this->perform_method(client);
 		}
 		else if (client._fast_forward == FF_GET_FILE)
 		{
-			__DEB("FF_GET_FILE")
+			// __DEB("FF_GET_FILE")
 			get_file_content(client);
 		}
 		else if (client._fast_forward == FF_GET_CGI)
 		{
-			__DEB("FF_GET_CGI")
+			// __DEB("FF_GET_CGI")
 			listen_cgi(client, client.cgi->second);
 		}
 	}
