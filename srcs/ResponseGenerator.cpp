@@ -437,8 +437,8 @@ void				ResponseGenerator::perform_method (Client & client) const
 	struct stat	s;
 
 
-	// if (cl._request.is_upload() && cl._request.upload_to_server())
-	// 	return (get_error_file(204)); // no content to output
+	if (client._request.is_upload() && client._request.upload_to_server(_conf))
+		return (get_error_file(client, 204)); // no content to output
 	// ? redirects if there is a redirection in appropriate route AND if what is typed in the url corresponds to location in conf
 
 	if (client._request._redir != Route::redir_type())
