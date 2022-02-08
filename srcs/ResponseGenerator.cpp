@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/08 22:14:17 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/08 22:24:30 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -170,20 +170,19 @@ void				ResponseGenerator::get_file_content (Client & client) const
 
 	client._fast_forward = FF_GET_FILE;
 
-	if (client.input_file.good())
+	if (client._input_file.good())
 	{
-		std::getline(client.input_file, tmp);
-		client.tmp_response += (tmp + "\n");
+		std::getline(client._input_file, tmp);
+		client._response += (tmp + "\n");
 		// std::cout << client.tmp_response << std::endl;
 	}
 	else
 	{
 		// __DEB("input_file not good")
 		// client._response.clear();
-		client._response += (set_header(200, get_file_extention(get_file_name(client._request._path)), client.tmp_response.size()));
-		client._response += (client.tmp_response);
+		client._response = set_header(200, get_file_extention(get_file_name(client._request._path)), client._response.size()) + client._response;
 		client._response_ready = true;
-		client.input_file.close();
+		client._input_file.close();
 	}
 
 	return ;
@@ -306,7 +305,7 @@ void				ResponseGenerator::listen_cgi (Client & client, std::string url) const
 			client._response_ready = true;
 	}
 	else
-		client.tmp_response += buff;
+		client._response += buff;
 
 	if (client._response_ready)
 	{
@@ -316,14 +315,12 @@ void				ResponseGenerator::listen_cgi (Client & client, std::string url) const
 		page_header = "HTTP/1.1 200 OK\r\n";
 		page_header += "Server: Webserv 42\r\n";	// TODO : set a cool header
 		page_header += "Content-Length: ";
-		cgi_header_size = client.tmp_response.find("\r\n\r\n");
+		cgi_header_size = client._response.find("\r\n\r\n");
 		if (cgi_header_size == std::string::npos)
 			page_header += "0\r\n";
 		else
-			page_header += ft_to_string(client.tmp_response.length() - (cgi_header_size + 4)) + "\r\n";
-		
-		client._response += (page_header);
-		client._response += (client.tmp_response);
+			page_header += ft_to_string(client._response.length() - (cgi_header_size + 4)) + "\r\n";
+		client._response = page_header + client._response;
 	}
 
 	return ;
@@ -473,9 +470,9 @@ void				ResponseGenerator::perform_method (Client & client) const
 				cgi_handling(client, client._cgi->second, client._request._path);
 			else
 			{
-				client.input_file.clear();
-				client.input_file.open((client._request._path).c_str());
-				if (! client.input_file.good())
+				client._input_file.clear();
+				client._input_file.open((client._request._path).c_str());
+				if (! client._input_file.good())
 					get_error_file(client, 403);
 				else
 					get_file_content(client);
@@ -547,7 +544,7 @@ bool				ResponseGenerator::is_method(std::string method, Request const &rq) cons
 
 bool				ResponseGenerator::generate (Client& client) const
 {
-	// std::cout << "tmp_counter = " << client.tmp_counter++ << std::endl;
+	// std::cout << "_tmp_counter = " << client._tmp_counter++ << std::endl;
 
 	int	error_code = client._request.request_error();
 
