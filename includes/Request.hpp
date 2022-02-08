@@ -3,6 +3,7 @@
 #include <map>
 #include <vector>
 #include <iostream>
+#include <fstream>
 #include <cstring>
 #include "color.h"
 #include <cstdlib>
@@ -404,45 +405,44 @@ public:
 		return (false);
 	}
 
-	bool	upload_to_server() {
+	bool	upload_to_server(const Conf * conf) {
+		std::string	filename("default_name");
 		std::string	file_content = *(_body.begin());
 		std::string	boundary(find_header("Content-Type"));
 		size_t		found_bound = boundary.find("boundary=");
-		size_t		found_info, found_nl;
+		size_t		found_info;
 		size_t		content_length = _content_length;
-		// std::string	filename("default_name");
-
-		ft_print_memory((void *)file_content.c_str(), file_content.size());
+		
 		// ? Find boundary for the file contents
 		boundary.erase(0, found_bound + 9);
 		boundary.insert(0, "--");
 		// ? Skip first boundary
-		if (file_content.find(boundary) == 0) {
+		if (file_content.find(boundary) == 0)
 			file_content.erase(0, boundary.size() + 2);
-			std::cout << file_content << std::endl;
-		}
 		else
 			return (false);
 		// ? Skip mime types and get filename
 		if (file_content.find("Content-Disposition") != -1 && (found_info = file_content.find("filename=")) != -1) {
-			found_nl = file_content.find("\r\n");
-			std::string filename(file_content, found_info + 10, found_nl - 1);
-			std::cout << MAG << filename << RST << std::endl;
+			filename = std::string(file_content, found_info + 10);
+			file_content.erase(0, found_info + 10);
+			found_info = filename.find("\"");
+			filename.erase(found_info, filename.size() - found_info);
+			file_content.erase(0, filename.size() + 3);
 		}
-		// it++;
-		// std::cout << MAG << "test2" << RST << std::endl;
-		// if ((*it).find("Content-Type") != -1)
-		// 	it++;
-		// it++;
+		if (file_content.find("Content-Type") != -1 && (found_info = file_content.find("\r\n")) != -1) {
+			file_content.erase(0, found_info + 4);
+		}
 		// ? Get file contents until final boundary with extra "--"
-		// std::cout << MAG << "test3" << RST << std::endl;
-		// while (it != _body.end()) {
-		// 	if ((*it).size() >= boundary.size() && (*it).compare(0, boundary.size(), boundary) == 0)
-		// 		break;
-		// 	file_content.append(*it);
-		// 	it++;
-		// }
-		// std::cout << MAG << file_content << RST << std::endl;
+		if ((found_info = file_content.find(boundary)) != -1) {
+			file_content.erase(found_info, boundary.size() + 4);
+		}
+		else
+			return false;
+		file_content.erase(file_content.size() - 2, 2);
+
+		std::ofstream new_file((conf->_upload_path + "/" + filename).c_str());
+		new_file << file_content;
+		new_file.close();
 		return (true);
 	}
 };
