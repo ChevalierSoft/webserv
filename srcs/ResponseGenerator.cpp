@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/08 22:08:07 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/08 22:14:17 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 #include <sys/wait.h>			// waitpid
 #include <sys/types.h>			// waitpid
 #include <fcntl.h>				// fcntl
+#include <sstream>				
 #include <limits.h>				// PATH_MAX
 #include "ResponseGenerator.hpp"
 #include "webserv.hpp"
@@ -129,7 +130,7 @@ void				ResponseGenerator::get_error_file (Client & client, Conf::code_type err)
 	if (it == _conf->_error_pages.end())
 	{
 		client._response.clear();
-		client._response.append_buffer(generic_error(err));
+		client._response += (generic_error(err));
 	}
 	else
 	{
@@ -142,13 +143,13 @@ void				ResponseGenerator::get_error_file (Client & client, Conf::code_type err)
 				std::getline(i_file, tmp);
 				s_file_content += (tmp + "\n");
 			}
-			client._response.append_buffer(set_header(err, ".html", s_file_content.size()));
-			client._response.append_buffer(s_file_content);
+			client._response += (set_header(err, ".html", s_file_content.size()));
+			client._response += (s_file_content);
 		}
 		else
 		{
 			client._response.clear();
-			client._response.append_buffer(generic_error(err));
+			client._response += (generic_error(err));
 		}
 	}
 
@@ -179,8 +180,8 @@ void				ResponseGenerator::get_file_content (Client & client) const
 	{
 		// __DEB("input_file not good")
 		// client._response.clear();
-		client._response.append_buffer(set_header(200, get_file_extention(get_file_name(client._request._path)), client.tmp_response.size()));
-		client._response.append_buffer(client.tmp_response);
+		client._response += (set_header(200, get_file_extention(get_file_name(client._request._path)), client.tmp_response.size()));
+		client._response += (client.tmp_response);
 		client._response_ready = true;
 		client.input_file.close();
 	}
@@ -232,7 +233,7 @@ void				ResponseGenerator::set_cgi_env (Client & client, std::string path, std::
 	s_envs.push_back("AUTH_TYPE=BASIC");	// ? not needed
 
 	// ? this adds request's headers to env
-	for (Message::it_header it = client._request.begin_header();
+	for (Request::it_header it = client._request.begin_header();
 			it != client._request.end_header(); ++it)
 	{
 		if (it->first == "Content-Type")
@@ -321,8 +322,8 @@ void				ResponseGenerator::listen_cgi (Client & client, std::string url) const
 		else
 			page_header += ft_to_string(client.tmp_response.length() - (cgi_header_size + 4)) + "\r\n";
 		
-		client._response.append_buffer(page_header);
-		client._response.append_buffer(client.tmp_response);
+		client._response += (page_header);
+		client._response += (client.tmp_response);
 	}
 
 	return ;
@@ -437,11 +438,14 @@ void				ResponseGenerator::perform_method (Client & client) const
 {
 	struct stat	s;
 
+
+	// if (cl._request.is_upload() && cl._request.upload_to_server())
+	// 	return (get_error_file(204)); // no content to output
 	// ? redirects if there is a redirection in appropriate route AND if what is typed in the url corresponds to location in conf
 
 	if (client._request._redir != Route::redir_type())
 	{
-		client._response.append_buffer(get_redirection(client._request._redir));
+		client._response += (get_redirection(client._request._redir));
 		client._response_ready = true;
 		return ;
 	}
@@ -455,7 +459,7 @@ void				ResponseGenerator::perform_method (Client & client) const
 			// __DEB("S_IFDIR")
 			if (client._request._route._dir_listing) // check if directory listing is on
 			{
-				client._response.append_buffer(directory_listing(client._request._path));
+				client._response += (directory_listing(client._request._path));
 				client._response_ready = true;
 			}
 			else
@@ -522,7 +526,7 @@ void				ResponseGenerator::perform_delete(Client & client) const
 					file_content += "\t\t<h1>"+client._request._path+" deleted.</h1>\n";
 					file_content += "\t</body>\n";
 					file_content += "</html>\n";
-					client._response.append_buffer(set_header(0, ".html", file_content.size()) + file_content);
+					client._response += (set_header(0, ".html", file_content.size()) + file_content);
 					client._response_ready = true;
 					return ;
 				}
