@@ -464,18 +464,34 @@ std::string			ResponseGenerator::perform_method (Client & cl) const
 std::string			ResponseGenerator::perform_delete(const Request & rq) const {
 	std::string header;
 	std::string	file_content;
+	std::string	root;
+	struct stat	s_root;
+	struct stat	s_file;
 
-	if (remove(rq._path.c_str()) != 0)
-		return (get_error_file(404));
-	else
+	root = rq._path;
+	if (*(rq._path.end() - 1) == '/')
+		root = rq._path.substr(0, rq._path.size() - 1);
+	root = root.substr(0, root.rfind('/'));
+	if (root == ".")
+		return (get_error_file(401));
+	if (!stat(root.c_str(), &s_root) && !stat(rq._path.c_str(), &s_file))
 	{
-		file_content = "<html>\n";
-		file_content += "\t<body>\n";
-		file_content += "\t\t<h1>File deleted.</h1>\n";
-		file_content += "\t</body>\n";
-		file_content += "</html>\n";
-		return (set_header(0, ".html", file_content.size()) + file_content);	
+		if (s_root.st_mode & S_IWUSR & S_IXUSR)
+		{
+			if (remove(rq._path.c_str()))
+				return (get_error_file(500));
+			file_content = "<html>\n";
+			file_content += "\t<body>\n";
+			file_content += "\t\t<h1>"+rq._path+" deleted.</h1>\n";
+			file_content += "\t</body>\n";
+			file_content += "</html>\n";
+			return (set_header(0, ".html", file_content.size()) + file_content);	
+		}
+		else
+			return (get_error_file(403));
 	}
+	else
+		return (get_error_file(404));
 }
 /**
  * @brief generate the response for the client
