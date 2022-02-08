@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/08 19:07:01 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/08 21:38:55 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -278,7 +278,9 @@ void				ResponseGenerator::start_cgi (Client & client, std::string cgi_url, std:
 
 	execve(exe[0], exe, a_envs.data());
 
-	// TODO : clean memory / close pipes. maybe by an ugly exception
+	// TODO : clean memory / close pipes.
+	// TODO : send back a 500
+
 	std::cerr << CYN << "execve_failed" << std::endl;
 	exit(66);
 }
@@ -337,13 +339,12 @@ bool				ResponseGenerator::cgi_send_body (Client & client, int cgi_pipe[2]) cons
 		return (false);
 	}
 
-	std::cerr << "sending body" << std::endl;
+	// std::cerr << "sending body" << std::endl;
 
 	// TODO : when non blocking will be a thing, iterate piece by piece ?
 	for (std::vector<std::string>::const_iterator cit = client._request.begin_body();
 		cit != client._request.end_body(); ++cit)
 	{
-		// std::cout << "sending : " << cit->c_str() << std::endl;
 		err = write(client._cgi_pipe[1], cit->c_str(), cit->length());
 		if (err < 0)
 			return (true);
@@ -468,11 +469,11 @@ void				ResponseGenerator::perform_method (Client & client) const
 				cgi_handling(client, client.cgi->second, client._request._path);
 			else
 			{
-				// client.input_file.clear();
+				client.input_file.clear();
 				client.input_file.open((client._request._path).c_str());
-				// if (! client.input_file.good())
-				// 	get_error_file(client, 403);
-				// else
+				if (! client.input_file.good())
+					get_error_file(client, 403);
+				else
 					get_file_content(client);
 			}
 		}
@@ -485,7 +486,6 @@ void				ResponseGenerator::perform_method (Client & client) const
 	}
 	else
 	{
-		// __DEB("la")
 		// ? error: wrong path || path too long || out of memory || bad address || ...
 		get_error_file(client, 404);
 	}
@@ -515,17 +515,17 @@ void				ResponseGenerator::perform_delete(Client & client) const
 			{
 				if (remove(client._request._path.c_str()))
 					get_error_file(client, 500);
-        else
-        {
-          file_content = "<html>\n";
-          file_content += "\t<body>\n";
-          file_content += "\t\t<h1>"+client._request._path+" deleted.</h1>\n";
-          file_content += "\t</body>\n";
-          file_content += "</html>\n";
-          client._response.append_buffer(set_header(0, ".html", file_content.size()) + file_content);
-          client._response_ready = true;
-          return ;
-        }
+				else
+				{
+					file_content = "<html>\n";
+					file_content += "\t<body>\n";
+					file_content += "\t\t<h1>"+client._request._path+" deleted.</h1>\n";
+					file_content += "\t</body>\n";
+					file_content += "</html>\n";
+					client._response.append_buffer(set_header(0, ".html", file_content.size()) + file_content);
+					client._response_ready = true;
+					return ;
+				}
 			}
 			else
 				get_error_file(client, 404);
@@ -563,20 +563,11 @@ bool				ResponseGenerator::generate (Client& client) const
 	if (is_method("GET", client._request) || is_method("POST", client._request))
 	{
 		if (client._fast_forward == FF_NOT_SET)
-		{
-			// __DEB("FF_NOT_SET")
 			this->perform_method(client);
-		}
 		else if (client._fast_forward == FF_GET_FILE)
-		{
-			// __DEB("FF_GET_FILE")
 			get_file_content(client);
-		}
 		else if (client._fast_forward == FF_GET_CGI)
-		{
-			// __DEB("FF_GET_CGI")
 			listen_cgi(client, client.cgi->second);
-		}
 	}
 	else if (is_method("DELETE", client._request))
 		this->perform_delete(client);
