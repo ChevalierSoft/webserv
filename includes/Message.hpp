@@ -101,7 +101,8 @@ public:
 	 * @param src 
 	 */
 	void		append_buffer(const std::string & src) {
-		_buffer.append(src);
+		// _buffer.append(src);
+		_buffer += src;
 	}
 
 
@@ -222,7 +223,8 @@ public:
 	void	clear() {
 		_header.clear();
 		_body.clear();
-		_buffer.clear();
+		// _buffer.clear();
+		_buffer = "";
 		_method.clear();
 		_path.clear();
 		_get_query.clear();

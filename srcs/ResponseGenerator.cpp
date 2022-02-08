@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/04 21:58:11 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/08 19:04:10 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@
 #include <cstdio>
 
 #ifndef __DEB
-# define __DEB(s) std::cerr << GRN << s << RST << std::endl;
+# define __DEB(s) std::cerr << CYN << s << RST << std::endl;
 #endif
 
 /**
@@ -94,7 +94,7 @@ std::string			ResponseGenerator::set_header (int err, std::string ext, size_t si
 	if (!err)
 	{
 		err = 200;
-		s_header = "HTTP/1.1 " + ft_to_string(err) + " OK" + "\r\n";
+		s_header = "HTTP/1.1 " + ft_to_string(err) + " OK\r\n";
 	}
 	else
 		s_header = "HTTP/1.1 " + ft_to_string(err) + " " + _ss_error_messages.find(err)->second + "\r\n";
@@ -112,25 +112,27 @@ std::string			ResponseGenerator::generic_error (int err) const
 	std::string		s_file_content = "";
 	std::string		s_full_content;
 
+	// todo : could be nice to protect this by checking _ss_error_message.find == end()
 	s_file_content = ft_to_string(err) + " " + _ss_error_messages.find(err)->second + "\r\n";
 	s_full_content = set_header(err, ".html", s_file_content.size()) + s_file_content;
 
 	return (s_full_content);
 }
 
-std::string			ResponseGenerator::get_error_file (Conf::code_type err) const
+void				ResponseGenerator::get_error_file (Client & client, Conf::code_type err) const
 {
 	std::string							s_file_content = "";
-	std::string							s_full_content;
 	std::ifstream						i_file;
 	std::string							tmp;
 	Conf::error_list::const_iterator	it = _conf->_error_pages.find(err);
 
 	if (it == _conf->_error_pages.end())
-		return (generic_error(err));
+	{
+		client._response.clear();
+		client._response.append_buffer(generic_error(err));
+	}
 	else
 	{
-		std::cerr << CYN << it->second << RST << std::endl;
 		i_file.open(it->second.c_str());
 
 		if (i_file.is_open())
@@ -140,17 +142,18 @@ std::string			ResponseGenerator::get_error_file (Conf::code_type err) const
 				std::getline(i_file, tmp);
 				s_file_content += (tmp + "\n");
 			}
+			client._response.append_buffer(set_header(err, ".html", s_file_content.size()));
+			client._response.append_buffer(s_file_content);
 		}
 		else
 		{
-			return (generic_error(err));
+			client._response.clear();
+			client._response.append_buffer(generic_error(err));
 		}
 	}
 
-	s_full_content = set_header(err, ".html", s_file_content.size());
-	s_full_content += s_file_content;
-	
-	return (s_full_content);
+	client._response_ready = true;
+	return ;
 }
 
 /**
@@ -160,37 +163,29 @@ std::string			ResponseGenerator::get_error_file (Conf::code_type err) const
  * @param path the requested file
  * @return std::string file content as string
  */
-std::string			ResponseGenerator::get_file_content(Client & client) const
+void				ResponseGenerator::get_file_content (Client & client) const
 {
-	std::ifstream					i_file;
-	std::string						tmp;
-	std::string						s_file_content = "";
-	std::string						s_full_content;
-	Route::cgi_list::const_iterator	cgi;	
+	std::string		tmp;
 
-	i_file.open((client._request._path).c_str());
+	client._fast_forward = FF_GET_FILE;
 
-
-	if (i_file.is_open())
+	if (client.input_file.good())
 	{
-		if ((cgi = client._request._route._cgis.find(get_file_extention((client._request._path)))) != client._request._route._cgis.end())
-			return (cgi_handling(client, cgi->second, client._request._path)); // ! c'est ici qu'on retourne la reponse du cgi maintenant
-		while (i_file.good())
-		{
-			std::getline(i_file, tmp);
-			s_file_content += (tmp + "\n");
-		}
+		std::getline(client.input_file, tmp);
+		client.tmp_response += (tmp + "\n");
+		// std::cout << client.tmp_response << std::endl;
 	}
 	else
 	{
-		// std::cout << "Couldn't open file\n";
-		return (this->get_error_file(403));	// 403 ?
+		__DEB("input_file not good")
+		// client._response.clear();
+		client._response.append_buffer(set_header(200, get_file_extention(get_file_name(client._request._path)), client.tmp_response.size()));
+		client._response.append_buffer(client.tmp_response);
+		client._response_ready = true;
+		client.input_file.close();
 	}
 
-	s_full_content = set_header(0, get_file_extention(get_file_name(client._request._path)), s_file_content.size());
-
-	s_full_content += s_file_content;
-	return (s_full_content);
+	return ;
 }
 
 void				ResponseGenerator::set_cgi_env (Client & client, std::string path, std::vector<std::string> & s_envs, std::vector<char *> & a_envs) const
@@ -288,48 +283,47 @@ void				ResponseGenerator::start_cgi (Client & client, std::string cgi_url, std:
 	exit(66);
 }
 
-std::string			ResponseGenerator::listen_cgi (Client & client,
-													std::string url,
-													int cgi_pipe[2],
-													pid_t child ) const
+void				ResponseGenerator::listen_cgi (Client & client, std::string url) const
 {
 	int							err;
-	std::string					response;
-	std::string					page;
+	int							wpid;
+	std::string					page_header;
 	char						buff[CGI_BUFF_SIZE];
 	int							cgi_header_size;
 
-	// ! need to use WNOHANG and check every loop (when it will be implemented)
+	// // ! need to use WNOHANG and check every loop (when it will be implemented)
 	// ? https://cboard.cprogramming.com/c-programming/138057-waitpid-non-blocking-fork.html
-	waitpid(-1, &child, 0);
+	// waitpid(-1, &child, 0);
 
-	// if (WIFEXITED(child))
-	// 	std::cerr << "CGI returned : " << WEXITSTATUS(child) << std::endl;
-
-	// ! avoid this loop by entering/leaving this function until child is exited
-	while (1)
+	memset(buff, 0, CGI_BUFF_SIZE);
+	err = read(client._webserv_pipe[0], buff, CGI_BUFF_SIZE - 1);
+	if (err <= 0)	// ? cgi is too slow or there is nothing to send anymore
 	{
-		memset(buff, 0, CGI_BUFF_SIZE);
-		err = read(client._webserv_pipe[0], buff, CGI_BUFF_SIZE - 1);
-		if (err <= 0)
-			break ;
-		response += buff;
+		if (waitpid(-1, &client._child, WNOHANG))	// ? checks if _child is closed
+			client._response_ready = true;
+	}
+	else
+		client.tmp_response += buff;
+
+	if (client._response_ready)
+	{
+		close(client._webserv_pipe[0]);
+
+		// ? adding the first part of the header
+		page_header = "HTTP/1.1 200 OK\r\n";
+		page_header += "Server: Webserv 42\r\n";	// TODO : set a cool header
+		page_header += "Content-Length: ";
+		cgi_header_size = client.tmp_response.find("\r\n\r\n");
+		if (cgi_header_size == std::string::npos)
+			page_header += "0\r\n";
+		else
+			page_header += ft_to_string(client.tmp_response.length() - (cgi_header_size + 4)) + "\r\n";
+		
+		client._response.append_buffer(page_header);
+		client._response.append_buffer(client.tmp_response);
 	}
 
-	close(client._webserv_pipe[0]);
-
-	// ? adding the first part of the header
-	page = "HTTP/1.1 200 OK\r\n";
-	page += "Server: Webserv 42\r\n";	// TODO : set a cool header
-	page += "Content-Length: ";
-	cgi_header_size = response.find("\r\n\r\n");
-	if (cgi_header_size == std::string::npos)
-		page += "0\r\n";
-	else
-		page += ft_to_string(response.length() - (cgi_header_size + 4)) + "\r\n";
-	page += response;
-
-	return (page);
+	return ;
 }
 
 bool				ResponseGenerator::cgi_send_body (Client & client, int cgi_pipe[2]) const
@@ -345,11 +339,11 @@ bool				ResponseGenerator::cgi_send_body (Client & client, int cgi_pipe[2]) cons
 
 	std::cerr << "sending body" << std::endl;
 
-	// TODO : when non blocking will be a thing, iterate piece by piece
+	// TODO : when non blocking will be a thing, iterate piece by piece ?
 	for (std::vector<std::string>::const_iterator cit = client._request.begin_body();
 		cit != client._request.end_body(); ++cit)
 	{
-		std::cout << "sending : " << cit->c_str() << std::endl;
+		// std::cout << "sending : " << cit->c_str() << std::endl;
 		err = write(client._cgi_pipe[1], cit->c_str(), cit->length());
 		if (err < 0)
 			return (true);
@@ -364,18 +358,23 @@ bool				ResponseGenerator::cgi_send_body (Client & client, int cgi_pipe[2]) cons
 	return (false);
 }
 
-std::string			ResponseGenerator::cgi_handling (Client & client, std::string cgi_url, std::string path) const
+void				ResponseGenerator::cgi_handling (Client & client, std::string cgi_url, std::string path) const
 {
-	pid_t			child;
 	std::string		response;
 
+	client._fast_forward = FF_GET_CGI;
+
 	if (pipe(client._cgi_pipe))
-		return (get_error_file(500));
+	{
+		get_error_file(client, 500);
+		return ;
+	}
 	if (pipe(client._webserv_pipe))
 	{
 		close(client._cgi_pipe[0]);
 		close(client._cgi_pipe[1]);
-		return (get_error_file(500));
+		get_error_file(client, 500);
+		return ;
 	}
 
 	// ? set non blocking the read part of the pipe
@@ -384,7 +383,8 @@ std::string			ResponseGenerator::cgi_handling (Client & client, std::string cgi_
 	{
 		close(client._cgi_pipe[0]);
 		close(client._cgi_pipe[1]);
-		return (get_error_file(500));
+		get_error_file(client, 500);
+		return ;
 	}
 
 	if (fcntl(client._webserv_pipe[0], F_SETFL, O_NONBLOCK) < 0
@@ -394,19 +394,21 @@ std::string			ResponseGenerator::cgi_handling (Client & client, std::string cgi_
 		close(client._cgi_pipe[1]);
 		close(client._webserv_pipe[0]);
 		close(client._webserv_pipe[1]);
-		return (get_error_file(500));
+		get_error_file(client, 500);
+		return ;
 	}
 
-	child = fork();
-	if (child < 0)
+	client._child = fork();
+	if (client._child < 0)
 	{
 		close(client._cgi_pipe[0]);
 		close(client._cgi_pipe[1]);
 		close(client._webserv_pipe[0]);
 		close(client._webserv_pipe[1]);
-		return (get_error_file(500));
+		get_error_file(client, 500);
+		return ;
 	}
-	else if (!child)
+	else if (!client._child)
 		this->start_cgi(client, cgi_url, path, client._cgi_pipe);
 
 	close(client._webserv_pipe[1]);
@@ -415,125 +417,171 @@ std::string			ResponseGenerator::cgi_handling (Client & client, std::string cgi_
 	if (client._body_sent == false)
 	{
 		if (cgi_send_body(client, client._cgi_pipe))
-			return (get_error_file(500));
+		{
+			get_error_file(client, 500);
+			return ;
+		}
 	}
 
-	response = listen_cgi(client, cgi_url, client._cgi_pipe, child);
+	listen_cgi(client, cgi_url);
 
-	return (response);
+	return ;
 }
 
 std::string			ResponseGenerator::get_redirection(const Route::redir_type & redir) const {
 	return ("HTTP/1.1 " + ft_to_string(redir.first) + " " + _ss_error_messages.at(redir.first) + "\r\nLocation: " + redir.second + "\r\n\r\n");
 }
 
-std::string			ResponseGenerator::perform_method (Client & cl) const
+void				ResponseGenerator::perform_method (Client & client) const
 {
-	struct stat s;
+	struct stat	s;
 
 	// ? redirects if there is a redirection in appropriate route AND if what is typed in the url corresponds to location in conf
-	if (cl._request._redir != Route::redir_type())
-		return (get_redirection(cl._request._redir));
-	if ( !(stat((cl._request._path).c_str(), &s)) )
+
+	if (client._request._redir != Route::redir_type())
+	{
+		client._response.append_buffer(get_redirection(client._request._redir));
+		client._response_ready = true;
+		return ;
+	}
+
+	std::cout << client._request._path << std::endl;
+
+	if (! stat((client._request._path).c_str(), &s))
 	{
 		if (s.st_mode & S_IFDIR)	// ? the requested path is a directory
 		{
-			if (cl._request._route._dir_listing) // check if directory listing is on
-				return (directory_listing(cl._request._path));
+			__DEB("S_IFDIR")
+			if (client._request._route._dir_listing) // check if directory listing is on
+			{
+				client._response.append_buffer(directory_listing(client._request._path));
+				client._response_ready = true;
+			}
 			else
-				return (get_error_file(403));
+				get_error_file(client, 403);
 		}
 		else if (s.st_mode & S_IFREG)	// ? the requested path is a file
 		{
-			return (get_file_content(cl));
+			__DEB("S_IFREG")
+			client.cgi = client._request._route._cgis.find(get_file_extention((client._request._path)));
+			if (client.cgi != client._request._route._cgis.end())
+				cgi_handling(client, client.cgi->second, client._request._path);
+			else
+			{
+				// client.input_file.clear();
+				client.input_file.open((client._request._path).c_str());
+				// if (! client.input_file.good())
+				// 	get_error_file(client, 403);
+				// else
+					get_file_content(client);
+			}
 		}
 		else
 		{
 			// ? error: it's there, but it's not a directory or a file.
 			// ? not sure if symlinks must work.
-			return (get_error_file(418));
+			get_error_file(client, 418);
 		}
 	}
 	else
 	{
+		// __DEB("la")
 		// ? error: wrong path || path too long || out of memory || bad address || ...
-		return (get_error_file(404));
+		get_error_file(client, 404);
 	}
-	return (get_error_file(404));
+
+	return ;
 }
-std::string			ResponseGenerator::perform_delete(const Request & rq) const {
-	std::string header;
+
+void				ResponseGenerator::perform_delete(Client & client) const
+{
+	std::string	header;
 	std::string	file_content;
 	std::string	root;
 	struct stat	s_root;
 	struct stat	s_file;
 
-	root = rq._path;
-	if (*(rq._path.end() - 1) == '/')
-		root = rq._path.substr(0, rq._path.size() - 1);
+	root = client._request._path;
+	if (*(client._request._path.end() - 1) == '/')
+		root = client._request._path.substr(0, client._request._path.size() - 1);
 	root = root.substr(0, root.rfind('/'));
 	if (root == ".")
-		return (get_error_file(401));
-	if (!stat(root.c_str(), &s_root))
+		get_error_file(client, 401);
+	else if (!stat(root.c_str(), &s_root))
 	{
 		if ((s_root.st_mode & S_IWUSR) && (s_root.st_mode & S_IXUSR))
 		{
-			if (!stat(rq._path.c_str(), &s_file))
+			if (!stat(client._request._path.c_str(), &s_file))
 			{
-				if (remove(rq._path.c_str()))
-					return (get_error_file(500));
-				file_content = "<html>\n";
-				file_content += "\t<body>\n";
-				file_content += "\t\t<h1>"+rq._path+" deleted.</h1>\n";
-				file_content += "\t</body>\n";
-				file_content += "</html>\n";
-				return (set_header(0, ".html", file_content.size()) + file_content);	
+				if (remove(client._request._path.c_str()))
+					get_error_file(client, 500);
+        else
+        {
+          file_content = "<html>\n";
+          file_content += "\t<body>\n";
+          file_content += "\t\t<h1>"+client._request._path+" deleted.</h1>\n";
+          file_content += "\t</body>\n";
+          file_content += "</html>\n";
+          client._response.append_buffer(set_header(0, ".html", file_content.size()) + file_content);
+          client._response_ready = true;
+          return ;
+        }
 			}
 			else
-				return (get_error_file(404));
+				get_error_file(client, 404);
 		}
 		else
-			return (get_error_file(403));
+			get_error_file(client, 403);
 	}
 	else
-		return (get_error_file(404));
+		get_error_file(client, 404);
 }
-/**
- * @brief generate the response for the client
- * 
- * @param rq 
- * @return true internal error, need to close the client connexion without sending response
- * @return false all good
- */
 
 bool				ResponseGenerator::is_method(std::string method, Request const &rq) const {
 	return (method == rq._method && (std::find(rq._route._methods.begin(), rq._route._methods.end(), method) !=  rq._route._methods.end()));
 }
 
-bool				ResponseGenerator::generate(Client& client) const
+bool				ResponseGenerator::generate (Client& client) const
 {
-	// ! clear at the creation of the client. here it will erase the response each loop 
-	client._response.clear();
+	std::cout << "tmp_counter = " << client.tmp_counter++ << std::endl;
 
-	int	error_code;
+	int	error_code = client._request.request_error();
 
-	if ((error_code = client._request.request_error())) {
-		client._response.append_buffer(get_error_file(error_code));
-		client._response_ready = true;
+	if (error_code)
+	{
+		get_error_file(client, error_code);
 		return (false);
 	}
 
-	parse_request_route(client);
+	if (client._request_parsed == false)
+	{
+		parse_request_route(client);
+		client._request_parsed = true;
+	}
 
 	// ? check which method should be called
 	if (is_method("GET", client._request) || is_method("POST", client._request))
-		client._response.append_buffer(this->perform_method(client));
+	{
+		if (client._fast_forward == FF_NOT_SET)
+		{
+			__DEB("FF_NOT_SET")
+			this->perform_method(client);
+		}
+		else if (client._fast_forward == FF_GET_FILE)
+		{
+			__DEB("FF_GET_FILE")
+			get_file_content(client);
+		}
+		else if (client._fast_forward == FF_GET_CGI)
+		{
+			__DEB("FF_GET_CGI")
+			listen_cgi(client, client.cgi->second);
+		}
+	}
 	else if (is_method("DELETE", client._request))
-		client._response.append_buffer(this->perform_delete(client._request));
+		this->perform_delete(client);
 	else
-		client._response.append_buffer(get_error_file(501));
-
-	client._response_ready = true;	// this will not be set here in the future
+		get_error_file(client, 501);
 
 	return (false);
 }
