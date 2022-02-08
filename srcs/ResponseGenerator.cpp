@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/08 07:03:29 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/08 19:04:10 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -445,16 +445,16 @@ void				ResponseGenerator::perform_method (Client & client) const
 		return ;
 	}
 
-	std::cout << client._tmp_request._path << std::endl;
+	std::cout << client._request._path << std::endl;
 
-	if (! stat((client._tmp_request._path).c_str(), &s))
+	if (! stat((client._request._path).c_str(), &s))
 	{
 		if (s.st_mode & S_IFDIR)	// ? the requested path is a directory
 		{
 			__DEB("S_IFDIR")
-			if (client._tmp_request._route._dir_listing) // check if directory listing is on
+			if (client._request._route._dir_listing) // check if directory listing is on
 			{
-				client._response.append_buffer(directory_listing(client._tmp_request._path));
+				client._response.append_buffer(directory_listing(client._request._path));
 				client._response_ready = true;
 			}
 			else
@@ -463,13 +463,13 @@ void				ResponseGenerator::perform_method (Client & client) const
 		else if (s.st_mode & S_IFREG)	// ? the requested path is a file
 		{
 			__DEB("S_IFREG")
-			client.cgi = client._tmp_request._route._cgis.find(get_file_extention((client._tmp_request._path)));
-			if (client.cgi != client._tmp_request._route._cgis.end())
-				cgi_handling(client, client.cgi->second, client._tmp_request._path);
+			client.cgi = client._request._route._cgis.find(get_file_extention((client._request._path)));
+			if (client.cgi != client._request._route._cgis.end())
+				cgi_handling(client, client.cgi->second, client._request._path);
 			else
 			{
 				// client.input_file.clear();
-				client.input_file.open((client._tmp_request._path).c_str());
+				client.input_file.open((client._request._path).c_str());
 				// if (! client.input_file.good())
 				// 	get_error_file(client, 403);
 				// else
@@ -506,7 +506,7 @@ void				ResponseGenerator::perform_delete(Client & client) const
 		root = client._request._path.substr(0, client._request._path.size() - 1);
 	root = root.substr(0, root.rfind('/'));
 	if (root == ".")
-		get_error_file(401);
+		get_error_file(client, 401);
 	else if (!stat(root.c_str(), &s_root))
 	{
 		if ((s_root.st_mode & S_IWUSR) && (s_root.st_mode & S_IXUSR))
@@ -514,7 +514,7 @@ void				ResponseGenerator::perform_delete(Client & client) const
 			if (!stat(client._request._path.c_str(), &s_file))
 			{
 				if (remove(client._request._path.c_str()))
-					get_error_file(500);
+					get_error_file(client, 500);
         else
         {
           file_content = "<html>\n";
@@ -528,13 +528,13 @@ void				ResponseGenerator::perform_delete(Client & client) const
         }
 			}
 			else
-				get_error_file(404);
+				get_error_file(client, 404);
 		}
 		else
-			get_error_file(403);
+			get_error_file(client, 403);
 	}
 	else
-		get_error_file(404);
+		get_error_file(client, 404);
 }
 
 bool				ResponseGenerator::is_method(std::string method, Request const &rq) const {
@@ -545,8 +545,6 @@ bool				ResponseGenerator::generate (Client& client) const
 {
 	std::cout << "tmp_counter = " << client.tmp_counter++ << std::endl;
 
-	// usleep(1000000);
-
 	int	error_code = client._request.request_error();
 
 	if (error_code)
@@ -555,16 +553,14 @@ bool				ResponseGenerator::generate (Client& client) const
 		return (false);
 	}
 
-// <<<<<<< 5_non_blocking_response
-	// Request request(parse_request_route(client._request));
 	if (client._request_parsed == false)
 	{
-		client._tmp_request = parse_request_route(client._request);
+		parse_request_route(client);
 		client._request_parsed = true;
 	}
 
 	// ? check which method should be called
-	if (is_method("GET", client._tmp_request) || is_method("POST", client._tmp_request))
+	if (is_method("GET", client._request) || is_method("POST", client._request))
 	{
 		if (client._fast_forward == FF_NOT_SET)
 		{
@@ -582,21 +578,10 @@ bool				ResponseGenerator::generate (Client& client) const
 			listen_cgi(client, client.cgi->second);
 		}
 	}
-	else if (is_method("DELETE", client._tmp_request))
-		this->perform_delete(client);
-// =======
-	parse_request_route(client);
-
-	// ? check which method should be called
-	if (is_method("GET", client._request) || is_method("POST", client._request))
-		client._response.append_buffer(this->perform_method(client));
 	else if (is_method("DELETE", client._request))
-		client._response.append_buffer(this->perform_delete(client._request));
-// >>>>>>> main
+		this->perform_delete(client);
 	else
 		get_error_file(client, 501);
-
-	// __DEB(client.tmp_response);
 
 	return (false);
 }
