@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/08 21:38:55 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/08 22:08:07 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -464,9 +464,9 @@ void				ResponseGenerator::perform_method (Client & client) const
 		else if (s.st_mode & S_IFREG)	// ? the requested path is a file
 		{
 			// __DEB("S_IFREG")
-			client.cgi = client._request._route._cgis.find(get_file_extention((client._request._path)));
-			if (client.cgi != client._request._route._cgis.end())
-				cgi_handling(client, client.cgi->second, client._request._path);
+			client._cgi = client._request._route._cgis.find(get_file_extention((client._request._path)));
+			if (client._cgi != client._request._route._cgis.end())
+				cgi_handling(client, client._cgi->second, client._request._path);
 			else
 			{
 				client.input_file.clear();
@@ -563,11 +563,20 @@ bool				ResponseGenerator::generate (Client& client) const
 	if (is_method("GET", client._request) || is_method("POST", client._request))
 	{
 		if (client._fast_forward == FF_NOT_SET)
+		{
+			// __DEB("FF_NOT_SET")
 			this->perform_method(client);
+		}
 		else if (client._fast_forward == FF_GET_FILE)
+		{
+			// __DEB("FF_GET_FILE")
 			get_file_content(client);
+		}
 		else if (client._fast_forward == FF_GET_CGI)
-			listen_cgi(client, client.cgi->second);
+		{
+			// __DEB("FF_GET_CGI")
+			listen_cgi(client, client._cgi->second);
+		}
 	}
 	else if (is_method("DELETE", client._request))
 		this->perform_delete(client);
@@ -586,7 +595,7 @@ bool				ResponseGenerator::is_directory(const std::string path) const{
 	return (false);
 }
 
-void 			ResponseGenerator::parse_request_route(Client &client) const{
+void 				ResponseGenerator::parse_request_route(Client &client) const{
 	const char					sep = '/';
 	int							found  = 0;
 	Conf::route_list			routes((*_conf)._routes);

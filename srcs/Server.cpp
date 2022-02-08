@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/08 07:38:30 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/08 21:46:03 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -342,6 +342,12 @@ bool			Server::server_poll_loop ()
 			continue;
 		}
  
+		if (_fds[i].revents != POLLIN && _fds[i].revents != POLLOUT)
+		{
+			remove_client(i);
+			continue ;
+		}
+
 		// __DEB("poll : ")
 		// std::cout << " events : " << _fds[i].events << std::endl;
 		// std::cout << " revents : " << _fds[i].revents << std::endl;

@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/08 07:10:14 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/08 22:00:02 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,6 @@ Client::Client ()
 : _request_ready(false), _response_ready(false), _ip(), _port(), _body_sent(false),
 	_fast_forward(FF_NOT_SET), _request_parsed(false)
 {
-	_tmp_request.clear();
 	tmp_counter = 0;
 	tmp_response = "";
 	gettimeofday(&_life_time, NULL);
@@ -37,7 +36,6 @@ Client::Client (const Conf* c, std::string ip, std::string port)
 : _request_ready(false), _response_ready(false), _ip(ip), _port(port), _body_sent(false),
 	_fast_forward(FF_NOT_SET), _request_parsed(false)
 {
-	_tmp_request.clear();
 	tmp_counter = 0;
 	tmp_response = "";
 	gettimeofday(&_life_time, NULL);
@@ -81,11 +79,10 @@ Client&		Client::operator= (const Client& copy)
 		_port = copy._port;
 		_body_sent = copy._body_sent;
 		_fast_forward = copy._fast_forward;
-		cgi = copy.cgi;
+		_cgi = copy._cgi;
 		tmp_response = copy.tmp_response;
 		// input_file = copy.input_file;
 		tmp_counter = copy.tmp_counter;
-		_tmp_request = copy._tmp_request;
 		_request_parsed = copy._request_parsed;
 	}
 	return (*this);
