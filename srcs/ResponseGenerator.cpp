@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/08 22:24:30 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/08 23:28:28 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -166,15 +166,18 @@ void				ResponseGenerator::get_error_file (Client & client, Conf::code_type err)
  */
 void				ResponseGenerator::get_file_content (Client & client) const
 {
-	std::string		tmp;
+	// std::string		tmp;
+	char				a_tmp[FILE_BUFF_SIZE];
 
 	client._fast_forward = FF_GET_FILE;
 
 	if (client._input_file.good())
 	{
-		std::getline(client._input_file, tmp);
-		client._response += (tmp + "\n");
-		// std::cout << client.tmp_response << std::endl;
+		// std::getline(client._input_file, tmp);
+		// client._response += (tmp + "\n");
+		memset(a_tmp, 0, FILE_BUFF_SIZE);
+		client._input_file.read(a_tmp, FILE_BUFF_SIZE - 1);
+		client._response += std::string(a_tmp, client._input_file.gcount());
 	}
 	else
 	{
@@ -544,7 +547,7 @@ bool				ResponseGenerator::is_method(std::string method, Request const &rq) cons
 
 bool				ResponseGenerator::generate (Client& client) const
 {
-	// std::cout << "_tmp_counter = " << client._tmp_counter++ << std::endl;
+	std::cout << "_tmp_counter = " << client._tmp_counter++ << std::endl;
 
 	int	error_code = client._request.request_error();
 
