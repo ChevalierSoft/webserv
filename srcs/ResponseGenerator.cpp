@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/08 04:10:20 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/08 07:03:29 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -173,12 +173,16 @@ void				ResponseGenerator::get_file_content (Client & client) const
 	{
 		std::getline(client.input_file, tmp);
 		client.tmp_response += (tmp + "\n");
+		// std::cout << client.tmp_response << std::endl;
 	}
 	else
 	{
+		__DEB("input_file not good")
+		// client._response.clear();
 		client._response.append_buffer(set_header(200, get_file_extention(get_file_name(client._request._path)), client.tmp_response.size()));
 		client._response.append_buffer(client.tmp_response);
 		client._response_ready = true;
+		client.input_file.close();
 	}
 
 	return ;
@@ -442,7 +446,7 @@ void				ResponseGenerator::perform_method (Client & client) const
 
 	std::cout << client._tmp_request._path << std::endl;
 
-	if ( !(stat((client._tmp_request._path).c_str(), &s)) )
+	if (! stat((client._tmp_request._path).c_str(), &s))
 	{
 		if (s.st_mode & S_IFDIR)	// ? the requested path is a directory
 		{
@@ -458,14 +462,18 @@ void				ResponseGenerator::perform_method (Client & client) const
 		else if (s.st_mode & S_IFREG)	// ? the requested path is a file
 		{
 			__DEB("S_IFREG")
-			// client.cgi = client._request._route._cgis.find(get_file_extention((client._request._path)));
-			// if (client.cgi != client._request._route._cgis.end())
-			// 	cgi_handling(client, client.cgi->second, client._request._path);
-			// else
-			// {
-				client.input_file.open((client._request._path).c_str());
-				get_file_content(client);
-			// }
+			client.cgi = client._tmp_request._route._cgis.find(get_file_extention((client._tmp_request._path)));
+			if (client.cgi != client._tmp_request._route._cgis.end())
+				cgi_handling(client, client.cgi->second, client._tmp_request._path);
+			else
+			{
+				// client.input_file.clear();
+				client.input_file.open((client._tmp_request._path).c_str());
+				// if (! client.input_file.good())
+				// 	get_error_file(client, 403);
+				// else
+					get_file_content(client);
+			}
 		}
 		else
 		{
@@ -476,7 +484,7 @@ void				ResponseGenerator::perform_method (Client & client) const
 	}
 	else
 	{
-		__DEB("la")
+		// __DEB("la")
 		// ? error: wrong path || path too long || out of memory || bad address || ...
 		get_error_file(client, 404);
 	}
@@ -552,7 +560,7 @@ bool				ResponseGenerator::generate (Client& client) const
 	else
 		get_error_file(client, 501);
 
-	__DEB(client.tmp_response);
+	// __DEB(client.tmp_response);
 
 	return (false);
 }
