@@ -6,7 +6,7 @@
 /*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/08 16:06:30 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/02/08 22:02:52 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -238,7 +238,7 @@ void				ResponseGenerator::set_cgi_env (Client & client, std::string path, std::
 	s_envs.push_back("AUTH_TYPE=BASIC");	// ? not needed
 
 	// ? this adds request's headers to env
-	for (Message::it_header it = client._request.begin_header();
+	for (Request::it_header it = client._request.begin_header();
 			it != client._request.end_header(); ++it)
 	{
 		if (it->first == "Content-Type")
@@ -433,8 +433,8 @@ std::string			ResponseGenerator::perform_method (Client & cl) const
 	struct stat s;
 
 
-	// if (is_upload_request(rq) && upload_to_server(rq))
-	// 	return (get_error_file(204)); // no content to output
+	if (cl._request.is_upload() && cl._request.upload_to_server())
+		return (get_error_file(204)); // no content to output
 	// ? redirects if there is a redirection in appropriate route AND if what is typed in the url corresponds to location in conf
 	if (cl._request._redir != Route::redir_type())
 		return (get_redirection(cl._request._redir));
@@ -522,7 +522,7 @@ bool				ResponseGenerator::generate(Client& client) const
 	int	error_code;
 
 	if ((error_code = client._request.request_error())) {
-		client._response.append_buffer(get_error_file(error_code));
+		client._response += get_error_file(error_code);
 		client._response_ready = true;
 		return (false);
 	}
@@ -531,11 +531,11 @@ bool				ResponseGenerator::generate(Client& client) const
 
 	// ? check which method should be called
 	if (is_method("GET", client._request) || is_method("POST", client._request))
-		client._response.append_buffer(this->perform_method(client));
+		client._response += this->perform_method(client);
 	else if (is_method("DELETE", client._request))
-		client._response.append_buffer(this->perform_delete(client._request));
+		client._response += this->perform_delete(client._request);
 	else
-		client._response.append_buffer(get_error_file(501));
+		client._response += get_error_file(501);
 
 	client._response_ready = true;	// this will not be set here in the future
 

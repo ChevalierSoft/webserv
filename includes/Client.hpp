@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
+/*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 00:54:13 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/02 16:23:21 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/08 21:59:25 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,6 @@
 #include <stdio.h>
 #include <iostream>
 #include "color.h"
-#include "Response.hpp"
 #include "Request.hpp"
 #include "Conf.hpp"
 #include "ResponseGenerator.hpp"
@@ -44,7 +43,7 @@ class Client // * ______________________________________________________________
 
 private:
 	Request					_request;
-	Response				_response;
+	std::string				_response;
 	bool					_request_ready;			// will stop the reading to send o_msg's content
 	bool					_response_ready;
 	struct timeval			_life_time;				// will be updated every event. after CLIENT_TIMEOUT the client is erased and the connection is closed

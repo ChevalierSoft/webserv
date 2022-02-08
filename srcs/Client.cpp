@@ -6,11 +6,10 @@
 /*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/01 16:56:57 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/02/08 22:01:25 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Client.hpp"
 #include "webserv.hpp"
 #include "Request.hpp"
 #include <sys/time.h>
@@ -132,7 +131,7 @@ bool		Client::send_response (int sd_out)
 	this->_request.clear();
 	// this->_response.send_itself(sd_out);
 	// ? For now, sending default response in one go
-	rc = send(sd_out, this->_response.get_buffer().c_str(), this->_response.get_buffer().size(), 0);
+	rc = send(sd_out, this->_response.c_str(), this->_response.size(), 0);
 	if (rc < 0)
 	{
 		perror("  send() failed");
