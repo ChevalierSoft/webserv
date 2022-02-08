@@ -63,6 +63,7 @@ ResponseGenerator&	ResponseGenerator::operator= (const ResponseGenerator& copy)
 void				ResponseGenerator::set_conf (const Conf * c)
 {
 	_conf = c;
+
 }
 
 /**
@@ -598,11 +599,10 @@ bool				ResponseGenerator::is_directory(const std::string path) const{
 void 			ResponseGenerator::parse_request_route(Client &client) const{
 	const char					sep = '/';
 	int							found  = 0;
-	Conf::route_list			routes((*_conf)._routes);
 	std::string					file = std::string();
 	std::string					input_path(client._request._path);
 	std::string					location;
-	
+	Conf::route_list			routes((*_conf)._routes);
 	// Loop to find the route and set it to output request route
 	while (found <= client._request._path.size())
 	{

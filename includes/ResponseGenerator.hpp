@@ -28,6 +28,7 @@ class ResponseGenerator // * ___________________________________________________
 	/// * Variables ____________________________________________________________
 private:
 	const Conf										*_conf;
+	const std::vector<Conf>							confs;
 	static const std::map<std::string, std::string>	_ss_content_types;
 	static const std::map<int, std::string>			_ss_error_messages;
 

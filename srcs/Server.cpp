@@ -405,6 +405,8 @@ int				Server::start ()
 	int				err = 0;
 	struct pollfd	tmp;
 
+	// std::cout << _conf_list.front()._name << std::endl;
+	// std::cout << _conf_list.back()._name  << std::endl;
 	// ? Set the listen back log (how many events at the same time)
 	err = listen(_listen_sd, BACK_LOG);
 	if (err < 0)

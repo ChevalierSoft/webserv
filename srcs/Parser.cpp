@@ -220,6 +220,10 @@ void	Parser::print() {
 		it->print();
 }
 
+/**
+ * @brief Function to seprate server block confs into one conf per host:port
+ * 
+ */
 void	Parser::seperate_confs_into_hosts() {
 	for (conf_list::iterator it = _confs.begin(); it != _confs.end(); it++)
 	{
