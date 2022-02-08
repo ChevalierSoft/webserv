@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/08 06:36:09 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/08 07:10:14 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -156,7 +156,8 @@ bool		Client::send_response (int sd_out)
 	// ? Setting generated response to false after each send for now
 	// this->_request_ready = false;
 	this->_response.clear();
-	return (true);
+	// return (true);
+	return (false);
 }
 
 /**

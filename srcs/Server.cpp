@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/08 06:08:11 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/08 07:38:30 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -256,7 +256,12 @@ bool			Server::record_client_input (const int &i)
 	}
 
 	if (_clients[_fds[i].fd].is_response_ready() == true)
+	{
 		close_conn = _clients[_fds[i].fd].send_response(_fds[i].fd);
+		_clients[_fds[i].fd] = Client();
+		_fds[i].events = POLLIN;
+		_fds[i].revents = 0;
+	}
 
 	if (close_conn)
 	{
@@ -337,18 +342,9 @@ bool			Server::server_poll_loop ()
 			continue;
 		}
  
-		__DEB("poll : ")
-		std::cout << " events : " << _fds[i].events << std::endl;
-		std::cout << " revents : " << _fds[i].revents << std::endl;
-
-		// if (_fds[i].revents != POLLIN)
-		// {
-		// 	std::cout << "  error: revents = " << _fds[i].revents << std::endl;
-		// 	close(_fds[i].fd);
-		// 	_fds[i].fd = -1;
-		// 	_fds.erase(_fds.begin() + i);
-		// 	break;
-		// }
+		// __DEB("poll : ")
+		// std::cout << " events : " << _fds[i].events << std::endl;
+		// std::cout << " revents : " << _fds[i].revents << std::endl;
 
 		// ? check if it's a new client
 		if (_fds[i].fd == _listen_sd)
@@ -376,7 +372,12 @@ bool			Server::server_poll_loop ()
 				}
 
 				if (_clients[_fds[i].fd].is_response_ready() == true)
+				{
 					close_conn = _clients[_fds[i].fd].send_response(_fds[i].fd);
+					_clients[_fds[i].fd] = Client();
+					_fds[i].events = POLLIN;
+					_fds[i].revents = 0;
+				}
 
 				if (close_conn)
 				{
