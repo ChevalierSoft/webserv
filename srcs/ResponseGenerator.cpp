@@ -57,6 +57,7 @@ ResponseGenerator&	ResponseGenerator::operator= (const ResponseGenerator& copy)
 	if (this != &copy)
 	{
 		_conf = copy._conf;
+		_confs = copy._confs;
 	}
 	return (*this);
 }
@@ -64,6 +65,11 @@ ResponseGenerator&	ResponseGenerator::operator= (const ResponseGenerator& copy)
 void				ResponseGenerator::set_conf (const Conf * c)
 {
 	_conf = c;
+}
+
+void				ResponseGenerator::set_confs (const std::vector<Conf> * confs)
+{
+	_confs = confs;
 }
 
 /**
@@ -125,9 +131,9 @@ void				ResponseGenerator::get_error_file (Client & client, Conf::code_type err)
 	std::string							s_file_content = "";
 	std::ifstream						i_file;
 	std::string							tmp;
-	Conf::error_list::const_iterator	it = _conf->_error_pages.find(err);
+	Conf::error_list::const_iterator	it = _confs->at(client._request._conf_index)._error_pages.find(err);
 
-	if (it == _conf->_error_pages.end())
+	if (it == _confs->at(client._request._conf_index)._error_pages.end())
 	{
 		client._response.clear();
 		client._response += (generic_error(err));
@@ -218,8 +224,8 @@ void				ResponseGenerator::set_cgi_env (Client & client, std::string path, std::
 	s_envs.push_back("REQUEST_URI=" + client._request._path + "?" + client._request._get_query);
 	s_envs.push_back("REMOTE_ADDR=" + client._ip);
 	s_envs.push_back("REMOTE_PORT=" + client._port);
-	s_envs.push_back("SERVER_ADDR=" + this->_conf->_hosts.begin()->first);
-	s_envs.push_back("SERVER_PORT=" + ft_to_string(this->_conf->_hosts.begin()->second));
+	s_envs.push_back("SERVER_ADDR=" + this->_confs->at(client._request._conf_index)._hosts.begin()->first);
+	s_envs.push_back("SERVER_PORT=" + ft_to_string(this->_confs->at(client._request._conf_index)._hosts.begin()->second));
 	s_envs.push_back("REQUEST_SCHEME=http");
 	s_envs.push_back("SERVER_SIGNATURE=42|webserv");
 	s_envs.push_back("SERVER_PROTOCOL=HTTP/1.1");
@@ -437,7 +443,7 @@ void				ResponseGenerator::perform_method (Client & client) const
 	struct stat	s;
 
 
-	if (client._request.is_upload() && client._request.upload_to_server(_conf))
+	if (client._request.is_upload() && client._request.upload_to_server(_confs->at(client._request._conf_index)))
 		return (get_error_file(client, 204)); // no content to output
 	// ? redirects if there is a redirection in appropriate route AND if what is typed in the url corresponds to location in conf
 
@@ -549,6 +555,8 @@ bool				ResponseGenerator::generate (Client& client) const
 
 	int	error_code = client._request.request_error();
 
+	set_conf_index (client); //Setting conf index here
+
 	if (error_code)
 	{
 		get_error_file(client, error_code);
@@ -597,13 +605,24 @@ bool				ResponseGenerator::is_directory(const std::string path) const{
 	return (false);
 }
 
+void				ResponseGenerator::set_conf_index(Client &client) const {
+	std::string host = client._request.find_header("Host");
+	host = host.substr(0, host.rfind(':'));
+	client._request._conf_index = 0;
+	std::vector<Conf>::const_iterator it = _confs->begin();
+	while (it != _confs->end() && it->_name != host)
+		it++;
+	if (it != _confs->end())
+		client._request._conf_index = it - _confs->begin();
+}
+
 void 				ResponseGenerator::parse_request_route(Client &client) const{
 	const char					sep = '/';
 	int							found  = 0;
-	Conf::route_list			routes((*_conf)._routes);
 	std::string					file = std::string();
 	std::string					input_path(client._request._path);
 	std::string					location;
+	Conf::route_list			routes(_confs->at(client._request._conf_index)._routes);
 	
 	// Loop to find the route and set it to output request route
 	while (found <= client._request._path.size())

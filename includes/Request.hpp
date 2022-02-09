@@ -40,6 +40,7 @@ public:
 	std::string							_get_query;
 	bool								_in_header;
 	int									_error;
+	int									_conf_index;
 
 	Route	_route;
 	Route::redir_type	_redir;
@@ -405,7 +406,7 @@ public:
 		return (false);
 	}
 
-	bool	upload_to_server(const Conf * conf) {
+	bool	upload_to_server(const Conf & conf) {
 		std::string	filename("default_name");
 		std::string	file_content = *(_body.begin());
 		std::string	boundary(find_header("Content-Type"));
@@ -440,7 +441,7 @@ public:
 			return false;
 		file_content.erase(file_content.size() - 2, 2);
 
-		std::ofstream new_file((conf->_upload_path + "/" + filename).c_str());
+		std::ofstream new_file((conf._upload_path + "/" + filename).c_str());
 		new_file << file_content;
 		new_file.close();
 		return (true);

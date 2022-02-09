@@ -31,7 +31,8 @@ ResponseGenerator.cpp \
 Route.cpp \
 Server.cpp \
 set_content_types.cpp \
-utils.cpp
+utils.cpp\
+threads.cpp
 
 all: $(NAME)
 

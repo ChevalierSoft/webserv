@@ -112,6 +112,7 @@ int				Server::init (const Conf& c)
 
 	this->_conf = c;
 	this->_response_generator.set_conf(&_conf);
+	this->_response_generator.set_confs(&_confs);
 
 	// ? AF_INET6 stream socket to receive incoming connections
 	_listen_sd = socket(AF_INET, SOCK_STREAM, 0);
@@ -411,6 +412,8 @@ int				Server::start ()
 	int				err = 0;
 	struct pollfd	tmp;
 
+	// std::cout << _conf_list.front()._name << std::endl;
+	// std::cout << _conf_list.back()._name  << std::endl;
 	// ? Set the listen back log (how many events at the same time)
 	err = listen(_listen_sd, BACK_LOG);
 	if (err < 0)

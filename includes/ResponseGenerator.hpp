@@ -29,6 +29,7 @@ class ResponseGenerator // * ___________________________________________________
 	/// * Variables ____________________________________________________________
 private:
 	const Conf										*_conf;
+	const std::vector<Conf>							*_confs;
 	static const std::map<std::string, std::string>	_ss_content_types;
 	static const std::map<int, std::string>			_ss_error_messages;
 
@@ -49,6 +50,8 @@ public:
 	bool				generate (Client & client) const;
 
 	void				set_conf (const Conf * c);
+
+	void				set_confs(const std::vector<Conf> * confs);
 
 private:
 
@@ -77,6 +80,8 @@ private:
 	void				perform_delete(Client & client) const;
 
 	bool				is_method(std::string method, Request const & rq) const;
+
+	void				set_conf_index(Client &client) const;
 
 	void				parse_request_route(Client &client) const;
 
