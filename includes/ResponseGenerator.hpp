@@ -3,17 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   ResponseGenerator.hpp                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
+/*   By: %F{207}%n%f <%F{207}%n%f@student.42.fr>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 10:06:11 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/08 23:38:19 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/09 16:46:21 by %F{207}%n%f      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
-# include "Client.hpp"
-# include "Conf.hpp"
+#include "webserv.hpp"
 
 # define CGI_BUFF_SIZE	16384
 # define FILE_BUFF_SIZE	65536
@@ -29,6 +28,7 @@ class ResponseGenerator // * ___________________________________________________
 	/// * Variables ____________________________________________________________
 private:
 	const Conf										*_conf;
+	const std::vector<Conf>							*_confs;
 	static const std::map<std::string, std::string>	_ss_content_types;
 	static const std::map<int, std::string>			_ss_error_messages;
 
@@ -49,6 +49,8 @@ public:
 	bool				generate (Client & client) const;
 
 	void				set_conf (const Conf * c);
+
+	void				set_confs(const std::vector<Conf> * confs);
 
 private:
 
@@ -77,6 +79,8 @@ private:
 	void				perform_delete(Client & client) const;
 
 	bool				is_method(std::string method, Request const & rq) const;
+
+	void				set_conf_index(Client &client) const;
 
 	void				parse_request_route(Client &client) const;
 

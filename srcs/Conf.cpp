@@ -1,12 +1,16 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Conf.cpp                                           :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: %F{207}%n%f <%F{207}%n%f@student.42.fr>    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2022/02/09 16:47:16 by %F{207}%n%f       #+#    #+#             */
+/*   Updated: 2022/02/09 16:47:19 by %F{207}%n%f      ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
-#include "Conf.hpp"
-#include <fstream>
-#include <cstdlib>
-#include <utility>
-#include <iostream>
-#include <algorithm>
-#include <stdlib.h>
-#include <cctype>
+#include "webserv.hpp"
 
 Conf::Conf(): _name(name_type()),
 _hosts(host_list()),

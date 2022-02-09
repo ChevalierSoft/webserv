@@ -5,20 +5,15 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2022/01/07 00:54:13 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/09 16:24:41 by lpellier         ###   ########.fr       */
+/*   Created: 2022/02/09 16:44:53 by %F{207}%n%f       #+#    #+#             */
+/*   Updated: 2022/02/09 17:04:55 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef CONF_H
 # define CONF_H
 
-# include <string>
-# include <map>
-# include <vector>
-# include <fstream>
-
-# include "Route.hpp"
+#include "webserv.hpp"
 class Route;
 
 class Conf {

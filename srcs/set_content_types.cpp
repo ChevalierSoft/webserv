@@ -3,17 +3,14 @@
 /*                                                        :::      ::::::::   */
 /*   set_content_types.cpp                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
+/*   By: %F{207}%n%f <%F{207}%n%f@student.42.fr>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/22 08:19:54 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/22 12:58:28 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/09 16:45:23 by %F{207}%n%f      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <map>
-#include <string>
-#include <fstream>
-#include <iostream> // debug
+#include "webserv.hpp"
 
 #define REFERENCE_CONTENT_TYPE "./resources/content-types.webserv"
 

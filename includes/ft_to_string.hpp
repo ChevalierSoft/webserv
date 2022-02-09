@@ -3,17 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   ft_to_string.hpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
+/*   By: %F{207}%n%f <%F{207}%n%f@student.42.fr>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/18 16:54:05 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/18 16:57:17 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/09 16:45:59 by %F{207}%n%f      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
-# include <string>
-# include <sstream>
+#include "webserv.hpp"
 
 template <typename T>
 std::string	ft_to_string (T __n)

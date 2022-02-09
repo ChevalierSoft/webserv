@@ -32,7 +32,8 @@ Route.cpp \
 Server.cpp \
 Request.cpp \
 set_content_types.cpp \
-utils.cpp
+utils.cpp\
+threads.cpp
 
 all: $(NAME)
 

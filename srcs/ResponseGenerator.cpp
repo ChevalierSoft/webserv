@@ -6,27 +6,11 @@
 /*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/09 17:01:03 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/02/09 17:11:56 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <sys/types.h>			// stat
-#include <sys/stat.h>			// stat
-#include <unistd.h>				// stat
-#include <fstream>				// ifstream
-#include <unistd.h>				// execve
-#include <sys/wait.h>			// waitpid
-#include <sys/types.h>			// waitpid
-#include <fcntl.h>				// fcntl
-#include <sstream>				
-#include <limits.h>				// PATH_MAX
-#include "ResponseGenerator.hpp"
 #include "webserv.hpp"
-#include "ft_to_string.hpp"
-#include "utils.hpp"
-#include "set_content_types.hpp"
-#include <algorithm>
-#include <cstdio>
 
 #ifndef __DEB
 # define __DEB(s) std::cerr << CYN << s << RST << std::endl;
@@ -57,6 +41,7 @@ ResponseGenerator&	ResponseGenerator::operator= (const ResponseGenerator& copy)
 	if (this != &copy)
 	{
 		_conf = copy._conf;
+		_confs = copy._confs;
 	}
 	return (*this);
 }
@@ -64,6 +49,11 @@ ResponseGenerator&	ResponseGenerator::operator= (const ResponseGenerator& copy)
 void				ResponseGenerator::set_conf (const Conf * c)
 {
 	_conf = c;
+}
+
+void				ResponseGenerator::set_confs (const std::vector<Conf> * confs)
+{
+	_confs = confs;
 }
 
 /**
@@ -125,9 +115,9 @@ void				ResponseGenerator::get_error_file (Client & client, Conf::code_type err)
 	std::string							s_file_content = "";
 	std::ifstream						i_file;
 	std::string							tmp;
-	Conf::error_list::const_iterator	it = _conf->_error_pages.find(err);
+	Conf::error_list::const_iterator	it = _confs->at(client._request._conf_index)._error_pages.find(err);
 
-	if (it == _conf->_error_pages.end())
+	if (it == _confs->at(client._request._conf_index)._error_pages.end())
 	{
 		client._response.clear();
 		client._response += (generic_error(err));
@@ -218,8 +208,8 @@ void				ResponseGenerator::set_cgi_env (Client & client, std::string path, std::
 	s_envs.push_back("REQUEST_URI=" + client._request._path + "?" + client._request._get_query);
 	s_envs.push_back("REMOTE_ADDR=" + client._ip);
 	s_envs.push_back("REMOTE_PORT=" + client._port);
-	s_envs.push_back("SERVER_ADDR=" + this->_conf->_hosts.begin()->first);
-	s_envs.push_back("SERVER_PORT=" + ft_to_string(this->_conf->_hosts.begin()->second));
+	s_envs.push_back("SERVER_ADDR=" + this->_confs->at(client._request._conf_index)._hosts.begin()->first);
+	s_envs.push_back("SERVER_PORT=" + ft_to_string(this->_confs->at(client._request._conf_index)._hosts.begin()->second));
 	s_envs.push_back("REQUEST_SCHEME=http");
 	s_envs.push_back("SERVER_SIGNATURE=42|webserv");
 	s_envs.push_back("SERVER_PROTOCOL=HTTP/1.1");
@@ -437,8 +427,8 @@ void				ResponseGenerator::perform_method (Client & client) const
 	struct stat	s;
 	int			upload_error = 0;
 
-	
-	if (!(upload_error = client._request.is_upload(_conf)) && client._request.upload_to_server(_conf))
+
+	if (!(upload_error = client._request.is_upload(_confs->at(client._request._conf_index))) && client._request.upload_to_server(_confs->at(client._request._conf_index)))
 		return (get_error_file(client, 204)); // no content to output
 	else if (upload_error == 1) // if upload folder exists but doesnt have the rights to create a file
 		return (get_error_file(client, 404));
@@ -462,7 +452,7 @@ void				ResponseGenerator::perform_method (Client & client) const
 			// __DEB("S_IFDIR")
 			if (client._request._route._dir_listing) // check if directory listing is on
 			{
-				client._response += (directory_listing(client._request._path));
+				client._response += (directory_listing(client._request._path_raw, client._request._path));
 				client._response_ready = true;
 			}
 			else
@@ -550,7 +540,10 @@ bool				ResponseGenerator::generate (Client& client) const
 {
 	// std::cout << "_tmp_counter = " << client._tmp_counter++ << std::endl;
 
-	int	error_code = client._request.request_error(_conf);
+
+	set_conf_index (client); //Setting conf index here
+	
+	int	error_code = client._request.request_error(_confs->at(client._request._conf_index));
 
 	if (error_code)
 	{
@@ -601,14 +594,25 @@ bool				ResponseGenerator::is_directory(const std::string path) const{
 	return (false);
 }
 
+void				ResponseGenerator::set_conf_index(Client &client) const {
+	std::string host = client._request.find_header("Host");
+	host = host.substr(0, host.rfind(':'));
+	client._request._conf_index = 0;
+	std::vector<Conf>::const_iterator it = _confs->begin();
+	while (it != _confs->end() && it->_name != host)
+		it++;
+	if (it != _confs->end())
+		client._request._conf_index = it - _confs->begin();
+}
+
 void 				ResponseGenerator::parse_request_route(Client &client) const{
 	const char					sep = '/';
 	int							found  = 0;
-	Conf::route_list			routes((*_conf)._routes);
 	std::string					file = std::string();
-	std::string					input_path(client._request._path);
 	std::string					location;
+	Conf::route_list			routes(_confs->at(client._request._conf_index)._routes);
 	
+	client._request._path_raw = client._request._path;
 	// Loop to find the route and set it to output request route
 	while (found <= client._request._path.size())
 	{
@@ -640,15 +644,15 @@ void 				ResponseGenerator::parse_request_route(Client &client) const{
 		// Define redirection if there is a default file
 		if (client._request._route._default_file != Route::file_type())
 		{
-			if (*(input_path.end() - 1) != '/')
-				client._request._redir = std::make_pair(301, input_path+"/"+client._request._route._default_file);
+			if (*(client._request._path_raw.end() - 1) != '/')
+				client._request._redir = std::make_pair(301, client._request._path_raw+"/"+client._request._route._default_file);
 			else
-				client._request._redir = std::make_pair(301, input_path+client._request._route._default_file);
+				client._request._redir = std::make_pair(301, client._request._path_raw+client._request._route._default_file);
 		}	
 	}
 
 	// If the inut_path is exactly the name of a route and this route has a redirection defined, add it
 
-	if (client._request._route._redir != Route::redir_type() && input_path == client._request._route._path)
+	if (client._request._route._redir != Route::redir_type() && client._request._path_raw == client._request._route._path)
 		client._request._redir = client._request._route._redir;
 }

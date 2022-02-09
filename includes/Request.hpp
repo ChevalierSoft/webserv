@@ -6,28 +6,16 @@
 /*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/09 16:44:09 by lpellier          #+#    #+#             */
-/*   Updated: 2022/02/09 16:49:19 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/02/09 17:08:20 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
-#include <map>
-#include <vector>
-#include <iostream>
-#include <fstream>
-#include <cstring>
-#include "color.h"
-#include <cstdlib>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include "Route.hpp"
+#include "webserv.hpp"
 
 # define BUFFER_SIZE	64
 # define LINE_LIMIT		998
-
-void	*ft_print_memory(void *addr, size_t size);
 
 enum errors {
 	NO_ERROR,
@@ -52,10 +40,12 @@ protected:
 public:
 	std::string							_method; // from header first line
 	std::string							_path; // from header first line
+	std::string							_path_raw;
 	std::string							_http_version; // from header first line
 	std::string							_get_query;
 	bool								_in_header;
 	int									_error;
+	int									_conf_index;
 
 	Route	_route;
 	Route::redir_type	_redir;
@@ -99,13 +89,13 @@ public:
 
 	void						d_output() const ;
 
-	int							request_error(const Conf * conf);
+	int							request_error(const Conf & conf);
 
 	long						body_size() const;
 
-	int							is_upload(const Conf * conf);
+	int							is_upload(const Conf & conf);
 
 	bool						not_printable(std::string str);
 
-	bool						upload_to_server(const Conf * conf);
+	bool						upload_to_server(const Conf & conf);
 };

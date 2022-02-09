@@ -3,25 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   Client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
+/*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 00:54:13 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/08 22:24:29 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/09 17:15:20 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
-#include <list>
-#include <string>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <stdio.h>
-#include <iostream>
-#include "color.h"
-#include "Request.hpp"
-#include "Conf.hpp"
-#include "ResponseGenerator.hpp"
+#include "webserv.hpp"
 
 #define CLIENT_TIMEOUT 10 		// time (s) after which the client connection will be closed if there is no event
 

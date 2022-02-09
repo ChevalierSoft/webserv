@@ -6,11 +6,11 @@
 /*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/09 14:56:13 by lpellier          #+#    #+#             */
-/*   Updated: 2022/02/09 16:53:51 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/02/09 17:15:40 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../includes/Request.hpp"
+#include "webserv.hpp"
 
 Request::Request(void) {
 	clear();
@@ -348,7 +348,7 @@ void		Request::d_output() const {
 }
 
 
-int	Request::request_error(const Conf * conf) {
+int	Request::request_error(const Conf & conf) {
 	if (_error == UNDEFINED_HTTP_VERSION)
 		return (505);
 	else if (_error == UNDEFINED_METHOD)
@@ -357,7 +357,7 @@ int	Request::request_error(const Conf * conf) {
 		return (400); // Syntax error
 	else if (_method == "POST" && _content_length < 0)
 		return (411);
-	else if (body_size() > conf->_client_body_size)
+	else if (body_size() > conf._client_body_size)
 		return (413); // Payload Too Large
 	
 	it_header	it_h = _header.begin();
@@ -381,14 +381,14 @@ bool	Request::not_printable(std::string str) {
 	return false;
 }
 
-int		Request::is_upload(const Conf * conf) {
+int		Request::is_upload(const Conf & conf) {
 	std::string	ct = find_header("Content-Type");
 	size_t		found_ct = ct.find("multipart/form-data");
 	size_t		found_bound = ct.find("boundary=");
 	struct stat	s;
 	
 	if (_method == "POST" && found_ct != -1 && found_bound != -1) {
-		if (!stat(conf->_upload_path.c_str(), &s)) {
+		if (!stat(conf._upload_path.c_str(), &s)) {
 			if (s.st_mode & S_IFDIR && s.st_mode & S_IWOTH && s.st_mode & S_IXOTH)
 				return 0;
 			else
@@ -401,7 +401,7 @@ int		Request::is_upload(const Conf * conf) {
 	return 1;
 }
 
-bool	Request::upload_to_server(const Conf * conf) {
+bool	Request::upload_to_server(const Conf & conf) {
 	std::string	filename("default_name");
 	std::string	file_content = *(_body.begin());
 	std::string	boundary(find_header("Content-Type"));
@@ -436,7 +436,7 @@ bool	Request::upload_to_server(const Conf * conf) {
 		return false;
 	file_content.erase(file_content.size() - 2, 2);
 
-	std::ofstream new_file((conf->_upload_path + "/" + filename).c_str());
+	std::ofstream new_file((conf._upload_path + "/" + filename).c_str());
 	new_file << file_content;
 	new_file.close();
 	return (true);

@@ -6,12 +6,11 @@
 /*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 17:07:56 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/09 15:42:09 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/02/09 17:08:49 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <string>
-#include <map>
+#include "webserv.hpp"
 
 /**
  * @brief Get the file name from a link.

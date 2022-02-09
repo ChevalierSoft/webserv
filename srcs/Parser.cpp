@@ -1,6 +1,16 @@
-#include "Parser.hpp"
-#include <algorithm>
-#include <iostream>
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Parser.cpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: %F{207}%n%f <%F{207}%n%f@student.42.fr>    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2022/02/09 16:47:41 by %F{207}%n%f       #+#    #+#             */
+/*   Updated: 2022/02/09 16:47:43 by %F{207}%n%f      ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "webserv.hpp"
 
 Parser::Parser(file_type conf_file): _err(0), line(std::string()), line_number(0) {
 	std::ifstream ifs(conf_file.c_str(), std::ifstream::in);
@@ -220,6 +230,10 @@ void	Parser::print() {
 		it->print();
 }
 
+/**
+ * @brief Function to seprate server block confs into one conf per host:port
+ * 
+ */
 void	Parser::seperate_confs_into_hosts() {
 	for (conf_list::iterator it = _confs.begin(); it != _confs.end(); it++)
 	{

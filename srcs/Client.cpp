@@ -6,13 +6,11 @@
 /*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/09 15:46:56 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/02/09 17:06:28 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "webserv.hpp"
-#include "Request.hpp"
-#include <sys/time.h>
 
 /**
  * @brief Construct a new Client:: Client object
