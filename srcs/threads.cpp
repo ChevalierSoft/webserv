@@ -6,7 +6,7 @@ void	*routine(void *args) {
 	Server	s(confs.front());
 	int		*err = new int;
 	
-	s._conf_list = confs;
+	s._confs = confs;
 	*err = s.start();
 	return (err);
 }

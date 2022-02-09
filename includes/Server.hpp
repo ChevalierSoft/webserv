@@ -50,7 +50,7 @@ private:
 	Server ();
 public:
 	Conf						_conf;
-	std::vector<Conf>			_conf_list;
+	std::vector<Conf>			_confs;
 	// ? Constructor (2) taking a port in argument.
 	// TODO After the parsing of a conf file an object will be passed to it
 	Server (const Conf &c);

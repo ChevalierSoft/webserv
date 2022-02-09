@@ -112,6 +112,7 @@ int				Server::init (const Conf& c)
 
 	this->_conf = c;
 	this->_response_generator.set_conf(&_conf);
+	this->_response_generator.set_confs(&_confs);
 
 	// ? AF_INET6 stream socket to receive incoming connections
 	_listen_sd = socket(AF_INET, SOCK_STREAM, 0);
