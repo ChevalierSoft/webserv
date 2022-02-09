@@ -6,7 +6,7 @@
 /*   By: %F{207}%n%f <%F{207}%n%f@student.42.fr>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/09 16:47:50 by %F{207}%n%f      ###   ########.fr       */
+/*   Updated: 2022/02/09 17:03:54 by %F{207}%n%f      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -501,7 +501,7 @@ void				ResponseGenerator::perform_delete(Client & client) const
 		get_error_file(client, 401);
 	else if (!stat(root.c_str(), &s_root))
 	{
-		if ((s_root.st_mode & S_IWUSR) && (s_root.st_mode & S_IXUSR))
+		if ((s_root.st_mode & S_IWOTH) && (s_root.st_mode & S_IXOTH))
 		{
 			if (!stat(client._request._path.c_str(), &s_file))
 			{
