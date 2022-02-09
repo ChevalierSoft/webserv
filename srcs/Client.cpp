@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: %F{207}%n%f <%F{207}%n%f@student.42.fr>    +#+  +:+       +#+        */
+/*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/09 16:47:08 by %F{207}%n%f      ###   ########.fr       */
+/*   Updated: 2022/02/09 17:06:28 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -136,7 +136,6 @@ bool		Client::send_response (int sd_out)
 
 	// ? clear request since response is generated
 	// this->_request.clear();
-	// this->_response.send_itself(sd_out);
 	// ? For now, sending default response in one go
 	rc = send(sd_out, this->_response.c_str(), this->_response.size(), 0);
 	if (rc < 0)

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Conf.hpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: %F{207}%n%f <%F{207}%n%f@student.42.fr>    +#+  +:+       +#+        */
+/*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/09 16:44:53 by %F{207}%n%f       #+#    #+#             */
-/*   Updated: 2022/02/09 16:44:58 by %F{207}%n%f      ###   ########.fr       */
+/*   Updated: 2022/02/09 17:04:55 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@ class Conf {
 		typedef int                             code_type;
 		typedef std::pair<code_type, file_type> error_type;
 		typedef	std::map<code_type, file_type>	error_list;
-		typedef int                             size_type;
+		typedef long							size_type;
 		typedef std::string						method_type;
 		typedef std::vector<method_type>		method_list;
 		typedef short                           dir_listing_type;
