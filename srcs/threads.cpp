@@ -1,11 +1,31 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   threads.cpp                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: %F{207}%n%f <%F{207}%n%f@student.42.fr>    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2022/02/09 16:48:12 by %F{207}%n%f       #+#    #+#             */
+/*   Updated: 2022/02/09 16:50:04 by %F{207}%n%f      ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
 #include "webserv.hpp"
+
+static bool	run = true;
+
+void	sighandler(int signum)
+{
+	run = false;
+}
 
 void	*routine(void *args) {
 	std::vector<Conf> confs = *(static_cast<std::vector<Conf> *>(args));
 	Server	s(confs.front());
 	int		*err = new int;
 	
+    // signal(SIGINT, &sighandler);	// making it easy to close the program
+	// signal(SIGQUIT, &sighandler);
 	s._confs = confs;
 	*err = s.start();
 	return (err);

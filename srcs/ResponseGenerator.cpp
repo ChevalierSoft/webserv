@@ -3,30 +3,14 @@
 /*                                                        :::      ::::::::   */
 /*   ResponseGenerator.cpp                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
+/*   By: %F{207}%n%f <%F{207}%n%f@student.42.fr>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/08 23:57:48 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/09 16:47:50 by %F{207}%n%f      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <sys/types.h>			// stat
-#include <sys/stat.h>			// stat
-#include <unistd.h>				// stat
-#include <fstream>				// ifstream
-#include <unistd.h>				// execve
-#include <sys/wait.h>			// waitpid
-#include <sys/types.h>			// waitpid
-#include <fcntl.h>				// fcntl
-#include <sstream>				
-#include <limits.h>				// PATH_MAX
-#include "ResponseGenerator.hpp"
 #include "webserv.hpp"
-#include "ft_to_string.hpp"
-#include "utils.hpp"
-#include "set_content_types.hpp"
-#include <algorithm>
-#include <cstdio>
 
 #ifndef __DEB
 # define __DEB(s) std::cerr << CYN << s << RST << std::endl;

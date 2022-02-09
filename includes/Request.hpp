@@ -1,17 +1,20 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Request.hpp                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: %F{207}%n%f <%F{207}%n%f@student.42.fr>    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2022/02/09 16:46:15 by %F{207}%n%f       #+#    #+#             */
+/*   Updated: 2022/02/09 16:46:16 by %F{207}%n%f      ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #pragma once
 
-#include <map>
-#include <vector>
-#include <iostream>
-#include <fstream>
-#include <cstring>
-#include "color.h"
-#include <cstdlib>
-#include "Route.hpp"
+#include "webserv.hpp"
 
 # define BUFFER_SIZE	64
-
-void	*ft_print_memory(void *addr, size_t size);
 
 enum errors {
 	NO_ERROR,

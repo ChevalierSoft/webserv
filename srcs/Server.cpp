@@ -3,23 +3,14 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
+/*   By: %F{207}%n%f <%F{207}%n%f@student.42.fr>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/08 22:33:35 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/09 16:48:59 by %F{207}%n%f      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <iostream>
-#include <unistd.h>			// debug : usleep
-#include <sys/un.h>			// sockaddr_un
-#include <arpa/inet.h>		// inet_ntop
-#include <netdb.h>			// getnameinfo flags
-#include "Server.hpp"
-#include "ft_print_memory.hpp"
-#include "color.h"
-#include "ft_to_string.hpp"
-#include <fcntl.h>
+#include "webserv.hpp"
 
 #define __DEB(s)	std::cerr << MAG << s << RST << std::endl;
 

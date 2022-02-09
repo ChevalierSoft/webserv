@@ -3,28 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
+/*   By: %F{207}%n%f <%F{207}%n%f@student.42.fr>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 04:55:39 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/25 17:45:43 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/09 16:46:42 by %F{207}%n%f      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
-# include <list>
-# include <map>
-# include <vector>
-# include <sys/ioctl.h>
-# include <sys/socket.h>	// listen
-# include <sys/poll.h>		// poll_wait...
-# include <errno.h>			// errno
-# include <string.h>		// strlen
-# include <stdio.h>			// perror
-# include <netinet/in.h>	// htons, sockaddr_in6
-# include "Client.hpp"
-# include "Conf.hpp"
-# include "ResponseGenerator.hpp"
+#include "webserv.hpp"
 
 # define BACK_LOG		123
 # define BUFFER_SIZE	64

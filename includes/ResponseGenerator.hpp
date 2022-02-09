@@ -3,17 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   ResponseGenerator.hpp                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
+/*   By: %F{207}%n%f <%F{207}%n%f@student.42.fr>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 10:06:11 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/08 23:38:19 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/09 16:46:21 by %F{207}%n%f      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
-# include "Client.hpp"
-# include "Conf.hpp"
+#include "webserv.hpp"
 
 # define CGI_BUFF_SIZE	16384
 # define FILE_BUFF_SIZE	65536

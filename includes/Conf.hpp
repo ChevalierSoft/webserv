@@ -1,24 +1,19 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Client.hpp                                         :+:      :+:    :+:   */
+/*   Conf.hpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
+/*   By: %F{207}%n%f <%F{207}%n%f@student.42.fr>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2022/01/07 00:54:13 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/11 05:26:49 by dait-atm         ###   ########.fr       */
+/*   Created: 2022/02/09 16:44:53 by %F{207}%n%f       #+#    #+#             */
+/*   Updated: 2022/02/09 16:44:58 by %F{207}%n%f      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef CONF_H
 # define CONF_H
 
-# include <string>
-# include <map>
-# include <vector>
-# include <fstream>
-
-# include "Route.hpp"
+#include "webserv.hpp"
 class Route;
 
 class Conf {

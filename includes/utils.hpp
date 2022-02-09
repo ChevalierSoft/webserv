@@ -12,8 +12,7 @@
 
 #pragma once
 
-# include <string>
-# include <map>
+#include "webserv.hpp"
 
 std::string					get_file_name (const std::string & path);
 std::string					get_file_extention (const std::string & file_name);

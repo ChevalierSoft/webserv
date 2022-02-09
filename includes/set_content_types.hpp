@@ -12,6 +12,6 @@
 
 #pragma once
 
-# include <map>
+# include "webserv.hpp"
 
 std::map<std::string, std::string>	set_content_types();

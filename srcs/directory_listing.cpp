@@ -10,18 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <iostream>
-#include <dirent.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <string>
-#include <cstring>
-#include <stdio.h>
-#include "color.h"
-#include "ft_to_string.hpp"
+#include "webserv.hpp"
 
 /**
  * @brief generic response for error 403
