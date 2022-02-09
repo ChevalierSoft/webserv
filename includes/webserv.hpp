@@ -20,7 +20,7 @@
 # include <vector>
 # include <pthread.h>
 
-std::string			directory_listing (std::string path);
+std::string			directory_listing (std::string &path_raw, std::string &path);
 void	            *routine(void *args);
 
 std::vector<Conf>   	*get_confs(const Conf &current, const std::vector<Conf> &confs);

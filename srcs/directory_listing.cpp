@@ -50,14 +50,13 @@ std::string		send_403 ()
  * @return true listing done
  * @return false an error occured
  */
-std::string		directory_listing (std::string path)	// , const char *client_path)
+std::string		directory_listing (std::string &path_raw, std::string &path)	// , const char *client_path)
 {
 	struct dirent	*entry;
 	DIR				*dir;
 	std::string		page = "";
 	std::string		body = "";
 	std::string		tmp;
-	std::string		root;
 
 	// ? DEBUG
 	// std::cout << "root : " << root << std::endl;
@@ -67,10 +66,8 @@ std::string		directory_listing (std::string path)	// , const char *client_path)
 	dir = opendir((path).c_str());
 	if (dir == NULL)
 		return (send_403());
-	root = path;
-	tmp = path.substr(0, path.size() - 1);
-	if (tmp.rfind('/') != std::string::npos)
-		root = path.substr(tmp.rfind('/') + 1, tmp.size() - tmp.rfind('/'));
+	if (*(path_raw.end() - 1) != '/')
+			path_raw+="/";
 
 	body += "<!DOCTYPE html>\r\n";
 	body += "<meta charset=\"UTF-8\">\r\n";
@@ -86,7 +83,7 @@ std::string		directory_listing (std::string path)	// , const char *client_path)
 	body += "</style>\r\n";
 	body += "<body>\r\n";
 	body += "<header>\r\n	<h2>Index of ";
-	body += path;	// client_path;
+	body += path_raw;	// client_path;
 	body += "</h2>\r\n</header>\r\n<ul>";
 
 	while ((entry = readdir(dir)) != NULL)
@@ -96,8 +93,8 @@ std::string		directory_listing (std::string path)	// , const char *client_path)
 		else if (!strcmp(entry->d_name, ".."))
 		{
 			body += "<li><a href=\"";			
-			// body += std::filesystem::path("foo/bar").remove_filename();	// ? c++17
-			tmp = path;
+			// body += std::filesystem::path_raw("foo/bar").remove_filename();	// ? c++17
+			tmp = path_raw;
 			tmp[tmp.rfind('/')] = '\0';
 			tmp[tmp.rfind('/')] = '\0';
 			if (tmp.empty() || tmp[0] == '\0')
@@ -108,7 +105,7 @@ std::string		directory_listing (std::string path)	// , const char *client_path)
 		else
 		{
 			body += "<li><a href=\"";
-			body += root;
+			body += path_raw;
 			body += entry->d_name;
 			body += "\">";
 

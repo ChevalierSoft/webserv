@@ -36,6 +36,7 @@ protected:
 public:
 	std::string							_method; // from header first line
 	std::string							_path; // from header first line
+	std::string							_path_raw;
 	std::string							_http_version; // from header first line
 	std::string							_get_query;
 	bool								_in_header;

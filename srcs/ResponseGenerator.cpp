@@ -463,7 +463,7 @@ void				ResponseGenerator::perform_method (Client & client) const
 			// __DEB("S_IFDIR")
 			if (client._request._route._dir_listing) // check if directory listing is on
 			{
-				client._response += (directory_listing(client._request._path));
+				client._response += (directory_listing(client._request._path_raw, client._request._path));
 				client._response_ready = true;
 			}
 			else
@@ -620,10 +620,10 @@ void 				ResponseGenerator::parse_request_route(Client &client) const{
 	const char					sep = '/';
 	int							found  = 0;
 	std::string					file = std::string();
-	std::string					input_path(client._request._path);
 	std::string					location;
 	Conf::route_list			routes(_confs->at(client._request._conf_index)._routes);
 	
+	client._request._path_raw = client._request._path;
 	// Loop to find the route and set it to output request route
 	while (found <= client._request._path.size())
 	{
@@ -655,15 +655,15 @@ void 				ResponseGenerator::parse_request_route(Client &client) const{
 		// Define redirection if there is a default file
 		if (client._request._route._default_file != Route::file_type())
 		{
-			if (*(input_path.end() - 1) != '/')
-				client._request._redir = std::make_pair(301, input_path+"/"+client._request._route._default_file);
+			if (*(client._request._path_raw.end() - 1) != '/')
+				client._request._redir = std::make_pair(301, client._request._path_raw+"/"+client._request._route._default_file);
 			else
-				client._request._redir = std::make_pair(301, input_path+client._request._route._default_file);
+				client._request._redir = std::make_pair(301, client._request._path_raw+client._request._route._default_file);
 		}	
 	}
 
 	// If the inut_path is exactly the name of a route and this route has a redirection defined, add it
 
-	if (client._request._route._redir != Route::redir_type() && input_path == client._request._route._path)
+	if (client._request._route._redir != Route::redir_type() && client._request._path_raw == client._request._route._path)
 		client._request._redir = client._request._route._redir;
 }
