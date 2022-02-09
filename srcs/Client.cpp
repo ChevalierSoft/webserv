@@ -6,11 +6,10 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/08 07:10:14 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/08 22:24:31 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Client.hpp"
 #include "webserv.hpp"
 #include "Request.hpp"
 #include <sys/time.h>
@@ -20,12 +19,10 @@
  * 
  */
 Client::Client ()
-: _request_ready(false), _response_ready(false), _ip(), _port(), _body_sent(false),
+: _response(""), _request_ready(false), _response_ready(false), _ip(), _port(), _body_sent(false),
 	_fast_forward(FF_NOT_SET), _request_parsed(false)
 {
-	_tmp_request.clear();
-	tmp_counter = 0;
-	tmp_response = "";
+	_tmp_counter = 0;
 	gettimeofday(&_life_time, NULL);
 }
 
@@ -34,12 +31,10 @@ Client::Client ()
  * 
  */
 Client::Client (const Conf* c, std::string ip, std::string port)
-: _request_ready(false), _response_ready(false), _ip(ip), _port(port), _body_sent(false),
+: _response(""), _request_ready(false), _response_ready(false), _ip(ip), _port(port), _body_sent(false),
 	_fast_forward(FF_NOT_SET), _request_parsed(false)
 {
-	_tmp_request.clear();
-	tmp_counter = 0;
-	tmp_response = "";
+	_tmp_counter = 0;
 	gettimeofday(&_life_time, NULL);
 }
 
@@ -81,11 +76,9 @@ Client&		Client::operator= (const Client& copy)
 		_port = copy._port;
 		_body_sent = copy._body_sent;
 		_fast_forward = copy._fast_forward;
-		cgi = copy.cgi;
-		tmp_response = copy.tmp_response;
-		// input_file = copy.input_file;
-		tmp_counter = copy.tmp_counter;
-		_tmp_request = copy._tmp_request;
+		_cgi = copy._cgi;
+		// _input_file = copy._input_file;
+		_tmp_counter = copy._tmp_counter;
 		_request_parsed = copy._request_parsed;
 	}
 	return (*this);
@@ -147,7 +140,7 @@ bool		Client::send_response (int sd_out)
 	// this->_request.clear();
 	// this->_response.send_itself(sd_out);
 	// ? For now, sending default response in one go
-	rc = send(sd_out, this->_response.get_buffer().c_str(), this->_response.get_buffer().size(), 0);
+	rc = send(sd_out, this->_response.c_str(), this->_response.size(), 0);
 	if (rc < 0)
 	{
 		perror("  send() failed");
