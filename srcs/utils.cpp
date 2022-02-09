@@ -6,7 +6,7 @@
 /*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 17:07:56 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/02 15:53:34 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/02/09 15:42:09 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,7 +86,7 @@ std::map<int, std::string>	set_error_map ()
 	m[406] = "Not Acceptable"; // USELESS // // ? No content found following criteria given by user agent
 	m[407] = "Proxy Authentication Required"; // USELESS // // ? Client must first be authenticated by a proxy
 	m[408] = "Request Timeout"; // TODO // ? Didn't receive complete request in the time that it prepared to wait
-	m[409] = "Conflict"; // TODO // ? Request unfulfilled because of conflict with state of target resource
+	m[409] = "Conflict"; // USELESS // // ? Request unfulfilled because of conflict with state of target resource
 	m[410] = "Gone"; // USELESS // // ? Target resource has been deleted and the condition seems to be permatnent (permanent 404)
 	m[411] = "Length Required"; // DONE // // ? Request rejected because it has no "Content-Length" header field
 	m[412] = "Precondition Failed"; // USELESS // // ? Server does not meet one or multiple preconditions that were indicated in the request header field

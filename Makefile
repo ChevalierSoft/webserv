@@ -6,7 +6,7 @@
 #    By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2021/04/12 12:55:09 by dait-atm          #+#    #+#              #
-#    Updated: 2022/02/01 15:04:53 by lpellier         ###   ########.fr        #
+#    Updated: 2022/02/09 15:02:22 by lpellier         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -30,6 +30,7 @@ Parser.cpp \
 ResponseGenerator.cpp \
 Route.cpp \
 Server.cpp \
+Request.cpp \
 set_content_types.cpp \
 utils.cpp
 

@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Client.hpp                                         :+:      :+:    :+:   */
+/*   Conf.hpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
+/*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 00:54:13 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/01/11 05:26:49 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/09 16:24:41 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,7 @@ class Conf {
 		typedef int                             code_type;
 		typedef std::pair<code_type, file_type> error_type;
 		typedef	std::map<code_type, file_type>	error_list;
-		typedef int                             size_type;
+		typedef long							size_type;
 		typedef std::string						method_type;
 		typedef std::vector<method_type>		method_list;
 		typedef short                           dir_listing_type;

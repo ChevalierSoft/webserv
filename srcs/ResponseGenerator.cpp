@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ResponseGenerator.cpp                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
+/*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/08 23:57:48 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/09 17:01:03 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -435,12 +435,17 @@ std::string			ResponseGenerator::get_redirection(const Route::redir_type & redir
 void				ResponseGenerator::perform_method (Client & client) const
 {
 	struct stat	s;
+	int			upload_error = 0;
 
-
-	if (client._request.is_upload() && client._request.upload_to_server(_conf))
+	
+	if (!(upload_error = client._request.is_upload(_conf)) && client._request.upload_to_server(_conf))
 		return (get_error_file(client, 204)); // no content to output
-	// ? redirects if there is a redirection in appropriate route AND if what is typed in the url corresponds to location in conf
+	else if (upload_error == 1) // if upload folder exists but doesnt have the rights to create a file
+		return (get_error_file(client, 404));
+	else if (upload_error == 2) // if upload folder doesnt exist
+		return (get_error_file(client, 403));
 
+	// ? redirects if there is a redirection in appropriate route AND if what is typed in the url corresponds to location in conf
 	if (client._request._redir != Route::redir_type())
 	{
 		client._response += (get_redirection(client._request._redir));
@@ -491,8 +496,6 @@ void				ResponseGenerator::perform_method (Client & client) const
 		// ? error: wrong path || path too long || out of memory || bad address || ...
 		get_error_file(client, 404);
 	}
-
-	return ;
 }
 
 void				ResponseGenerator::perform_delete(Client & client) const
@@ -547,19 +550,20 @@ bool				ResponseGenerator::generate (Client& client) const
 {
 	// std::cout << "_tmp_counter = " << client._tmp_counter++ << std::endl;
 
-	int	error_code = client._request.request_error();
+	int	error_code = client._request.request_error(_conf);
 
 	if (error_code)
 	{
 		get_error_file(client, error_code);
-		return (false);
+		return false;
 	}
-
 	if (client._request_parsed == false)
 	{
 		parse_request_route(client);
 		client._request_parsed = true;
 	}
+
+	
 
 	// ? check which method should be called
 	if (is_method("GET", client._request) || is_method("POST", client._request))
