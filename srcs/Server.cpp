@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: %F{207}%n%f <%F{207}%n%f@student.42.fr>    +#+  +:+       +#+        */
+/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/09 16:56:22 by %F{207}%n%f      ###   ########.fr       */
+/*   Updated: 2022/02/09 19:14:59 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -208,7 +208,7 @@ void			Server::remove_client (int i)
  */
 bool			Server::record_client_input (const int &i)
 {
-	char	buffer[BUFFER_SIZE];
+	char	buffer[REQUEST_BUFFER_SIZE];
 	bool	close_conn = 0;
 	int		rc;
 
