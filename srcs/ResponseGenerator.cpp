@@ -6,7 +6,7 @@
 /*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/09 17:17:33 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/02/09 17:36:46 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -425,7 +425,7 @@ std::string			ResponseGenerator::get_redirection(const Route::redir_type & redir
 void				ResponseGenerator::perform_method (Client & client) const
 {
 	struct stat	s;
-	int			upload_error = 0;
+	int			upload_error = 3;
 
 
 	if (!(upload_error = client._request.is_upload(_confs->at(client._request._conf_index))) && client._request.upload_to_server(_confs->at(client._request._conf_index)))
@@ -556,8 +556,6 @@ bool				ResponseGenerator::generate (Client& client) const
 		client._request_parsed = true;
 	}
 
-	
-
 	// ? check which method should be called
 	if (is_method("GET", client._request) || is_method("POST", client._request))
 	{
@@ -614,6 +612,7 @@ void 				ResponseGenerator::parse_request_route(Client &client) const{
 	
 	client._request._path_raw = client._request._path;
 	// Loop to find the route and set it to output request route
+
 	while (found <= client._request._path.size())
 	{
 		if ((found = client._request._path.find(sep, found)) == std::string::npos)

@@ -6,7 +6,7 @@
 /*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/09 14:56:13 by lpellier          #+#    #+#             */
-/*   Updated: 2022/02/09 17:15:40 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/02/09 17:31:23 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -388,17 +388,16 @@ int		Request::is_upload(const Conf & conf) {
 	struct stat	s;
 	
 	if (_method == "POST" && found_ct != -1 && found_bound != -1) {
-		if (!stat(conf._upload_path.c_str(), &s)) {
+		if (conf._upload_path != std::string() && !stat(conf._upload_path.c_str(), &s)) {
 			if (s.st_mode & S_IFDIR && s.st_mode & S_IWOTH && s.st_mode & S_IXOTH)
 				return 0;
 			else
 				return 2;
 		}
 		else
-			return 1;
-		return 0;
+			return (1);
 	}
-	return 1;
+	return 3;
 }
 
 bool	Request::upload_to_server(const Conf & conf) {
