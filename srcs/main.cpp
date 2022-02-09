@@ -13,12 +13,20 @@ int main(int argc, char **argv)
 {
 	int	err = 0;
 	std::vector<Server>	servers;
+	std::string			conf_file("tst/conf/webserv.conf");
 	// TODO mutex for printing
 	
 	// TODO signal handler that works for threads
 	// signal(SIGINT, &sighandler);	// making it easy to close the program
 	// signal(SIGQUIT, &sighandler);
-	Parser	p("tst/conf/webserv.conf");
+	if (argc == 2)
+		conf_file = argv[1];
+	else if (argc > 2)
+	{
+		std::cerr << "Error: too many arguments" << std::endl;
+		return (2);
+	}
+	Parser	p(conf_file);
 	run = !p._err;
 	
 	// p.print();
@@ -30,15 +38,9 @@ int main(int argc, char **argv)
 	}
 	else
 	{
-		// Server	s(*(p._hosts.begin()));
-		// TODO Run same host:port with different server names
 		// ?? p._hosts -> one conf file per host:port
 		for (Parser::conf_list::iterator it = p._hosts.begin(); it != p._hosts.end(); it++)
-		{
-
 			pthread_create(&threads[it - p._hosts.begin()], NULL, routine, static_cast<void *>(get_confs(*it, p._confs)));
-		}
-		// err = s.start();
 	}
 	for (int i = 0; i < p._hosts.size(); i++)
 		pthread_join(threads[i], NULL);
