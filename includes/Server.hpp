@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: %F{207}%n%f <%F{207}%n%f@student.42.fr>    +#+  +:+       +#+        */
+/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 04:55:39 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/09 16:46:42 by %F{207}%n%f      ###   ########.fr       */
+/*   Updated: 2022/02/10 16:56:12 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,10 +14,10 @@
 
 #include "webserv.hpp"
 
-# define BACK_LOG		123
-# define BUFFER_SIZE	64
+# define BACK_LOG				123
+# define REQUEST_BUFFER_SIZE	1024
 
-# define TIMEOUT		10 * 1000
+# define TIMEOUT				10 * 1000
 
 /**
  * @brief a http/1.1 server working for one config
