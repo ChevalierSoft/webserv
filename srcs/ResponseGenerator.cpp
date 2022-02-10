@@ -6,7 +6,7 @@
 /*   By: ljurdant <ljurdant@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/10 16:17:31 by ljurdant         ###   ########.fr       */
+/*   Updated: 2022/02/10 17:05:21 by ljurdant         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -269,8 +269,9 @@ void				ResponseGenerator::start_cgi (Client & client, std::string cgi_url, std:
 
 	execve(exe[0], exe, a_envs.data());
 
-	close(client._cgi_pipe[0]);
-	close(client._webserv_pipe[1]);
+	// TODO : clean memory / close pipes.
+	// TODO : send back a 500
+
 	std::cerr << CYN << "execve_failed" << std::endl;
 	exit(66);
 }
@@ -285,6 +286,7 @@ void				ResponseGenerator::listen_cgi (Client & client, std::string url) const
 
 	// // ! need to use WNOHANG and check every loop (when it will be implemented)
 	// ? https://cboard.cprogramming.com/c-programming/138057-waitpid-non-blocking-fork.html
+	// waitpid(-1, &child, 0);
 
 	memset(buff, 0, CGI_BUFF_SIZE);
 	err = read(client._webserv_pipe[0], buff, CGI_BUFF_SIZE - 1);
@@ -292,11 +294,6 @@ void				ResponseGenerator::listen_cgi (Client & client, std::string url) const
 	{
 		if (waitpid(-1, &client._child, WNOHANG))	// ? checks if _child is closed
 			client._response_ready = true;
-		if (WIFEXITED(client._child) && WEXITSTATUS(client._child) == 66)
-		{ 
-			get_error_file(client, 500);
-			return ;
-		}	
 	}
 	else
 		client._response += buff;
@@ -357,7 +354,6 @@ void				ResponseGenerator::cgi_handling (Client & client, std::string cgi_url, s
 
 	client._fast_forward = FF_GET_CGI;
 
-	
 	if (pipe(client._cgi_pipe))
 	{
 		get_error_file(client, 500);
@@ -582,7 +578,7 @@ bool				ResponseGenerator::generate (Client& client) const
 	else if (is_method("DELETE", client._request))
 		this->perform_delete(client);
 	else
-		get_error_file(client, 501);
+		get_error_file(client, 405);
 
 	return (false);
 }
