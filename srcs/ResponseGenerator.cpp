@@ -269,8 +269,9 @@ void				ResponseGenerator::start_cgi (Client & client, std::string cgi_url, std:
 
 	execve(exe[0], exe, a_envs.data());
 
-	close(client._cgi_pipe[0]);
-	close(client._webserv_pipe[1]);
+	// TODO : clean memory / close pipes.
+	// TODO : send back a 500
+
 	std::cerr << CYN << "execve_failed" << std::endl;
 	exit(66);
 }
@@ -282,9 +283,6 @@ void				ResponseGenerator::listen_cgi (Client & client, std::string url) const
 	std::string					page_header;
 	char						buff[CGI_BUFF_SIZE];
 	int							cgi_header_size;
-
-	// // ! need to use WNOHANG and check every loop (when it will be implemented)
-	// ? https://cboard.cprogramming.com/c-programming/138057-waitpid-non-blocking-fork.html
 
 	memset(buff, 0, CGI_BUFF_SIZE);
 	err = read(client._webserv_pipe[0], buff, CGI_BUFF_SIZE - 1);
@@ -360,7 +358,6 @@ void				ResponseGenerator::cgi_handling (Client & client, std::string cgi_url, s
 
 	client._fast_forward = FF_GET_CGI;
 
-	
 	if (pipe(client._cgi_pipe))
 	{
 		get_error_file(client, 500);
@@ -572,7 +569,7 @@ bool				ResponseGenerator::generate (Client& client) const
 	else if (is_method("DELETE", client._request))
 		this->perform_delete(client);
 	else
-		get_error_file(client, 501);
+		get_error_file(client, 405);
 
 	return (false);
 }
