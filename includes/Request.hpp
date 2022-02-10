@@ -6,7 +6,7 @@
 /*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/09 16:44:09 by lpellier          #+#    #+#             */
-/*   Updated: 2022/02/09 17:08:20 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/02/10 12:53:22 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,8 @@ enum errors {
 	UNDEFINED_PATH,
 	UNDEFINED_HTTP_VERSION,
 	WRONG_LINE_HEADER,
-	WRONG_VALUE_HEADER
+	WRONG_VALUE_HEADER,
+	DIFF_CONTENT_LENGTH
 };
 
 class Request {

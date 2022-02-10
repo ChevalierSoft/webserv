@@ -6,7 +6,7 @@
 /*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/09 14:56:13 by lpellier          #+#    #+#             */
-/*   Updated: 2022/02/09 17:31:23 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/02/10 12:54:46 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -220,13 +220,14 @@ int		Request::update_body() {
 
 	found_newline = _buffer.find("\r\n");
 	if (_content_length != -1) {
-		if (_buffer.size() >= _content_length) {
+		if (_buffer.size() > _content_length)
+			_error = DIFF_CONTENT_LENGTH;
+		else if (_buffer.size() == _content_length) {
 			new_str = std::string(_buffer.begin(), _buffer.begin() + _content_length);
 			_body.push_back(new_str);
 			_buffer.erase(new_str.size());
-			return (2);
 		}
-		return (0);
+		return (2);
 	}
 	else if (found_newline != _buffer.npos && found_newline > 0) {
 		new_str = std::string(_buffer.begin(), _buffer.begin() + found_newline);
@@ -353,7 +354,7 @@ int	Request::request_error(const Conf & conf) {
 		return (505);
 	else if (_error == UNDEFINED_METHOD)
 		return (405);
-	else if (_error == UNDEFINED_PATH || _error == WRONG_LINE_HEADER || _error == WRONG_VALUE_HEADER)
+	else if (_error == UNDEFINED_PATH || _error == WRONG_LINE_HEADER || _error == WRONG_VALUE_HEADER || _error == DIFF_CONTENT_LENGTH)
 		return (400); // Syntax error
 	else if (_method == "POST" && _content_length < 0)
 		return (411);

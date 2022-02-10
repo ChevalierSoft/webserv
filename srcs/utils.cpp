@@ -6,7 +6,7 @@
 /*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 17:07:56 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/09 17:08:49 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/02/10 12:44:32 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,13 +52,13 @@ std::map<int, std::string>	set_error_map ()
 	m[103] = "Early Hints"; // USELESS // // ? While server is preparing a response, allows the client to preload resources (primarily used with the Link Header)
 
 	// ? Successful responses
-	m[200] = "OK"; // DONE // // ? Perfect status code for a functioning page
-	m[201] = "Created"; // TODO // ? Successful request that resulted in the create of one or multiple resources
+	m[200] = "OK"; // DONE // ? Perfect status code for a functioning page
+	m[201] = "Created"; // TODO // ? Successful request that resulted in the creation of one or multiple resources
 	m[202] = "Accepted"; // TODO // ? Request accepted for processing but response is still being generated
 	m[203] = "Non-Authoritative Information"; // USELESS // // ? Request successful but meta-information that's been received is different from the one on the origin server
-	m[204] = "No Content"; // TODO // ? Successful request but no content available for the request
+	m[204] = "No Content"; // DONE // ? Successful request but no content available for the request
 	m[205] = "Reset Content"; // USELESS // // ? User should reset the document that sent this request
-	m[206] = "Partial Content"; // ONLY IF USING RANGE HEADERS // ? If only a part of the resource is requested via a Range header
+	m[206] = "Partial Content"; // USELESS // // ? If only a part of the resource is requested via a Range header
 	m[207] = "Multi-Status"; // USELESS // // ? If multiple resources are involved and multiple status code are appropriate
 	m[208] = "Already Reported"; // USELESS // // ? Used inside the response element "DAV: propstat" but idk what the fuck is that
 	m[226] = "IM Used"; // USELESS // // ? Successful GET request and the response is a representation of the result of one or multiple instance-manipulations applied to the current instance
@@ -76,24 +76,24 @@ std::map<int, std::string>	set_error_map ()
 	m[308] = "Permanent Redirect"; // ? Requested resource has beend assigned a new permanent URI
 
 	// ? Client error responses
-	m[400] = "Bad Request"; // DONE // // ? Invalid syntax in request
+	m[400] = "Bad Request"; // DONE // ? Invalid syntax in request
 	m[401] = "Unauthorized"; // USELESS // // ? Server requires user authentication
 	m[402] = "Payment Required"; // USELESS // // ? Very rarely used for digital payment systems
-	m[403] = "Forbidden"; // DONE // // ? Client does not have rights to access the content 
-	m[404] = "Not Found"; // DONE // // ? Resource not found or hidden from unauthorized client
-	m[405] = "Method Not Allowed"; // DONE // // ? Requested method has been disabled by server
+	m[403] = "Forbidden"; // DONE // ? Client does not have rights to access the content 
+	m[404] = "Not Found"; // DONE // ? Resource not found or hidden from unauthorized client
+	m[405] = "Method Not Allowed"; // DONE // ? Requested method has been disabled by server
 	m[406] = "Not Acceptable"; // USELESS // // ? No content found following criteria given by user agent
 	m[407] = "Proxy Authentication Required"; // USELESS // // ? Client must first be authenticated by a proxy
 	m[408] = "Request Timeout"; // TODO // ? Didn't receive complete request in the time that it prepared to wait
 	m[409] = "Conflict"; // USELESS // // ? Request unfulfilled because of conflict with state of target resource
 	m[410] = "Gone"; // USELESS // // ? Target resource has been deleted and the condition seems to be permatnent (permanent 404)
-	m[411] = "Length Required"; // DONE // // ? Request rejected because it has no "Content-Length" header field
+	m[411] = "Length Required"; // DONE // ? Request rejected because it has no "Content-Length" header field
 	m[412] = "Precondition Failed"; // USELESS // // ? Server does not meet one or multiple preconditions that were indicated in the request header field
-	m[413] = "Payload Too Large";  // TODO // ? Request payload is larger than the server is able or willing to process
+	m[413] = "Payload Too Large";  // DONE // ? Request payload is larger than the server is able or willing to process
 	m[414] = "URI Too Long"; // TODO // ? Request refused because target resource URI is too long
 	m[415] = "Unsupported Media Type"; // USELESS // // ? Server does not support media format of requested data
 	m[416] = "Range Not Satisfiable"; // ONLY IF USING RANGE HEADERS // ? Range specified in Range header field of request can't be fulfilled
-	m[417] = "Expectation Failed"; // TODO // ? "Expectation" indicated by the "Expect" request header field could not be met by server
+	m[417] = "Expectation Failed"; // USELESS // ? "Expectation" indicated by the "Expect" request header field could not be met by server
 	m[418] = "I'm a Teapot"; // USELESS // // ? april fools lulz
 	m[421] = "Misdirected Request"; // USELESS // // ? Client request was directed at a server not configured to produce a response
 	m[422] = "Unprocessable Entity"; // USELESS // // ? Server unable to follow request due to semantic errors
@@ -107,12 +107,12 @@ std::map<int, std::string>	set_error_map ()
 	m[451] = "Unavailable For Legal Reasons"; // USELESS // // ? User requested an illegal resource -> Server calls the cops
 
 	// ? Server error responses
-	m[500] = "Internal Server Error"; // // // ? Server encountered a situation that it's unable to handle
+	m[500] = "Internal Server Error"; // DONE // // ? Server encountered a situation that it's unable to handle
 	m[501] = "Not Implemented"; // TODO // ? Unsupported by the server
 	m[502] = "Bad Gateway"; // USELESS // // ? Server received invalid response while working as a gateway to handle the response
 	m[503] = "Service Unavailable"; // USELESS // // ? Server currently not ready to handle request commonly due to maintenance
 	m[504] = "Gateway Timeout"; // USELESS // // ? Server acting as a gateway could not get a response time
-	m[505] = "HTTP Version Not Supported"; // DONE // // ? Version of HTTP used in the request is not supported by the server
+	m[505] = "HTTP Version Not Supported"; // DONE // ? Version of HTTP used in the request is not supported by the server
 	m[506] = "Variant Also Negotiates"; // USELESS // // ? Look up doc, I don't understand any of it
 	m[507] = "Insufficient Storage"; // USELESS // // ? Method couldn't be performed on the resource because server unable to store representation
 	m[508] = "Loop Detected"; // USELESS // // ? Detected infinite loop
