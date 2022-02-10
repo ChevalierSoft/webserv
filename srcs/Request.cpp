@@ -6,7 +6,7 @@
 /*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/09 14:56:13 by lpellier          #+#    #+#             */
-/*   Updated: 2022/02/10 12:54:46 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/02/10 16:26:44 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -220,14 +220,17 @@ int		Request::update_body() {
 
 	found_newline = _buffer.find("\r\n");
 	if (_content_length != -1) {
-		if (_buffer.size() > _content_length)
+		if (_buffer.size() > _content_length) {
 			_error = DIFF_CONTENT_LENGTH;
+			return (2);
+		}
 		else if (_buffer.size() == _content_length) {
 			new_str = std::string(_buffer.begin(), _buffer.begin() + _content_length);
 			_body.push_back(new_str);
 			_buffer.erase(new_str.size());
+			return (2);
 		}
-		return (2);
+		return (0);
 	}
 	else if (found_newline != _buffer.npos && found_newline > 0) {
 		new_str = std::string(_buffer.begin(), _buffer.begin() + found_newline);
