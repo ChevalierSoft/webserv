@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
+/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 00:54:13 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/09 17:15:20 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/02/10 18:51:16 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,8 +46,8 @@ private:
 	int								_webserv_pipe[2];
 	int								_cgi_pipe[2];
 	e_preform_fast_forward			_fast_forward;
-	Route::cgi_list::const_iterator	_cgi;
 	pid_t							_child;
+	Route::cgi_list::const_iterator	_cgi;
 	std::ifstream					_input_file;
 	int								_tmp_counter;			// debug ?
 	bool							_request_parsed;
@@ -74,14 +74,16 @@ public:
 
 	bool	send_response (int sd_out);
 
+	void	clean_cgi ();
+
 	void	update ();
 
-	bool	is_timed_out ();
+	bool	is_timed_out () const;
 
 	void	add_input_buffer (const char *buffer, int len);
 
-	bool	is_request_parsed ();
+	bool	is_request_parsed () const;
 
-	bool	is_response_ready ();
+	bool	is_response_ready () const;
 
 }; // * ________________________________________________________________________

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
+/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/09 17:06:28 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/02/10 18:49:58 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@
  */
 Client::Client ()
 : _response(""), _request_ready(false), _response_ready(false), _ip(), _port(), _body_sent(false),
-	_fast_forward(FF_NOT_SET), _request_parsed(false)
+	_fast_forward(FF_NOT_SET), _request_parsed(false), _child(-1)
 {
 	_tmp_counter = 0;
 	gettimeofday(&_life_time, NULL);
@@ -30,7 +30,7 @@ Client::Client ()
  */
 Client::Client (const Conf* c, std::string ip, std::string port)
 : _response(""), _request_ready(false), _response_ready(false), _ip(ip), _port(port), _body_sent(false),
-	_fast_forward(FF_NOT_SET), _request_parsed(false)
+	_fast_forward(FF_NOT_SET), _request_parsed(false), _child(-1)
 {
 	_tmp_counter = 0;
 	gettimeofday(&_life_time, NULL);
@@ -42,6 +42,7 @@ Client::Client (const Conf* c, std::string ip, std::string port)
  */
 Client::~Client ()
 {
+	this->clean_cgi();
 }
 
 /**
@@ -75,6 +76,7 @@ Client&		Client::operator= (const Client& copy)
 		_body_sent = copy._body_sent;
 		_fast_forward = copy._fast_forward;
 		_cgi = copy._cgi;
+		_child = copy._child;
 		// _input_file = copy._input_file;
 		_tmp_counter = copy._tmp_counter;
 		_request_parsed = copy._request_parsed;
@@ -120,7 +122,6 @@ void		Client::add_input_buffer (const char *buffer, int len)
 	this->_request.append_buffer(std::string(buffer, len));
 }
 
-
 /**
  * @brief Send the content of o_msg to the client.
  * 
@@ -150,6 +151,19 @@ bool		Client::send_response (int sd_out)
 	return (false);
 }
 
+void		Client::clean_cgi ()
+{
+	if (_child != -1)
+	{
+		std::cout << "tue" << std::endl;
+		kill(_child, SIGTERM);
+		close(_webserv_pipe[0]);
+		close(_webserv_pipe[1]);
+		close(_cgi_pipe[0]);
+		close(_cgi_pipe[1]);
+	}
+}
+
 /**
  * @brief Update _life_time counter.
  */
@@ -164,7 +178,7 @@ void		Client::update ()
  * @return true last event was before CLIENT_TIMEOUT.
  * @return false last event was close enough.
  */
-bool		Client::is_timed_out ()
+bool		Client::is_timed_out () const
 {
 	struct timeval	tv_now;
 	struct timezone	tv_zone;
@@ -178,12 +192,12 @@ bool		Client::is_timed_out ()
 	return (false);
 }
 
-bool		Client::is_response_ready ()
+bool		Client::is_response_ready () const
 {
 	return (this->_response_ready);
 }
 
-bool		Client::is_request_parsed ()
+bool		Client::is_request_parsed () const
 {
 	return (this->_request_ready);
 }

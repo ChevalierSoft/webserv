@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/10 18:13:11 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/10 18:57:01 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -193,8 +193,9 @@ void			Server::remove_client (int i)
 	_fds[i].fd = -1;
 	_fds[i].events = 0;
 	_fds[i].revents = 0;
-	_fds.erase(_fds.begin() + i);
+	_clients[_fds[i].fd].clean_cgi();
 	_clients.erase(_fds[i].fd);
+	_fds.erase(_fds.begin() + i);
 }
 
 /**

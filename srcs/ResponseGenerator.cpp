@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ResponseGenerator.cpp                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ljurdant <ljurdant@student.42.fr>          +#+  +:+       +#+        */
+/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/10 16:17:31 by ljurdant         ###   ########.fr       */
+/*   Updated: 2022/02/10 18:32:37 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -291,7 +291,10 @@ void				ResponseGenerator::listen_cgi (Client & client, std::string url) const
 	if (err <= 0)	// ? cgi is too slow or there is nothing to send anymore
 	{
 		if (waitpid(-1, &client._child, WNOHANG))	// ? checks if _child is closed
+		{
+			client._child = -1;
 			client._response_ready = true;
+		}
 		if (WIFEXITED(client._child) && WEXITSTATUS(client._child) == 66)
 		{ 
 			get_error_file(client, 500);
@@ -542,9 +545,6 @@ bool				ResponseGenerator::is_method(std::string method, Request const &rq) cons
 
 bool				ResponseGenerator::generate (Client& client) const
 {
-	// std::cout << "_tmp_counter = " << client._tmp_counter++ << std::endl;
-
-
 	set_conf_index (client); //Setting conf index here
 	
 	int	error_code = client._request.request_error(_confs->at(client._request._conf_index));
@@ -559,25 +559,15 @@ bool				ResponseGenerator::generate (Client& client) const
 		parse_request_route(client);
 		client._request_parsed = true;
 	}
-
 	// ? check which method should be called
 	if (is_method("GET", client._request) || is_method("POST", client._request))
 	{
 		if (client._fast_forward == FF_NOT_SET)
-		{
-			// __DEB("FF_NOT_SET")
 			this->perform_method(client);
-		}
 		else if (client._fast_forward == FF_GET_FILE)
-		{
-			// __DEB("FF_GET_FILE")
 			get_file_content(client);
-		}
 		else if (client._fast_forward == FF_GET_CGI)
-		{
-			// __DEB("FF_GET_CGI")
 			listen_cgi(client, client._cgi->second);
-		}
 	}
 	else if (is_method("DELETE", client._request))
 		this->perform_delete(client);
