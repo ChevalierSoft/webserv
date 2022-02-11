@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/10 18:57:01 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/11 08:31:20 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -198,27 +198,14 @@ void			Server::remove_client (int i)
 	_fds.erase(_fds.begin() + i);
 }
 
-/**
- * @brief Record the client's inputs non blockingly.
- * 
- * @param i Index from server_poll_loop's for loop.
- * 
- * @return true connection to the client have been closed because of an error
- *         or we don't need more data to generate the output.
- * @return false the client has to send more data to generate the return message.
- */
 bool			Server::record_client_input (const int &i)
 {
 	char	buffer[REQUEST_BUFFER_SIZE];
 	bool	close_conn = 0;
 	int		rc;
 
-	std::cout << YEL << "  Descriptor " << RED << _fds[i].fd << YEL << " is readable\n" << RST << std::endl;
+	// std::cout << YEL << "  Descriptor " << RED << _fds[i].fd << YEL << " is readable\n" << RST << std::endl;
 
-	// ? update client's _life_time
-	_clients[_fds[i].fd].update();
-
-	// todo : be sure to use non blocking fds
 	rc = recv(_fds[i].fd, buffer, sizeof(buffer) - 1, 0); // MSG_DONTWAIT | MSG_ERRQUEUE);	// ? errors number can be checked with the flag MSG_ERRQUEUE (man recv)
 
 	if (rc == -1 || rc == 0)	// ? error while reading or client closed the connection
@@ -227,12 +214,12 @@ bool			Server::record_client_input (const int &i)
 		remove_client(i);
 		return (true);
 	}
-
 	buffer[rc] = '\0';									// ? closing the char array
 
-	// ? debug
-	std::cout << YEL << "  " << rc << " bytes received : " << RST << std::endl;
-	// ft_print_memory(buffer, rc);
+	// ? update client's _life_time
+	_clients[_fds[i].fd].update();
+
+	// std::cout << YEL << "  " << rc << " bytes received : " << RST << std::endl;
 
 	_clients[_fds[i].fd].add_input_buffer(buffer, rc);
 
@@ -243,7 +230,7 @@ bool			Server::record_client_input (const int &i)
 	if (_clients[_fds[i].fd].is_request_parsed() == true)
 	{
 		_fds[i].events = POLLOUT;	// ? time to generate and send the content
-		// _fds[i].revents = POLLOUT;
+		_fds[i].revents = POLLOUT;
 		close_conn = this->_response_generator.generate(_clients[_fds[i].fd]);
 		// ? If needed, this is where we could send 202 Accepted
 	}
@@ -251,6 +238,7 @@ bool			Server::record_client_input (const int &i)
 	if (_clients[_fds[i].fd].is_response_ready() == true)
 	{
 		close_conn = _clients[_fds[i].fd].send_response(_fds[i].fd);
+		_clients[_fds[i].fd].clean_cgi();
 		_clients[_fds[i].fd] = Client();
 		_fds[i].events = POLLIN;
 		_fds[i].revents = 0;
@@ -275,8 +263,13 @@ bool			Server::record_client_input (const int &i)
  */
 void			Server::check_timed_out_client (const int i)
 {
-	if (i < 0 || i == 0)
-		return ;
+	if (_fds[i].fd < 0)
+	{
+		std::cout << "wtf" << std::endl;
+		remove_client(i);
+	}
+	else if (i == 0)
+		;
 	if (_clients[_fds[i].fd].is_timed_out() == true)
 	{
 		// ? If needed, this is where we could send 408 Request Timeout
@@ -319,6 +312,7 @@ bool			Server::server_poll_loop ()
 		// ? clean _fds of timed out fds, and return true too loop again.
 		for (int i = 1; i < _fds.size(); ++i)
 			check_timed_out_client(i);
+		std::cout << YEL << "clients : " << _clients.size() << std::endl;
 		return (true);
 	}
 
@@ -365,7 +359,7 @@ bool			Server::server_poll_loop ()
 				if (_clients[_fds[i].fd].is_request_parsed() == true)
 				{
 					_fds[i].events = POLLOUT;	// ? time to generate and send the content
-					// _fds[i].revents = POLLOUT;
+					_fds[i].revents = POLLOUT;
 					close_conn = this->_response_generator.generate(_clients[_fds[i].fd]);
 					// ? If needed, this is where we could send 202 Accepted
 				}
@@ -373,6 +367,7 @@ bool			Server::server_poll_loop ()
 				if (_clients[_fds[i].fd].is_response_ready() == true)
 				{
 					close_conn = _clients[_fds[i].fd].send_response(_fds[i].fd);
+					_clients[_fds[i].fd].clean_cgi();
 					_clients[_fds[i].fd] = Client();
 					_fds[i].events = POLLIN;
 					_fds[i].revents = 0;

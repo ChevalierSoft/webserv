@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/10 18:49:58 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/11 07:54:31 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -105,8 +105,7 @@ void		Client::parse_response ()
 		while ((end_of_request = this->_request.update_body()) == 1);
 	
 	if (end_of_request == 2) {
-		// ? to output contents of map header
-		this->_request.d_output();
+		// this->_request.d_output(); // ? to output contents of map header
 		this->_request_ready = true;
 	}
 }
@@ -161,6 +160,7 @@ void		Client::clean_cgi ()
 		close(_webserv_pipe[1]);
 		close(_cgi_pipe[0]);
 		close(_cgi_pipe[1]);
+		_child = -1;
 	}
 }
 

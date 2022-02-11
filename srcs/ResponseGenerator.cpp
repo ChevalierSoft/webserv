@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/10 18:32:37 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/11 02:39:52 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -297,7 +297,7 @@ void				ResponseGenerator::listen_cgi (Client & client, std::string url) const
 		{ 
 			get_error_file(client, 500);
 			return ;
-		}	
+		}
 	}
 	else
 		client._response += buff;
