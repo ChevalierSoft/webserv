@@ -78,7 +78,7 @@ private:
 
 	void				perform_delete(Client & client) const;
 
-	bool				is_method(std::string method, Request const & rq) const;
+	int					is_method(std::string method, Request const & rq) const;
 
 	void				set_conf_index(Client &client) const;
 

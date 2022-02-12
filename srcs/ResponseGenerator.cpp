@@ -536,8 +536,16 @@ void				ResponseGenerator::perform_delete(Client & client) const
 		get_error_file(client, 404);
 }
 
-bool				ResponseGenerator::is_method(std::string method, Request const &rq) const {
-	return (method == rq._method && (std::find(rq._route._methods.begin(), rq._route._methods.end(), method) !=  rq._route._methods.end()));
+int				ResponseGenerator::is_method(std::string method, Request const &rq) const {
+	if (method == rq._method)
+	{
+		if (std::find(rq._route._methods.begin(), rq._route._methods.end(), method) !=  rq._route._methods.end())
+			return (1);
+		else
+			return (2);
+	}
+	else 
+		return (0);
 }
 
 bool				ResponseGenerator::generate (Client& client) const
@@ -557,7 +565,7 @@ bool				ResponseGenerator::generate (Client& client) const
 		client._request_parsed = true;
 	}
 	// ? check which method should be called
-	if (is_method("GET", client._request) || is_method("POST", client._request))
+	if (is_method("GET", client._request) == 1 || is_method("POST", client._request) == 1)
 	{
 		if (client._fast_forward == FF_NOT_SET)
 			this->perform_method(client);
@@ -566,11 +574,12 @@ bool				ResponseGenerator::generate (Client& client) const
 		else if (client._fast_forward == FF_GET_CGI)
 			listen_cgi(client, client._cgi->second);
 	}
-	else if (is_method("DELETE", client._request))
+	else if (is_method("DELETE", client._request) == 1)
 		this->perform_delete(client);
-	else
+	else if (is_method("GET", client._request) == 2 || is_method("POST", client._request) == 2|| is_method("DELETE", client._request) == 2)
 		get_error_file(client, 405);
-
+	else
+		get_error_file(client, 501);
 	return (false);
 }
 
