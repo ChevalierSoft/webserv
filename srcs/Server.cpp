@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ljurdant <ljurdant@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/10 18:57:01 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/13 15:32:33 by ljurdant         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -139,8 +139,10 @@ int				Server::init (const Conf& c)
 	if (this->socket_bind() == false)
 		return (4);
 	
-
+	// mutex_print(std::cout, "ready to listen on port " + _conf._hosts.begin()->second);
+	pthread_mutex_lock(&mutex);
 	std::cout << "ready to listen on port " << _conf._hosts.begin()->second << std::endl;
+	pthread_mutex_unlock(&mutex);
 	return (0);
 }
 
@@ -156,13 +158,16 @@ bool			Server::add_new_client ()
 	struct pollfd		tmp;
 	struct sockaddr_in	addr;
 	socklen_t			addr_size = sizeof(struct sockaddr_in);
-
-	std::cout << "  Listening socket is readable\n";
+	
+	mutex_print(std::cout,"   Listening socket is readable");
+	// std::cout << "  Listening socket is readable\n";
 
 	new_sd = accept(_listen_sd, (struct sockaddr *)&addr, &addr_size);
 
+	pthread_mutex_lock(&mutex);
 	std::cout << "  New connection from : " << inet_ntoa(((addr)).sin_addr) << std::endl;
 	std::cout << "  on port : " << htons((addr).sin_port) << std::endl;
+	pthread_mutex_unlock(&mutex);
 
 	if (new_sd < 0)
 	{
@@ -170,8 +175,10 @@ bool			Server::add_new_client ()
 		return (false);
 	}
 
+	pthread_mutex_lock(&mutex);
 	std::cout << YEL << "  New incoming connection on fd : " << RED << new_sd << RST << std::endl;
-	
+	pthread_mutex_unlock(&mutex);
+
 	tmp.fd = new_sd;
 	tmp.events = POLLIN;
 	tmp.revents = 0;
@@ -231,7 +238,7 @@ bool			Server::record_client_input (const int &i)
 	buffer[rc] = '\0';									// ? closing the char array
 
 	// ? debug
-	std::cout << YEL << "  " << rc << " bytes received : " << RST << std::endl;
+	// std::cout << YEL << "  " << rc << " bytes received : " << RST << std::endl;
 	// ft_print_memory(buffer, rc);
 
 	_clients[_fds[i].fd].add_input_buffer(buffer, rc);
@@ -315,7 +322,9 @@ bool			Server::server_poll_loop ()
 	// ? Check to see if the 3 minute time out expired.
 	if (rc == 0)
 	{
+		pthread_mutex_lock(&mutex);
 		std::cout << "  poll() timed out." << std::endl;
+		pthread_mutex_unlock(&mutex);
 		// ? clean _fds of timed out fds, and return true too loop again.
 		for (int i = 1; i < _fds.size(); ++i)
 			check_timed_out_client(i);
@@ -432,7 +441,9 @@ int				Server::start ()
 
 void			Server::aff_fds()
 {
+	pthread_mutex_lock(&mutex);
 	std::cout << "nb fds : " << _fds.size() << std::endl;
+	pthread_mutex_unlock(&mutex);
 	for (int i = 0; i < _fds.size(); ++i)
 		std::cout << i << " : " << _fds[i].fd << std::endl;
 }

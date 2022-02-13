@@ -6,11 +6,13 @@
 /*   By: ljurdant <ljurdant@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/10 15:11:11 by ljurdant          #+#    #+#             */
-/*   Updated: 2022/02/10 15:11:13 by ljurdant         ###   ########.fr       */
+/*   Updated: 2022/02/13 15:01:14 by ljurdant         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "webserv.hpp"
+
+pthread_mutex_t mutex;
 
 int main(int argc, char **argv)
 {

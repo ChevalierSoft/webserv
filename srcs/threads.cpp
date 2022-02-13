@@ -6,7 +6,7 @@
 /*   By: ljurdant <ljurdant@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/10 15:10:50 by ljurdant          #+#    #+#             */
-/*   Updated: 2022/02/10 15:11:03 by ljurdant         ###   ########.fr       */
+/*   Updated: 2022/02/13 15:10:11 by ljurdant         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,4 +45,10 @@ std::vector<Conf>   *get_confs(const Conf &current, const std::vector<Conf> &con
         }
     }
     return (output);
+}
+
+void    mutex_print(std::ostream &o, std::string const s) {
+    pthread_mutex_lock(&mutex);
+    o << s << std::endl;
+    pthread_mutex_unlock(&mutex);
 }
