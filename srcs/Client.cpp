@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/10 18:49:58 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/16 10:53:33 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,7 @@ Client::Client ()
 {
 	_tmp_counter = 0;
 	gettimeofday(&_life_time, NULL);
+	// _life_time = std::clock();
 }
 
 /**
@@ -34,6 +35,7 @@ Client::Client (const Conf* c, std::string ip, std::string port)
 {
 	_tmp_counter = 0;
 	gettimeofday(&_life_time, NULL);
+	// _life_time = std::clock();
 }
 
 /**
@@ -94,7 +96,7 @@ void		Client::parse_response ()
 	while (this->_request._in_header && (end_of_request = this->_request.update_header()) == 0);
 	if (this->_request._error > 0) {
 		this->_request_ready = true;
-		std::cout << RED << "Error in header : " << this->_request._error << " (refer to errors enum)" << RST << std::endl;
+		// std::cout << RED << "Error in header : " << this->_request._error << " (refer to errors enum)" << RST << std::endl;
 	}
 
 	if (!this->_request._in_header && this->_request._method != "POST") {
@@ -105,8 +107,7 @@ void		Client::parse_response ()
 		while ((end_of_request = this->_request.update_body()) == 1);
 	
 	if (end_of_request == 2) {
-		// ? to output contents of map header
-		this->_request.d_output();
+		// this->_request.d_output(); // ? to output contents of map header
 		this->_request_ready = true;
 	}
 }
@@ -133,7 +134,7 @@ bool		Client::send_response (int sd_out)
 {
 	int	rc;
 
-	std::cout << GRN << "  sending response" << RST << std::endl;
+	// std::cout << GRN << "  sending response" << RST << std::endl;
 
 	// ? clear request since response is generated
 	// this->_request.clear();
@@ -155,12 +156,13 @@ void		Client::clean_cgi ()
 {
 	if (_child != -1)
 	{
-		std::cout << "tue" << std::endl;
+		// std::cout << "tue" << std::endl;
 		kill(_child, SIGTERM);
 		close(_webserv_pipe[0]);
 		close(_webserv_pipe[1]);
 		close(_cgi_pipe[0]);
 		close(_cgi_pipe[1]);
+		_child = -1;
 	}
 }
 
@@ -170,6 +172,7 @@ void		Client::clean_cgi ()
 void		Client::update ()
 {
 	gettimeofday(&this->_life_time, NULL);
+	// _life_time = std::clock();
 }
 
 /**
@@ -183,9 +186,14 @@ bool		Client::is_timed_out () const
 	struct timeval	tv_now;
 	struct timezone	tv_zone;
 
-	// TODO make this cleaner without gettimeofday
+	// // TODO make this cleaner without gettimeofday
 	gettimeofday(&tv_now, &tv_zone);
+
+	// std::clock_t c_now = std::clock();
 	
+	// std::cout << (c_now - _life_time) / CLOCKS_PER_SEC << std::endl;
+
+	// if ((c_now - _life_time) / CLOCKS_PER_SEC > CLIENT_TIMEOUT)
 	if (tv_now.tv_sec - this->_life_time.tv_sec > CLIENT_TIMEOUT
 		|| (tv_now.tv_sec < this->_life_time.tv_sec && tv_now.tv_sec > CLIENT_TIMEOUT))
 		return (true);

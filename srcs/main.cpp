@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ljurdant <ljurdant@student.42.fr>          +#+  +:+       +#+        */
+/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/10 15:11:11 by ljurdant          #+#    #+#             */
-/*   Updated: 2022/02/10 15:11:13 by ljurdant         ###   ########.fr       */
+/*   Updated: 2022/02/16 11:43:19 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,9 +20,6 @@ int main(int argc, char **argv)
 	std::string			conf_file("tst/conf/webserv.conf");
 	// TODO mutex for printing
 	
-	// TODO signal handler that works for threads
-	// signal(SIGINT, &sighandler);	// making it easy to close the program
-	// signal(SIGQUIT, &sighandler);
 	if (argc == 2)
 		conf_file = argv[1];
 	else if (argc > 2)

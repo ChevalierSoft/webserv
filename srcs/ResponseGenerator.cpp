@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/10 18:32:37 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/16 10:55:02 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -272,7 +272,7 @@ void				ResponseGenerator::start_cgi (Client & client, std::string cgi_url, std:
 	// TODO : clean memory / close pipes.
 	// TODO : send back a 500
 
-	std::cerr << CYN << "execve_failed" << std::endl;
+	// std::cerr << CYN << "execve_failed" << std::endl;
 	exit(66);
 }
 
@@ -297,7 +297,7 @@ void				ResponseGenerator::listen_cgi (Client & client, std::string url) const
 		{ 
 			get_error_file(client, 500);
 			return ;
-		}	
+		}
 	}
 	else
 		client._response += buff;
@@ -346,7 +346,7 @@ bool				ResponseGenerator::cgi_send_body (Client & client, int cgi_pipe[2]) cons
 	close(client._cgi_pipe[1]);
 
 	// TODO : if (cit == client._request.end_body())
-	std::cerr << "body sent" << std::endl;
+	// std::cerr << "body sent" << std::endl;
 	client._body_sent = true;
 
 	return (false);
@@ -447,7 +447,7 @@ void				ResponseGenerator::perform_method (Client & client) const
 		return ;
 	}
 
-	std::cout << client._request._path << std::endl;
+	// std::cout << client._request._path << std::endl;
 
 	if (! stat((client._request._path).c_str(), &s))
 	{
