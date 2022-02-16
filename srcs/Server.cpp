@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/16 10:11:30 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/16 10:31:05 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -192,11 +192,11 @@ void			Server::remove_client (int i)
 	if (i > 0)
 	{
 		close(_fds[i].fd);
-		// _fds[i].fd = -1;
-		// _fds[i].events = 0;
-		// _fds[i].revents = 0;
 		_clients[_fds[i].fd].clean_cgi();
 		_clients.erase(_fds[i].fd);
+		_fds[i].fd = -1;
+		_fds[i].events = 0;
+		_fds[i].revents = 0;
 		_fds.erase(_fds.begin() + i);
 	}
 }
@@ -313,12 +313,9 @@ bool			Server::server_poll_loop ()
 		std::cout << "  poll() timed out." << std::endl;
 		// ? clean _fds of timed out fds, and return true too loop again.
 		for (int i = 1; i < _clients.size(); ++i)
-		{
 			check_timed_out_client(i);
-		}
-		// std::cout << "_fds.size : " << _fds.size() << std::endl;
-		aff_fds();
-		std::cout << "_clients.size : " << _clients.size() << std::endl;
+		// aff_fds();
+		// std::cout << "_clients.size : " << _clients.size() << std::endl;
 		return (true);
 	}
 
