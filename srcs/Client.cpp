@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/11 09:07:52 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/16 10:53:33 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,7 +96,7 @@ void		Client::parse_response ()
 	while (this->_request._in_header && (end_of_request = this->_request.update_header()) == 0);
 	if (this->_request._error > 0) {
 		this->_request_ready = true;
-		std::cout << RED << "Error in header : " << this->_request._error << " (refer to errors enum)" << RST << std::endl;
+		// std::cout << RED << "Error in header : " << this->_request._error << " (refer to errors enum)" << RST << std::endl;
 	}
 
 	if (!this->_request._in_header && this->_request._method != "POST") {
@@ -134,7 +134,7 @@ bool		Client::send_response (int sd_out)
 {
 	int	rc;
 
-	std::cout << GRN << "  sending response" << RST << std::endl;
+	// std::cout << GRN << "  sending response" << RST << std::endl;
 
 	// ? clear request since response is generated
 	// this->_request.clear();
@@ -156,7 +156,7 @@ void		Client::clean_cgi ()
 {
 	if (_child != -1)
 	{
-		std::cout << "tue" << std::endl;
+		// std::cout << "tue" << std::endl;
 		kill(_child, SIGTERM);
 		close(_webserv_pipe[0]);
 		close(_webserv_pipe[1]);

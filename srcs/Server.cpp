@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/16 10:31:05 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/16 11:40:52 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,7 @@ Server::~Server ()
 	_clients.clear();
 	for (std::vector<struct pollfd>::iterator it = _fds.begin(); it != _fds.end(); ++it)
 		close(it->fd);
+	_fds.clear();
 }
 
 /**
@@ -139,8 +140,7 @@ int				Server::init (const Conf& c)
 	if (this->socket_bind() == false)
 		return (4);
 	
-
-	std::cout << "ready to listen on port " << _conf._hosts.begin()->second << std::endl;
+	// std::cout << "ready to listen on port " << _conf._hosts.begin()->second << std::endl;
 	return (0);
 }
 
@@ -157,20 +157,20 @@ bool			Server::add_new_client ()
 	struct sockaddr_in	addr;
 	socklen_t			addr_size = sizeof(struct sockaddr_in);
 
-	std::cout << "  Listening socket is readable\n";
+	// std::cout << "  Listening socket is readable\n";
 
 	new_sd = accept(_listen_sd, (struct sockaddr *)&addr, &addr_size);
 
-	std::cout << "  New connection from : " << inet_ntoa(((addr)).sin_addr) << std::endl;
-	std::cout << "  on port : " << htons((addr).sin_port) << std::endl;
+	// std::cout << "  New connection from : " << inet_ntoa(((addr)).sin_addr) << std::endl;
+	// std::cout << "  on port : " << htons((addr).sin_port) << std::endl;
 
 	if (new_sd < 0)
 	{
-		std::cerr << "  error: can't accept client: " << new_sd << std::endl;
+		// std::cerr << "  error: can't accept client: " << new_sd << std::endl;
 		return (false);
 	}
 
-	std::cout << YEL << "  New incoming connection on fd : " << RED << new_sd << RST << std::endl;
+	// std::cout << YEL << "  New incoming connection on fd : " << RED << new_sd << RST << std::endl;
 	
 	tmp.fd = new_sd;
 	tmp.events = POLLIN;
@@ -207,13 +207,11 @@ bool			Server::record_client_input (const int &i)
 	bool	close_conn = 0;
 	int		rc;
 
-	// std::cout << YEL << "  Descriptor " << RED << _fds[i].fd << YEL << " is readable\n" << RST << std::endl;
-
 	rc = recv(_fds[i].fd, buffer, sizeof(buffer) - 1, 0); // MSG_DONTWAIT | MSG_ERRQUEUE);	// ? errors number can be checked with the flag MSG_ERRQUEUE (man recv)
 
 	if (rc == -1 || rc == 0)	// ? error while reading or client closed the connection
 	{
-		std::cerr <<MAG<< "client closed the connection" <<RST<< std::endl;
+		// std::cerr <<MAG<< "client closed the connection" <<RST<< std::endl;
 		remove_client(i);
 		return (true);
 	}
@@ -221,8 +219,6 @@ bool			Server::record_client_input (const int &i)
 
 	// ? update client's _life_time
 	_clients[_fds[i].fd].update();
-
-	// std::cout << YEL << "  " << rc << " bytes received : " << RST << std::endl;
 
 	_clients[_fds[i].fd].add_input_buffer(buffer, rc);
 
@@ -249,7 +245,7 @@ bool			Server::record_client_input (const int &i)
 
 	if (close_conn)
 	{
-		std::cerr <<MAG<< "close_conn" <<RST<< std::endl;
+		// std::cerr <<MAG<< "close_conn" <<RST<< std::endl;
 		remove_client(i);
 		return (true);
 	}
@@ -272,11 +268,7 @@ void			Server::check_timed_out_client (const int i)
 	else if (i == 0)
 		;
 	if (_clients[_fds[i].fd].is_timed_out() == true)
-	{
-		// ? If needed, this is where we could send 408 Request Timeout
-		std::cerr << "kicked fd : " << RED << _fds[i].fd << RST << std::endl;
 		remove_client(i);
-	}
 	return ;
 }
 
@@ -310,12 +302,10 @@ bool			Server::server_poll_loop ()
 	// ? Check to see if the 3 minute time out expired.
 	if (rc == 0)
 	{
-		std::cout << "  poll() timed out." << std::endl;
+		// std::cout << "  poll() timed out." << std::endl;
 		// ? clean _fds of timed out fds, and return true too loop again.
 		for (int i = 1; i < _clients.size(); ++i)
 			check_timed_out_client(i);
-		// aff_fds();
-		// std::cout << "_clients.size : " << _clients.size() << std::endl;
 		return (true);
 	}
 
@@ -338,16 +328,11 @@ bool			Server::server_poll_loop ()
 			continue ;
 		}
 
-		// __DEB("poll : ")
-		// std::cout << " events : " << _fds[i].events << std::endl;
-		// std::cout << " revents : " << _fds[i].revents << std::endl;
-
 		// ? check if it's a new client
 		if (_fds[i].fd == _listen_sd)
 		{
 			if (_fds[i].revents != POLLIN)
-				// todo : decide if the server must be restarted or closed.
-				std::cout << "error : listen socket's revents is : " << _fds[i].revents << std::endl;
+				return (false);
 			else
 				add_new_client();
 		}
@@ -379,7 +364,7 @@ bool			Server::server_poll_loop ()
 
 				if (close_conn)
 				{
-					std::cerr <<MAG<< "close_conn" <<RST<< std::endl;
+					// std::cerr <<MAG<< "close_conn" <<RST<< std::endl;
 					remove_client(i);
 					return (true);
 				}
@@ -390,6 +375,14 @@ bool			Server::server_poll_loop ()
 	}
 
 	return (true);
+}
+
+// bool			run = true;
+
+void	sig_handler(int sig)
+{
+	run = false;
+	return ;
 }
 
 // ? This function is the main loop of the server.
@@ -403,8 +396,9 @@ int				Server::start ()
 	int				err = 0;
 	struct pollfd	tmp;
 
-	// std::cout << _conf_list.front()._name << std::endl;
-	// std::cout << _conf_list.back()._name  << std::endl;
+	signal(SIGINT, &sig_handler);
+	signal(SIGQUIT, &sig_handler);
+
 	// ? Set the listen back log (how many events at the same time)
 	err = listen(_listen_sd, BACK_LOG);
 	if (err < 0)
@@ -420,11 +414,10 @@ int				Server::start ()
 	tmp.revents = 4;
 	_fds.push_back(tmp);
 
-	while (server_poll_loop() == true)
+	while (run && server_poll_loop() == true)
 		;
 
 	_clients.clear();
-	// close(_listen_sd);
 
 	return (0);
 }
@@ -435,16 +428,3 @@ void			Server::aff_fds()
 	for (int i = 0; i < _fds.size(); ++i)
 		std::cout << i << " : " << _fds[i].fd << std::endl;
 }
-
-// ?fonctionnement de la boucle principale
-
-// ? traiter l'input pendant qu'elle arrive
-// ? si c'est \r\n (ou s'il y a un mauvais message)
-// ? envoyer un message au client pour fermer la connexion
-// ?   peut etre que le message peut etre envoyé par un thread pour éviter que ça prenne trop de temps ?
-// ?		( + je n'ai plus à le gerer dans la loop principale | - le bottle neck c'est plutot l'i/o du kernel)
-// ? chaque client aura un compteur gettimeofday qui se reset apres que son event ai fait return poll.
-// ? si le compteur dépasse 'timeout' on close la connection.
-// ? si aucun event à eu lieu apres 'timeout' poll ferme les clients trop long
-// ? server_poll_loop return true pour recommencer la boucle.
-// ? s'il y a une erreur
