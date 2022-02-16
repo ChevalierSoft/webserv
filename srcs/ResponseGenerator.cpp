@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ResponseGenerator.cpp                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ljurdant <ljurdant@student.42.fr>          +#+  +:+       +#+        */
+/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/10 16:17:31 by ljurdant         ###   ########.fr       */
+/*   Updated: 2022/02/10 18:32:37 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -269,8 +269,9 @@ void				ResponseGenerator::start_cgi (Client & client, std::string cgi_url, std:
 
 	execve(exe[0], exe, a_envs.data());
 
-	close(client._cgi_pipe[0]);
-	close(client._webserv_pipe[1]);
+	// TODO : clean memory / close pipes.
+	// TODO : send back a 500
+
 	std::cerr << CYN << "execve_failed" << std::endl;
 	exit(66);
 }
@@ -283,15 +284,15 @@ void				ResponseGenerator::listen_cgi (Client & client, std::string url) const
 	char						buff[CGI_BUFF_SIZE];
 	int							cgi_header_size;
 
-	// // ! need to use WNOHANG and check every loop (when it will be implemented)
-	// ? https://cboard.cprogramming.com/c-programming/138057-waitpid-non-blocking-fork.html
-
 	memset(buff, 0, CGI_BUFF_SIZE);
 	err = read(client._webserv_pipe[0], buff, CGI_BUFF_SIZE - 1);
 	if (err <= 0)	// ? cgi is too slow or there is nothing to send anymore
 	{
 		if (waitpid(-1, &client._child, WNOHANG))	// ? checks if _child is closed
+		{
+			client._child = -1;
 			client._response_ready = true;
+		}
 		if (WIFEXITED(client._child) && WEXITSTATUS(client._child) == 66)
 		{ 
 			get_error_file(client, 500);
@@ -357,7 +358,6 @@ void				ResponseGenerator::cgi_handling (Client & client, std::string cgi_url, s
 
 	client._fast_forward = FF_GET_CGI;
 
-	
 	if (pipe(client._cgi_pipe))
 	{
 		get_error_file(client, 500);
@@ -536,15 +536,20 @@ void				ResponseGenerator::perform_delete(Client & client) const
 		get_error_file(client, 404);
 }
 
-bool				ResponseGenerator::is_method(std::string method, Request const &rq) const {
-	return (method == rq._method && (std::find(rq._route._methods.begin(), rq._route._methods.end(), method) !=  rq._route._methods.end()));
+int				ResponseGenerator::is_method(std::string method, Request const &rq) const {
+	if (method == rq._method)
+	{
+		if (std::find(rq._route._methods.begin(), rq._route._methods.end(), method) !=  rq._route._methods.end())
+			return (1);
+		else
+			return (2);
+	}
+	else 
+		return (0);
 }
 
 bool				ResponseGenerator::generate (Client& client) const
 {
-	// std::cout << "_tmp_counter = " << client._tmp_counter++ << std::endl;
-
-
 	set_conf_index (client); //Setting conf index here
 	
 	int	error_code = client._request.request_error(_confs->at(client._request._conf_index));
@@ -559,31 +564,22 @@ bool				ResponseGenerator::generate (Client& client) const
 		parse_request_route(client);
 		client._request_parsed = true;
 	}
-
 	// ? check which method should be called
-	if (is_method("GET", client._request) || is_method("POST", client._request))
+	if (is_method("GET", client._request) == 1 || is_method("POST", client._request) == 1)
 	{
 		if (client._fast_forward == FF_NOT_SET)
-		{
-			// __DEB("FF_NOT_SET")
 			this->perform_method(client);
-		}
 		else if (client._fast_forward == FF_GET_FILE)
-		{
-			// __DEB("FF_GET_FILE")
 			get_file_content(client);
-		}
 		else if (client._fast_forward == FF_GET_CGI)
-		{
-			// __DEB("FF_GET_CGI")
 			listen_cgi(client, client._cgi->second);
-		}
 	}
-	else if (is_method("DELETE", client._request))
+	else if (is_method("DELETE", client._request) == 1)
 		this->perform_delete(client);
+	else if (is_method("GET", client._request) == 2 || is_method("POST", client._request) == 2|| is_method("DELETE", client._request) == 2)
+		get_error_file(client, 405);
 	else
 		get_error_file(client, 501);
-
 	return (false);
 }
 
