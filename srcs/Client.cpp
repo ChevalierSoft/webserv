@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/11 07:54:31 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/11 09:07:52 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,7 @@ Client::Client ()
 {
 	_tmp_counter = 0;
 	gettimeofday(&_life_time, NULL);
+	// _life_time = std::clock();
 }
 
 /**
@@ -34,6 +35,7 @@ Client::Client (const Conf* c, std::string ip, std::string port)
 {
 	_tmp_counter = 0;
 	gettimeofday(&_life_time, NULL);
+	// _life_time = std::clock();
 }
 
 /**
@@ -170,6 +172,7 @@ void		Client::clean_cgi ()
 void		Client::update ()
 {
 	gettimeofday(&this->_life_time, NULL);
+	// _life_time = std::clock();
 }
 
 /**
@@ -183,9 +186,14 @@ bool		Client::is_timed_out () const
 	struct timeval	tv_now;
 	struct timezone	tv_zone;
 
-	// TODO make this cleaner without gettimeofday
+	// // TODO make this cleaner without gettimeofday
 	gettimeofday(&tv_now, &tv_zone);
+
+	// std::clock_t c_now = std::clock();
 	
+	// std::cout << (c_now - _life_time) / CLOCKS_PER_SEC << std::endl;
+
+	// if ((c_now - _life_time) / CLOCKS_PER_SEC > CLIENT_TIMEOUT)
 	if (tv_now.tv_sec - this->_life_time.tv_sec > CLIENT_TIMEOUT
 		|| (tv_now.tv_sec < this->_life_time.tv_sec && tv_now.tv_sec > CLIENT_TIMEOUT))
 		return (true);

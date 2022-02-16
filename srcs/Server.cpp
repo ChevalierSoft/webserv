@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/11 08:31:20 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/16 10:11:30 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -189,13 +189,16 @@ bool			Server::add_new_client ()
  */
 void			Server::remove_client (int i)
 {
-	close(_fds[i].fd);
-	_fds[i].fd = -1;
-	_fds[i].events = 0;
-	_fds[i].revents = 0;
-	_clients[_fds[i].fd].clean_cgi();
-	_clients.erase(_fds[i].fd);
-	_fds.erase(_fds.begin() + i);
+	if (i > 0)
+	{
+		close(_fds[i].fd);
+		// _fds[i].fd = -1;
+		// _fds[i].events = 0;
+		// _fds[i].revents = 0;
+		_clients[_fds[i].fd].clean_cgi();
+		_clients.erase(_fds[i].fd);
+		_fds.erase(_fds.begin() + i);
+	}
 }
 
 bool			Server::record_client_input (const int &i)
@@ -262,12 +265,10 @@ bool			Server::record_client_input (const int &i)
  * @param i Index from server_poll_loop's for loop.
  */
 void			Server::check_timed_out_client (const int i)
-{
+{	
+	// std::cout << "check_timed_out_client" << std::endl;
 	if (_fds[i].fd < 0)
-	{
-		std::cout << "wtf" << std::endl;
-		remove_client(i);
-	}
+		;
 	else if (i == 0)
 		;
 	if (_clients[_fds[i].fd].is_timed_out() == true)
@@ -276,6 +277,7 @@ void			Server::check_timed_out_client (const int i)
 		std::cerr << "kicked fd : " << RED << _fds[i].fd << RST << std::endl;
 		remove_client(i);
 	}
+	return ;
 }
 
 /**
@@ -310,9 +312,13 @@ bool			Server::server_poll_loop ()
 	{
 		std::cout << "  poll() timed out." << std::endl;
 		// ? clean _fds of timed out fds, and return true too loop again.
-		for (int i = 1; i < _fds.size(); ++i)
+		for (int i = 1; i < _clients.size(); ++i)
+		{
 			check_timed_out_client(i);
-		std::cout << YEL << "clients : " << _clients.size() << std::endl;
+		}
+		// std::cout << "_fds.size : " << _fds.size() << std::endl;
+		aff_fds();
+		std::cout << "_clients.size : " << _clients.size() << std::endl;
 		return (true);
 	}
 
@@ -328,7 +334,7 @@ bool			Server::server_poll_loop ()
 				check_timed_out_client(i);
 			continue;
 		}
- 
+
 		if (_fds[i].revents != POLLIN && _fds[i].revents != POLLOUT)
 		{
 			remove_client(i);
@@ -345,7 +351,8 @@ bool			Server::server_poll_loop ()
 			if (_fds[i].revents != POLLIN)
 				// todo : decide if the server must be restarted or closed.
 				std::cout << "error : listen socket's revents is : " << _fds[i].revents << std::endl;
-			add_new_client();
+			else
+				add_new_client();
 		}
 		// ? else the event was triggered by a pollfd that is already in _fds
 		else
