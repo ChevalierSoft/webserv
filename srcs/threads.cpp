@@ -3,27 +3,20 @@
 /*                                                        :::      ::::::::   */
 /*   threads.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ljurdant <ljurdant@student.42.fr>          +#+  +:+       +#+        */
+/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/10 15:10:50 by ljurdant          #+#    #+#             */
-/*   Updated: 2022/02/10 15:11:03 by ljurdant         ###   ########.fr       */
+/*   Updated: 2022/02/16 12:01:50 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "webserv.hpp"
 
-void	sighandler(int signum)
-{
-	run = false;
-}
-
 void	*routine(void *args) {
 	std::vector<Conf> confs = *(static_cast<std::vector<Conf> *>(args));
 	Server	s(confs.front());
 	int		*err = new int;
-	
-    // signal(SIGINT, &sighandler);	// making it easy to close the program
-	// signal(SIGQUIT, &sighandler);
+
 	s._confs = confs;
 	*err = s.start();
 	return (err);
