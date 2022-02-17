@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ljurdant <ljurdant@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/10 15:11:11 by ljurdant          #+#    #+#             */
-/*   Updated: 2022/02/16 14:37:52 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/17 15:47:30 by ljurdant         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,6 @@ int main(int argc, char **argv)
 		return (2);
 	}
 	Parser	p(conf_file);	
-	// p.print();
 	pthread_t	threads[p._hosts.size()];
 	if (p._err)
 	{

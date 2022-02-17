@@ -6,7 +6,7 @@
 /*   By: ljurdant <ljurdant@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/11 13:56:49 by ljurdant          #+#    #+#             */
-/*   Updated: 2022/02/11 13:56:54 by ljurdant         ###   ########.fr       */
+/*   Updated: 2022/02/17 15:42:34 by ljurdant         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -175,6 +175,8 @@ bool	Parser::two_indent(param_list params, std::string value)
 			return (route.set_default_file(value));
 		else if (params[2] == "uploads")
 			return (route.set_upload_path(value));
+		else if (params[2] == "client_body_size")
+			return (route.set_client_body_size(conf.string_to_client_body_size(value)));
 		else if (params[2] == "redirection")
 			return (true);
 		else if (params[2] == "cgis")

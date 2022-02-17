@@ -6,7 +6,7 @@
 /*   By: ljurdant <ljurdant@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/11 13:56:26 by ljurdant          #+#    #+#             */
-/*   Updated: 2022/02/17 15:32:23 by ljurdant         ###   ########.fr       */
+/*   Updated: 2022/02/17 15:43:12 by ljurdant         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -134,7 +134,7 @@ Conf::code_type     Conf::string_to_code(std::string value) {
 Conf::route_type    Conf::string_to_route(std::string value) {
 	if (*(value.end() -1) != '/')
 		value+="/";
-	return (Route(value, _methods, _dir_listing, _upload_path, _cgis));
+	return (Route(value, _methods, _dir_listing, _upload_path, _cgis, _client_body_size));
 }
 
 

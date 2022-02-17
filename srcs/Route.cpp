@@ -6,7 +6,7 @@
 /*   By: ljurdant <ljurdant@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/11 13:57:02 by ljurdant          #+#    #+#             */
-/*   Updated: 2022/02/11 13:57:05 by ljurdant         ###   ########.fr       */
+/*   Updated: 2022/02/17 15:46:25 by ljurdant         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,18 +18,20 @@ _methods(method_list()),
 _dir_listing(-1), 
 _upload_path(path_type()), 
 _cgis(cgi_list()),
+_client_body_size(size_type()),
 _error_message(std::string()), 
-_default_file(std::string()), 
+_default_file(std::string()),
 _err(0){
 
 }
-Route::Route(const path_type path, method_list methods, dir_listing_type dir_listing, path_type upload_path, cgi_list cgi):
+Route::Route(const path_type path, method_list methods, dir_listing_type dir_listing, path_type upload_path, cgi_list cgi, size_type client_body_size):
 _path(path),
 _methods(methods), 
 _dir_listing(dir_listing), 
 _upload_path(upload_path),
 _cgis(cgi),
-_error_message(std::string()), 
+_client_body_size(client_body_size),
+_error_message(std::string()),
 _err(0) {
 }
 
@@ -46,13 +48,14 @@ Route 	&Route::operator=(const Route &rhs) {
     _dir_listing = rhs._dir_listing;
     _upload_path = rhs._upload_path;
     _cgis = rhs._cgis;
+	_client_body_size = rhs._client_body_size;
     return (*this);
 }
 
 bool	Route::operator==(const Route &rhs) const {
     return (_methods == rhs._methods && _redir == rhs._redir && _location == rhs._location\
 	&& _default_file == rhs._default_file &&_dir_listing == rhs._dir_listing\
-    && _upload_path == rhs._upload_path && _cgis == rhs._cgis);
+    && _upload_path == rhs._upload_path && _cgis == rhs._cgis && _client_body_size == rhs._client_body_size);
 }
 
 Route::~Route(){}
@@ -82,6 +85,13 @@ bool    Route::set_location(path_type location) {
 	_location = location;
 	return (true);
 }
+
+bool    Route::set_client_body_size(size_type client_body_size) {
+	if (client_body_size == -1)
+		return (set_error_message("Ivalid value: client_body_size"));
+	_client_body_size = client_body_size;
+	return (true);
+}	
 
 bool    Route::set_default_file(file_type file) {
 	if (file == "")
@@ -152,7 +162,7 @@ void	Route::print() {
 		std::cout << "\t\t" << it->first << ": " << it->second << std::endl;
 	}
 	std::cout << std::endl;
-
+	std::cout << "\tclient_body_size = " << _client_body_size << std::endl;
 }
 
 bool		Route::set_error_message(std::string error_message) {
@@ -172,5 +182,7 @@ bool	Route::check() {
 		return (set_error_message("Required value: upload_path"));
 	else if (_cgis == cgi_list())
 		return (set_error_message("Required value: cgi"));
+	else if (_client_body_size == size_type())
+		return (set_error_message("Required value: client_body_size"));
 	return (true);
 }

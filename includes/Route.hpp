@@ -6,7 +6,7 @@
 /*   By: ljurdant <ljurdant@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/11 13:56:00 by ljurdant          #+#    #+#             */
-/*   Updated: 2022/02/11 13:56:02 by ljurdant         ###   ########.fr       */
+/*   Updated: 2022/02/17 15:43:31 by ljurdant         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,7 @@ class Route {
 		typedef std::pair<code_type, path_type>	redir_type;
 		typedef std::pair<name_type, path_type>	cgi_type;
 		typedef std::map<name_type, path_type>	cgi_list;
+		typedef	long							size_type;
 
 		path_type	    	_path;
 		method_list	        _methods;
@@ -36,13 +37,14 @@ class Route {
 		dir_listing_type	_dir_listing;
 		path_type			_upload_path;
 		cgi_list            _cgis;
+		size_type			_client_body_size;
 
 		// ? where is error type???????!!! <- flemme
 		std::string			_error_message;
 		bool				_err;
 
 		Route();
-		Route(const path_type path, method_list methods, dir_listing_type dir_listing, path_type upload_path, cgi_list cgi);
+		Route(const path_type path, method_list methods, dir_listing_type dir_listing, path_type upload_path, cgi_list cgi, size_type client_body_size);
 		Route(Route const &copy);
 		Route 	&operator=(const Route &rhs);
 		bool	operator==(const Route &rhs) const;
@@ -51,6 +53,7 @@ class Route {
 		bool        add_method(method_type method);
 		bool		set_methods(method_list methods);
 		bool		set_location(path_type location);
+		bool		set_client_body_size(size_type client_body_size);
 		bool		set_default_file(file_type file);
 		bool		set_dir_listing(dir_listing_type dir_listing);
 		bool		set_upload_path(path_type upload_path);
