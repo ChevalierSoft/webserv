@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ljurdant <ljurdant@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/16 11:40:52 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/17 16:44:44 by ljurdant         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -128,10 +128,11 @@ int				Server::init (const Conf& c)
 		return (2);
 	}
 	// ? Set _listen_sd (and incoming accepted sockets from it) to be nonblocking
-	rc = ioctl(_listen_sd, FIONBIO, (char *)&on);
+	// rc = ioctl(_listen_sd, FIONBIO, (char *)&on);
+	rc = fcntl(_listen_sd, F_SETFL, O_NONBLOCK);
 	if (rc < 0)
 	{
-		perror("ioctl() failed");
+		perror("fcntl() failed");
 		close(_listen_sd);
 		return (3);
 	}
