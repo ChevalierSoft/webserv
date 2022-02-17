@@ -6,7 +6,7 @@
 /*   By: ljurdant <ljurdant@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/11 13:56:26 by ljurdant          #+#    #+#             */
-/*   Updated: 2022/02/11 13:56:33 by ljurdant         ###   ########.fr       */
+/*   Updated: 2022/02/17 15:32:23 by ljurdant         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,6 +76,18 @@ int	my_strtoi(std::string s)
 	return (n);
 }
 
+int	my_strtol(std::string s)
+{
+	long	n = 0;
+	for (std::string::size_type i = 0; i < s.size(); i++)
+	{
+		if (!std::isdigit(s[i]) || n * 10 < n)
+			return (-1);
+		n = n * 10 + s[i] - 48;
+	}
+	return (n);
+}
+
 Conf::port_type	Conf::string_to_port(std::string value) {
 	if (value == "" || count_if(value.begin(), value.end(), isnotdigit))
 		return (-1);
@@ -127,18 +139,9 @@ Conf::route_type    Conf::string_to_route(std::string value) {
 
 
 Conf::size_type		Conf::string_to_client_body_size(std::string value) {
-	std::string	scale = "MB";
-
-	std::string::iterator	end_pos = std::find_if(value.begin(), value.end(), isnotdigit);
-	if (end_pos != value.end())
-		scale = &(*end_pos);
-	if (scale == "kB")
-		return (atoi(value.c_str()) * 1000);
-	else if (scale == "MB")
-		return (atoi(value.c_str()) * 1000000);
-	else if (scale == "GB")
-		return (atoi(value.c_str()) * 1000000000);
-	return (-1);
+	if (value == "" || count_if(value.begin(), value.end(), isnotdigit))
+		return (-1);
+	return (my_strtol(value));
 }
 
 Conf::method_list		Conf::string_to_methods(std::string value) {
