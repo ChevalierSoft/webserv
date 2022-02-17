@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 04:55:39 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/10 18:14:15 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/17 07:06:47 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,18 +29,17 @@ private:
 	int							_listen_sd;
 	std::vector<struct pollfd>	_fds;
 	std::map<int, Client>		_clients;
-
 	ResponseGenerator			_response_generator;
-
-	/// * Constructors & Destructors ___________________________________________
-private:
-	// ? Constructor (1) default construtor that will not be accessible
-	Server ();
 public:
 	Conf						_conf;
 	std::vector<Conf>			_confs;
-	// ? Constructor (2) taking a port in argument.
-	// TODO After the parsing of a conf file an object will be passed to it
+
+	/// * Constructors & Destructors ___________________________________________
+public:
+	// ? default (1)
+	Server ();
+
+	// ? Constructor (2) taking a config
 	Server (const Conf &c);
 
 	// ? Constructor (3) by copy
