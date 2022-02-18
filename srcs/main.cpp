@@ -3,19 +3,26 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ljurdant <ljurdant@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/10 15:11:11 by ljurdant          #+#    #+#             */
-/*   Updated: 2022/02/16 12:15:03 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/17 15:47:30 by ljurdant         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "webserv.hpp"
 
+void	sig_join(int sig)
+{
+	signal(SIGINT, &sig_join);
+	signal(SIGQUIT, &sig_join);
+	return ;
+}
+
 int main(int argc, char **argv)
 {
 	int					*status;
-	int					err;
+	int					err = 0;
 	std::vector<Server>	servers;
 	std::string			conf_file("tst/conf/webserv.conf");
 	
@@ -27,7 +34,6 @@ int main(int argc, char **argv)
 		return (2);
 	}
 	Parser	p(conf_file);	
-	// p.print();
 	pthread_t	threads[p._hosts.size()];
 	if (p._err)
 	{
@@ -42,9 +48,14 @@ int main(int argc, char **argv)
 	}
 	for (int i = 0; i < p._hosts.size(); i++)
 	{
+		signal(SIGINT, &sig_join);
+		signal(SIGQUIT, &sig_join);
 		pthread_join(threads[i], reinterpret_cast<void **>(&status));
 		if (*status)
+		{
 			std::cout << "exit code : " << RED << err <<RST << std::endl;
+			err = *status;
+		}
 		else
 			std::cout << GRN << "success" << RST << std::endl;
 		delete status;

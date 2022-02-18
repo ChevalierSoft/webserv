@@ -6,22 +6,20 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/10 15:10:50 by ljurdant          #+#    #+#             */
-/*   Updated: 2022/02/17 07:05:10 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/19 00:20:38 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "webserv.hpp"
 
 void	*routine(void *args) {
-	std::vector<Conf> confs = *(static_cast<std::vector<Conf> *>(args));
-	Server	s;
+	std::vector<Conf> *confs= (static_cast<std::vector<Conf> *>(args));
+	Server	s(confs->front());
 	int		*err = new int;
 
-	s._confs = confs;
-	*err = s.init(confs.front());
-	if (*err)
-		return (err);
+	s._confs = *confs;
 	*err = s.start();
+    delete confs;
 	return (err);
 }
 
