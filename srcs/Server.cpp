@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/20 07:22:45 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/20 07:57:12 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -195,10 +195,11 @@ void			Server::remove_client (int i)
 		close(_fds[i].fd);
 		_clients[_fds[i].fd].clean_cgi();
 		_clients.erase(_fds[i].fd);
-		_fds[i].fd = -1;
-		_fds[i].events = 0;
-		_fds[i].revents = 0;
+		// _fds[i].fd = -1;
+		// _fds[i].events = 0;
+		// _fds[i].revents = 0;
 		_fds.erase(_fds.begin() + i);
+		// _fds.erase(_fds.begin() + _clients[_fds[i].fd].get_cgi_input_position());
 	}
 }
 
@@ -286,12 +287,12 @@ bool			Server::record_client_input (const int &i)
  */
 void			Server::check_timed_out_client (const int i)
 {	
-	// std::cout << "check_timed_out_client" << std::endl;
-	if (_fds[i].fd < 0)
-		;
-	else if (i == 0)
-		;
-	if (is_client_fd(i) && _clients[_fds[i].fd].is_timed_out() == true)
+	std::cout << "check_timed_out_client [" << i << "] : " << _fds[i].fd << std::endl;
+	// if (_fds[i].fd < 0)
+	// 	;
+	// else if (i == 0)
+	// 	;
+	if (is_client_fd(_fds[i].fd) && _clients[_fds[i].fd].is_timed_out() == true)
 		remove_client(i);
 	return ;
 }
@@ -299,8 +300,8 @@ void			Server::check_timed_out_client (const int i)
 
 bool			Server::is_client_fd (const int i) const
 {
-	std::cout << CYN << "_clients.size : " << _clients.size() << RST << std::endl;
-		
+	// std::cout << CYN << "_clients.size : " << _clients.size() << RST << std::endl;
+
 	if (_clients.find(i) != _clients.end())
 	{
 		std::cout << MAG << "is_client_fd " << i << " is true" << RST << std::endl;
@@ -347,13 +348,16 @@ bool			Server::server_poll_loop ()
 		return (false) ;
 	}
 
-	// ? Check to see if the 3 minute time out expired.
+	// ? Check to see if TIMEOUT is reached in poll
 	if (rc == 0)
 	{
-		// std::cout << "  poll() timed out." << std::endl;
+		aff_fds();
+		std::cout << "  poll() timed out." << std::endl;
 		// ? clean _fds of timed out fds, and return true too loop again.
-		for (int i = 1; i < _clients.size(); ++i)
+		for (int i = 1; i <= _clients.size(); ++i)
+		{
 			check_timed_out_client(i);
+		}
 		return (true);
 	}
 
@@ -388,7 +392,7 @@ bool			Server::server_poll_loop ()
 		}
 
 		std::cout << "poll triggered by : [" << i << "] : " << _fds[i].fd << std::endl;
-		std::cout << CYN << "_clients.size : " << _clients.size() << RST << std::endl;
+
 		// ? check if it's a new client
 		if (_fds[i].fd == _listen_sd)
 		{
@@ -402,7 +406,7 @@ bool			Server::server_poll_loop ()
 		{
 			bool	close_conn = false;
 
-			usleep(100000);
+			// usleep(100000);
 
 			if (_fds[i].revents == POLLIN)
 			{
@@ -432,7 +436,7 @@ bool			Server::server_poll_loop ()
 							std::cout << RED << "Error : client_id " << client_id << " not found in _fds" << std::endl;
 							exit(404);
 						}
-						std::cout << RED << "target_fd :  " << target_fd << std::endl;
+						std::cout << RED << "target_fd :  " << target_fd << RST << std::endl;
 						// ! mettre le fds du client à pollout
 						_fds[target_fd].events = POLLOUT;
 						_fds[target_fd].revents = POLLOUT;
@@ -452,7 +456,6 @@ bool			Server::server_poll_loop ()
 				_fds[i].events = POLLIN;
 				_fds[i].revents = 0;
 			}
-			std::cout << CYN << "_clients.size : " << _clients.size() << RST << std::endl;
 
 			// else if (_fds[i].revents == POLLOUT)
 			// {
