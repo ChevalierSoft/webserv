@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 00:54:13 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/19 09:11:19 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/20 12:13:51 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,7 +51,6 @@ private:
 	std::string						_ip;
 	std::string						_port;
 	bool							_body_sent;
-	int								_webserv_pipe[2];
 	int								_cgi_pipe[2];
 	int								_cgi_io_position[2];	// position of the cgi related pipes in ::Server._fds
 	e_preforms						_fast_forward;
@@ -64,6 +63,7 @@ private:
 	/// * Constructors & Destructors ___________________________________________
 
 public:
+	int								_webserv_pipe[2];
 	// ? (1) default. should not be used without beeing set
 	Client ();
 
@@ -96,14 +96,6 @@ public:
 	bool	is_response_ready () const;
 
 	e_preforms	get_performing_state() const;
-
-	void	set_cgi_input_position(int position);
-
-	void	set_cgi_output_position(int position);
-
-	int		get_cgi_input_position() const;
-
-	int		get_cgi_output_position() const;
 
 	int		get_cgi_input_fd() const;
 

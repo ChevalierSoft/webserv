@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/11 13:55:53 by ljurdant          #+#    #+#             */
-/*   Updated: 2022/02/20 07:23:59 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/20 12:54:08 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 #include "webserv.hpp"
 
-# define CGI_BUFF_SIZE	16384
+# define CGI_BUFF_SIZE	46 //16384
 # define FILE_BUFF_SIZE	65536
 
 class Client;
@@ -68,9 +68,9 @@ private:
 
 	void				set_cgi_env (Client & client, std::string path, std::vector<std::string> & se, std::vector<char *> & ae) const;
 
-	void				start_cgi (Client & client, std::string url, std::string path, int cgi_pipe[2]) const;
+	void				start_cgi (Client & client, std::string url, std::string path) const;
 
-	bool				cgi_send_body (Client & client, int cgi_pipe[2]) const;
+	bool				cgi_send_body (Client & client) const;
 
 	void				cgi_handling (Client & client, std::string url, std::string path) const;
 

@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/20 06:30:15 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/20 12:13:37 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,8 @@ Client::Client ()
 	_tmp_counter = 0;
 	gettimeofday(&_life_time, NULL);
 	_webserv_pipe[0] = -1;
+	_webserv_pipe[1] = -1;
+	_cgi_pipe[0] = -1;
 	_cgi_pipe[1] = -1;
 }
 
@@ -37,6 +39,8 @@ Client::Client (const Conf* c, std::string ip, std::string port)
 	_tmp_counter = 0;
 	gettimeofday(&_life_time, NULL);
 	_webserv_pipe[0] = -1;
+	_webserv_pipe[1] = -1;
+	_cgi_pipe[0] = -1;
 	_cgi_pipe[1] = -1;
 }
 
@@ -84,6 +88,10 @@ Client&		Client::operator= (const Client& copy)
 		// _input_file = copy._input_file;
 		_tmp_counter = copy._tmp_counter;
 		_request_parsed = copy._request_parsed;
+		_webserv_pipe[0] =  copy._webserv_pipe[0];
+		_webserv_pipe[1] =  copy._webserv_pipe[1];
+		_cgi_pipe[0] =  copy._cgi_pipe[0];
+		_cgi_pipe[1] =  copy._cgi_pipe[1];
 	}
 	return (*this);
 }
@@ -219,26 +227,6 @@ bool		Client::is_request_parsed () const
 e_preforms	Client::get_performing_state() const
 {
 	return (this->_fast_forward);
-}
-
-void		Client::set_cgi_input_position(int position)
-{
-	_cgi_io_position[0] = position;
-}
-
-void		Client::set_cgi_output_position(int position)
-{
-	_cgi_io_position[1] = position;
-}
-
-int			Client::get_cgi_input_position() const
-{
-	return (_cgi_io_position[0]);
-}
-
-int			Client::get_cgi_output_position() const
-{
-	return (_cgi_io_position[1]);
 }
 
 int			Client::get_cgi_input_fd() const
