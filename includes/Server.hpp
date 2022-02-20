@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 04:55:39 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/17 07:06:47 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/20 05:13:33 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,9 @@ private:
 	std::vector<struct pollfd>	_fds;
 	std::map<int, Client>		_clients;
 	ResponseGenerator			_response_generator;
+
+	// std::map<int, Client>		_cgi_listeners;
+
 public:
 	Conf						_conf;
 	std::vector<Conf>			_confs;
@@ -63,13 +66,19 @@ private:
 
 	bool	server_poll_loop ();
 
+	bool	is_client_fd (const int i) const;
+
 	bool	add_new_client ();
+
+	void	add_cgi_listener (const int i);
+
+	int		pipe_to_client (int fd);
 
 	bool	record_client_input (const int &i);
 
 	void	check_timed_out_client (const int i);
 
-	void	remove_client (int i);	// 'i' beeing the index in the main for loop
+	void	remove_client (int i);
 
 	void	squeeze_fds_array ();
 

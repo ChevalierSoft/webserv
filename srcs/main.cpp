@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ljurdant <ljurdant@student.42.fr>          +#+  +:+       +#+        */
+/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/10 15:11:11 by ljurdant          #+#    #+#             */
-/*   Updated: 2022/02/17 15:47:30 by ljurdant         ###   ########.fr       */
+/*   Updated: 2022/02/19 09:38:22 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,8 +48,8 @@ int main(int argc, char **argv)
 	}
 	for (int i = 0; i < p._hosts.size(); i++)
 	{
-		signal(SIGINT, &sig_join);
-		signal(SIGQUIT, &sig_join);
+		// signal(SIGINT, &sig_join);
+		// signal(SIGQUIT, &sig_join);
 		pthread_join(threads[i], reinterpret_cast<void **>(&status));
 		if (*status)
 		{

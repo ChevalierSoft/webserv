@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ljurdant <ljurdant@student.42.fr>          +#+  +:+       +#+        */
+/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/17 16:44:44 by ljurdant         ###   ########.fr       */
+/*   Updated: 2022/02/20 07:22:45 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -158,7 +158,7 @@ bool			Server::add_new_client ()
 	struct sockaddr_in	addr;
 	socklen_t			addr_size = sizeof(struct sockaddr_in);
 
-	// std::cout << "  Listening socket is readable\n";
+	std::cout << "  Listening socket is readable\n";
 
 	new_sd = accept(_listen_sd, (struct sockaddr *)&addr, &addr_size);
 
@@ -167,12 +167,12 @@ bool			Server::add_new_client ()
 
 	if (new_sd < 0)
 	{
-		// std::cerr << "  error: can't accept client: " << new_sd << std::endl;
+		std::cerr << "  error: can't accept client: " << new_sd << std::endl;
 		return (false);
 	}
 
-	// std::cout << YEL << "  New incoming connection on fd : " << RED << new_sd << RST << std::endl;
-	
+	std::cout << YEL << "  New incoming connection on fd : " << RED << new_sd << RST << std::endl;
+
 	tmp.fd = new_sd;
 	tmp.events = POLLIN;
 	tmp.revents = 0;
@@ -202,11 +202,26 @@ void			Server::remove_client (int i)
 	}
 }
 
+void			Server::add_cgi_listener(const int i)
+{
+	std::cout << "add_cgi_listener " << i << " " << _fds[i].fd << std::endl;
+	pollfd	tmp;
+
+	tmp.fd = _clients[_fds[i].fd].get_cgi_input_fd();
+	tmp.events = POLLIN;
+	tmp.revents = 0;
+	_fds.push_back(tmp);
+	_clients[_fds[i].fd].set_cgi_input_position(_fds.size() - 1);
+}
+
+
 bool			Server::record_client_input (const int &i)
 {
 	char	buffer[REQUEST_BUFFER_SIZE];
 	bool	close_conn = 0;
 	int		rc;
+
+	std::cout << "record_client_input " << i << " " << _fds[i].fd << std::endl;
 
 	rc = recv(_fds[i].fd, buffer, sizeof(buffer) - 1, 0); // MSG_DONTWAIT | MSG_ERRQUEUE);	// ? errors number can be checked with the flag MSG_ERRQUEUE (man recv)
 
@@ -229,12 +244,19 @@ bool			Server::record_client_input (const int &i)
 
 	if (_clients[_fds[i].fd].is_request_parsed() == true)
 	{
-		_fds[i].events = POLLOUT;	// ? time to generate and send the content
-		_fds[i].revents = POLLOUT;
+		__DEB("is_request_parsed : true")
+		// _fds[i].events = POLLOUT;	// ? time to generate and send the content
+		// _fds[i].revents = POLLOUT;
 		close_conn = this->_response_generator.generate(_clients[_fds[i].fd]);
+
+		if (_clients[_fds[i].fd].get_performing_state() == FF_WAITING_TO_BE_IN__FDS)
+		{
+			add_cgi_listener(i);
+		}
+
 		// ? If needed, this is where we could send 202 Accepted
 	}
-
+	/*
 	if (_clients[_fds[i].fd].is_response_ready() == true)
 	{
 		close_conn = _clients[_fds[i].fd].send_response(_fds[i].fd);
@@ -250,6 +272,7 @@ bool			Server::record_client_input (const int &i)
 		remove_client(i);
 		return (true);
 	}
+	*/
 	return (false);
 }
 
@@ -268,9 +291,33 @@ void			Server::check_timed_out_client (const int i)
 		;
 	else if (i == 0)
 		;
-	if (_clients[_fds[i].fd].is_timed_out() == true)
+	if (is_client_fd(i) && _clients[_fds[i].fd].is_timed_out() == true)
 		remove_client(i);
 	return ;
+}
+
+
+bool			Server::is_client_fd (const int i) const
+{
+	std::cout << CYN << "_clients.size : " << _clients.size() << RST << std::endl;
+		
+	if (_clients.find(i) != _clients.end())
+	{
+		std::cout << MAG << "is_client_fd " << i << " is true" << RST << std::endl;
+		return (true);
+	}
+	std::cout << MAG << "is_client_fd " << i << " is false" << RST << std::endl;
+	return (false);
+}
+
+int				Server::pipe_to_client (int fd)
+{
+	for (std::map<int, Client>::const_iterator cit = _clients.begin(); cit != _clients.end(); ++cit)
+	{
+		if (fd == cit->second.get_cgi_input_fd())
+			return (cit->first);
+	}
+	return (-1);
 }
 
 /**
@@ -290,7 +337,7 @@ bool			Server::server_poll_loop ()
 	int					rc;
 	bool				need_cleaning = 0;
 
-	// std::cout << "Waiting on poll()...\n";
+	std::cout << "Waiting on poll()...\n";
 	rc = poll(&_fds.front(), _fds.size(), TIMEOUT);
 
 	if (rc < 0)
@@ -315,6 +362,12 @@ bool			Server::server_poll_loop ()
 	// ? or the active connection.
 	for (int i = 0; i < _fds.size(); i++)
 	{
+		if (_fds[i].fd == -1)
+		{
+			_fds.erase(_fds.begin() + i);
+			continue ;
+		}
+
 		// ? if there is no event on this index the loop continues
 		if (_fds[i].revents == 0)
 		{
@@ -325,10 +378,17 @@ bool			Server::server_poll_loop ()
 
 		if (_fds[i].revents != POLLIN && _fds[i].revents != POLLOUT)
 		{
-			remove_client(i);
+			if (i == 0)
+				return (false);
+			else if (is_client_fd(_fds[i].fd))
+				remove_client(i);
+			else
+				_fds.erase(_fds.begin() + i);
 			continue ;
 		}
 
+		std::cout << "poll triggered by : [" << i << "] : " << _fds[i].fd << std::endl;
+		std::cout << CYN << "_clients.size : " << _clients.size() << RST << std::endl;
 		// ? check if it's a new client
 		if (_fds[i].fd == _listen_sd)
 		{
@@ -342,51 +402,100 @@ bool			Server::server_poll_loop ()
 		{
 			bool	close_conn = false;
 
+			usleep(100000);
+
 			if (_fds[i].revents == POLLIN)
-				record_client_input(i);
-			else if (_fds[i].revents == POLLOUT)
 			{
-				if (_clients[_fds[i].fd].is_request_parsed() == true)
-				{
-					_fds[i].events = POLLOUT;	// ? time to generate and send the content
-					_fds[i].revents = POLLOUT;
-					close_conn = this->_response_generator.generate(_clients[_fds[i].fd]);
-					// ? If needed, this is where we could send 202 Accepted
-				}
 
-				if (_clients[_fds[i].fd].is_response_ready() == true)
+				if (is_client_fd(_fds[i].fd))
+					record_client_input(i);
+				else
 				{
-					close_conn = _clients[_fds[i].fd].send_response(_fds[i].fd);
-					_clients[_fds[i].fd].clean_cgi();
-					_clients[_fds[i].fd] = Client();
-					_fds[i].events = POLLIN;
-					_fds[i].revents = 0;
-				}
+					int client_id = pipe_to_client(_fds[i].fd);
 
-				if (close_conn)
-				{
-					// std::cerr <<MAG<< "close_conn" <<RST<< std::endl;
-					remove_client(i);
-					return (true);
+					if (client_id == -1)
+					{
+						__DEB("Error :  pipe_to_client returned -1")
+						continue ;
+					}
+					if (_response_generator.listen_cgi(_clients[client_id]))
+					{
+						// ? response ready
+						int target_fd = 0;
+						for (; target_fd < _fds.size(); ++target_fd)
+						{
+							if (_fds[target_fd].fd == client_id)
+								break ;
+						}
+						if (i == _fds.size())
+						{
+							std::cout << RED << "Error : client_id " << client_id << " not found in _fds" << std::endl;
+							exit(404);
+						}
+						std::cout << RED << "target_fd :  " << target_fd << std::endl;
+						// ! mettre le fds du client à pollout
+						_fds[target_fd].events = POLLOUT;
+						_fds[target_fd].revents = POLLOUT;
+					}
 				}
 			}
-			else
-				remove_client(i);
+			// if (is_client_fd(_fds[i].fd) && _clients[_fds[i].fd].is_response_ready())
+			if (_fds[i].revents == POLLOUT)
+			{
+				__DEB("is_response_ready")
+				close_conn = _clients[_fds[i].fd].send_response(_fds[i].fd);
+
+				_fds.erase(_fds.begin() + _clients[_fds[i].fd].get_cgi_input_position());
+
+				_clients[_fds[i].fd].clean_cgi();
+				_clients[_fds[i].fd] = Client();
+				_fds[i].events = POLLIN;
+				_fds[i].revents = 0;
+			}
+			std::cout << CYN << "_clients.size : " << _clients.size() << RST << std::endl;
+
+			// else if (_fds[i].revents == POLLOUT)
+			// {
+			// 	if (_clients[_fds[i].fd].is_request_parsed() == true)
+			// 	{
+			// 		// _fds[i].events = POLLOUT;	// ? time to generate and send the content
+			// 		// _fds[i].revents = POLLOUT;
+			// 		this->_response_generator.generate(_clients[_fds[i].fd]);
+			// 		// if (_clients[_fds[i].fd].get_performing_state())
+			// 		// 	add_cgi_listener(i);
+			// 		// ? If needed, this is where we could send 202 Accepted
+			// 	}
+
+			// 	if (_clients[_fds[i].fd].is_response_ready() == true)
+			// 	{
+			// 		close_conn = _clients[_fds[i].fd].send_response(_fds[i].fd);
+			// 		_clients[_fds[i].fd].clean_cgi();
+			// 		_clients[_fds[i].fd] = Client();
+			// 		_fds[i].events = POLLIN;
+			// 		_fds[i].revents = 0;
+			// 	}
+
+			// if (close_conn)
+			// {
+			// 	// std::cerr <<MAG<< "close_conn" <<RST<< std::endl;
+			// 	remove_client(i);
+			// 	return (true);
+			// }
+
+			// else
+				// remove_client(i);
 		}
 	}
 
 	return (true);
 }
 
-// bool			run = true;
-
-void	sig_handler(int sig)
+void			sig_handler(int sig)
 {
 	run = false;
 	return ;
 }
 
-// ? This function is the main loop of the server.
 /**
  * @brief This function starts the Server
  * 

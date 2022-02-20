@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/16 10:53:33 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/20 06:30:15 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,8 @@ Client::Client ()
 {
 	_tmp_counter = 0;
 	gettimeofday(&_life_time, NULL);
-	// _life_time = std::clock();
+	_webserv_pipe[0] = -1;
+	_cgi_pipe[1] = -1;
 }
 
 /**
@@ -35,7 +36,8 @@ Client::Client (const Conf* c, std::string ip, std::string port)
 {
 	_tmp_counter = 0;
 	gettimeofday(&_life_time, NULL);
-	// _life_time = std::clock();
+	_webserv_pipe[0] = -1;
+	_cgi_pipe[1] = -1;
 }
 
 /**
@@ -159,9 +161,13 @@ void		Client::clean_cgi ()
 		// std::cout << "tue" << std::endl;
 		kill(_child, SIGTERM);
 		close(_webserv_pipe[0]);
+		_webserv_pipe[0] = -1;
 		close(_webserv_pipe[1]);
+		_webserv_pipe[1] = -1;
 		close(_cgi_pipe[0]);
+		_cgi_pipe[0] = -1;
 		close(_cgi_pipe[1]);
+		_cgi_pipe[1] = -1;
 		_child = -1;
 	}
 }
@@ -208,4 +214,34 @@ bool		Client::is_response_ready () const
 bool		Client::is_request_parsed () const
 {
 	return (this->_request_ready);
+}
+
+e_preforms	Client::get_performing_state() const
+{
+	return (this->_fast_forward);
+}
+
+void		Client::set_cgi_input_position(int position)
+{
+	_cgi_io_position[0] = position;
+}
+
+void		Client::set_cgi_output_position(int position)
+{
+	_cgi_io_position[1] = position;
+}
+
+int			Client::get_cgi_input_position() const
+{
+	return (_cgi_io_position[0]);
+}
+
+int			Client::get_cgi_output_position() const
+{
+	return (_cgi_io_position[1]);
+}
+
+int			Client::get_cgi_input_fd() const
+{
+	return (_webserv_pipe[0]);
 }

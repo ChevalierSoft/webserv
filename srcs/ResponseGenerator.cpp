@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/16 10:55:02 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/20 07:16:37 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -276,7 +276,7 @@ void				ResponseGenerator::start_cgi (Client & client, std::string cgi_url, std:
 	exit(66);
 }
 
-void				ResponseGenerator::listen_cgi (Client & client, std::string url) const
+bool				ResponseGenerator::listen_cgi (Client & client) const
 {
 	int							err;
 	int							wpid;
@@ -284,41 +284,49 @@ void				ResponseGenerator::listen_cgi (Client & client, std::string url) const
 	char						buff[CGI_BUFF_SIZE];
 	int							cgi_header_size;
 
-	memset(buff, 0, CGI_BUFF_SIZE);
-	err = read(client._webserv_pipe[0], buff, CGI_BUFF_SIZE - 1);
-	if (err <= 0)	// ? cgi is too slow or there is nothing to send anymore
+	__DEB("listen_cgi")
+
+	client._fast_forward = FF_GET_CGI;
+
+	while (1)
 	{
-		if (waitpid(-1, &client._child, WNOHANG))	// ? checks if _child is closed
+		memset(buff, 0, CGI_BUFF_SIZE);
+		err = read(client._webserv_pipe[0], buff, CGI_BUFF_SIZE - 1);
+		std::cout << "err : " << err << std::endl;
+		
+		if (err < 0)		// ? error while reading
 		{
-			client._child = -1;
-			client._response_ready = true;
-		}
-		if (WIFEXITED(client._child) && WEXITSTATUS(client._child) == 66)
-		{ 
 			get_error_file(client, 500);
-			return ;
+			return (true);
 		}
-	}
-	else
-		client._response += buff;
+		else if (err == 0)	// ? everything on the pipe was read
+			break ;
 
-	if (client._response_ready)
+		client._response += std::string(buff, err);
+	}
+
+	if (WIFEXITED(client._child) && WEXITSTATUS(client._child) == 66)
 	{
-		close(client._webserv_pipe[0]);
-
-		// ? adding the first part of the header
-		page_header = "HTTP/1.1 200 OK\r\n";
-		page_header += "Server: Webserv 42\r\n";	// TODO : set a cool header
-		page_header += "Content-Length: ";
-		cgi_header_size = client._response.find("\r\n\r\n");
-		if (cgi_header_size == std::string::npos)
-			page_header += "0\r\n";
-		else
-			page_header += ft_to_string(client._response.length() - (cgi_header_size + 4)) + "\r\n";
-		client._response = page_header + client._response;
+		get_error_file(client, 500);
+		return (true);
 	}
+	
+	client._response_ready = true;
 
-	return ;
+	// close(client._webserv_pipe[0]);
+
+	// ? adding the first part of the header
+	page_header = "HTTP/1.1 200 OK\r\n";
+	page_header += "Server: Webserv 42\r\n";	// TODO : set a cool header
+	page_header += "Content-Length: ";
+	cgi_header_size = client._response.find("\r\n\r\n");
+	if (cgi_header_size == std::string::npos)
+		page_header += "0\r\n";
+	else
+		page_header += ft_to_string(client._response.length() - (cgi_header_size + 4)) + "\r\n";
+	client._response = page_header + client._response;
+	return (true);
+
 }
 
 bool				ResponseGenerator::cgi_send_body (Client & client, int cgi_pipe[2]) const
@@ -356,7 +364,7 @@ void				ResponseGenerator::cgi_handling (Client & client, std::string cgi_url, s
 {
 	std::string		response;
 
-	client._fast_forward = FF_GET_CGI;
+	__DEB("cgi_handling")
 
 	if (pipe(client._cgi_pipe))
 	{
@@ -371,26 +379,26 @@ void				ResponseGenerator::cgi_handling (Client & client, std::string cgi_url, s
 		return ;
 	}
 
-	// ? set non blocking the read part of the pipe
-	if (fcntl(client._cgi_pipe[0], F_SETFL, O_NONBLOCK) < 0
-		|| fcntl(client._webserv_pipe[1], F_SETFL, O_NONBLOCK) < 0)
-	{
-		close(client._cgi_pipe[0]);
-		close(client._cgi_pipe[1]);
-		get_error_file(client, 500);
-		return ;
-	}
+	// // ? set non blocking the read part of the pipe
+	// if (fcntl(client._cgi_pipe[0], F_SETFL, O_NONBLOCK) < 0
+	// 	|| fcntl(client._webserv_pipe[1], F_SETFL, O_NONBLOCK) < 0)
+	// {
+	// 	close(client._cgi_pipe[0]);
+	// 	close(client._cgi_pipe[1]);
+	// 	get_error_file(client, 500);
+	// 	return ;
+	// }
 
-	if (fcntl(client._webserv_pipe[0], F_SETFL, O_NONBLOCK) < 0
-		|| fcntl(client._webserv_pipe[1], F_SETFL, O_NONBLOCK) < 0)
-	{
-		close(client._cgi_pipe[0]);
-		close(client._cgi_pipe[1]);
-		close(client._webserv_pipe[0]);
-		close(client._webserv_pipe[1]);
-		get_error_file(client, 500);
-		return ;
-	}
+	// if (fcntl(client._webserv_pipe[0], F_SETFL, O_NONBLOCK) < 0
+	// 	|| fcntl(client._webserv_pipe[1], F_SETFL, O_NONBLOCK) < 0)
+	// {
+	// 	close(client._cgi_pipe[0]);
+	// 	close(client._cgi_pipe[1]);
+	// 	close(client._webserv_pipe[0]);
+	// 	close(client._webserv_pipe[1]);
+	// 	get_error_file(client, 500);
+	// 	return ;
+	// }
 
 	client._child = fork();
 	if (client._child < 0)
@@ -417,7 +425,9 @@ void				ResponseGenerator::cgi_handling (Client & client, std::string cgi_url, s
 		}
 	}
 
-	listen_cgi(client, cgi_url);
+	// listen_cgi(client, cgi_url);
+
+	client._fast_forward = FF_WAITING_TO_BE_IN__FDS;
 
 	return ;
 }
@@ -551,7 +561,9 @@ int				ResponseGenerator::is_method(std::string method, Request const &rq) const
 bool				ResponseGenerator::generate (Client& client) const
 {
 	set_conf_index (client); //Setting conf index here
-	
+
+	__DEB("generate")
+
 	int	error_code = client._request.request_error(_confs->at(client._request._conf_index));
 
 	if (error_code)
@@ -571,8 +583,8 @@ bool				ResponseGenerator::generate (Client& client) const
 			this->perform_method(client);
 		else if (client._fast_forward == FF_GET_FILE)
 			get_file_content(client);
-		else if (client._fast_forward == FF_GET_CGI)
-			listen_cgi(client, client._cgi->second);
+		// else if (client._fast_forward == FF_GET_CGI || client._fast_forward == FF_WAITING_TO_BE_IN__FDS)
+		// 	listen_cgi(client);
 	}
 	else if (is_method("DELETE", client._request) == 1)
 		this->perform_delete(client);

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ResponseGenerator.hpp                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ljurdant <ljurdant@student.42.fr>          +#+  +:+       +#+        */
+/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/11 13:55:53 by ljurdant          #+#    #+#             */
-/*   Updated: 2022/02/11 13:55:55 by ljurdant         ###   ########.fr       */
+/*   Updated: 2022/02/20 07:23:59 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,10 +52,12 @@ public:
 
 	void				set_confs(const std::vector<Conf> * confs);
 
+	bool				listen_cgi (Client & client) const;
+	
 private:
 
 	void				get_file_content (Client & client) const;
-  
+
 	std::string			set_file_content_type (const std::string & extention) const;
 
 	std::string			set_header (int err, std::string ct, size_t size) const;
@@ -67,8 +69,6 @@ private:
 	void				set_cgi_env (Client & client, std::string path, std::vector<std::string> & se, std::vector<char *> & ae) const;
 
 	void				start_cgi (Client & client, std::string url, std::string path, int cgi_pipe[2]) const;
-
-	void				listen_cgi (Client & client, std::string url) const;
 
 	bool				cgi_send_body (Client & client, int cgi_pipe[2]) const;
 
