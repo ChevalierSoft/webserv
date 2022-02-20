@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/10 15:11:11 by ljurdant          #+#    #+#             */
-/*   Updated: 2022/02/19 09:38:22 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/20 09:08:27 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,6 @@ int main(int argc, char **argv)
 {
 	int					*status;
 	int					err = 0;
-	std::vector<Server>	servers;
 	std::string			conf_file("tst/conf/webserv.conf");
 	
 	if (argc == 2)
@@ -48,8 +47,8 @@ int main(int argc, char **argv)
 	}
 	for (int i = 0; i < p._hosts.size(); i++)
 	{
-		// signal(SIGINT, &sig_join);
-		// signal(SIGQUIT, &sig_join);
+		signal(SIGINT, &sig_join);
+		signal(SIGQUIT, &sig_join);
 		pthread_join(threads[i], reinterpret_cast<void **>(&status));
 		if (*status)
 		{
