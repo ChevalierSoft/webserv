@@ -3,17 +3,17 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+         #
+#    By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2021/04/12 12:55:09 by dait-atm          #+#    #+#              #
-#    Updated: 2022/02/09 15:02:22 by lpellier         ###   ########.fr        #
+#    Updated: 2022/02/21 07:07:16 by dait-atm         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME		= webserv
 
 CC			= clang++
-FLAGS		= -I$(INC_DIR) -std=c++98 -g  -pthread #-Wall -Wextra -Werror
+FLAGS		= -I$(INC_DIR) -std=c++98 -g  -pthread #-fsanitize=address #-Wall -Wextra -Werror
 
 SRC_DIR 	= srcs/
 OBJ_DIR		= objs/
@@ -22,9 +22,10 @@ SOURCES		= $(wildcard $(SRC_DIR)*.cpp)
 OBJS		= $(patsubst %.cpp,objs/%.o, $(SRCS_FILES))
 DEPENDS		= $(patsubst %.cpp,objs/%.d, $(SRCS_FILES))
 SRCS_FILES	= \
-directory_listing.cpp \
 Client.cpp \
 Conf.cpp \
+directory_listing.cpp \
+ft_print_memory.cpp \
 main.cpp \
 Parser.cpp \
 ResponseGenerator.cpp \

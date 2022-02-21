@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/20 12:13:37 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/21 05:35:33 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -144,30 +144,21 @@ bool		Client::send_response (int sd_out)
 {
 	int	rc;
 
-	// std::cout << GRN << "  sending response" << RST << std::endl;
-
-	// ? clear request since response is generated
-	// this->_request.clear();
-	// ? For now, sending default response in one go
+	std::cout << GRN << "  sending response" << RST << std::endl;
 	rc = send(sd_out, this->_response.c_str(), this->_response.size(), 0);
 	if (rc < 0)
 	{
 		perror("  send() failed");
 		return (true);
 	}
-	// ? Setting generated response to false after each send for now
-	// this->_request_ready = false;
 	this->_response.clear();
-	// return (true);
 	return (false);
 }
 
 void		Client::clean_cgi ()
 {
-	if (_child != -1)
+	if (_child > 0)
 	{
-		// std::cout << "tue" << std::endl;
-		kill(_child, SIGTERM);
 		close(_webserv_pipe[0]);
 		_webserv_pipe[0] = -1;
 		close(_webserv_pipe[1]);
@@ -176,6 +167,8 @@ void		Client::clean_cgi ()
 		_cgi_pipe[0] = -1;
 		close(_cgi_pipe[1]);
 		_cgi_pipe[1] = -1;
+		std::cout << "tue" << std::endl;
+		kill(_child, SIGTERM);
 		_child = -1;
 	}
 }

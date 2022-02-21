@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 00:54:13 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/20 12:13:51 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/21 05:46:55 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,6 +59,8 @@ private:
 	std::ifstream					_input_file;
 	int								_tmp_counter;			// debug ?
 	bool							_request_parsed;
+	
+	std::vector<std::string>	s_envs;
 
 	/// * Constructors & Destructors ___________________________________________
 

@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 04:55:39 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/20 05:13:33 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/21 06:42:57 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,24 @@
 # define REQUEST_BUFFER_SIZE	1024
 
 # define TIMEOUT				10 * 1000
+
+class ServerExeption : public std::exception
+{
+	// std::string	msg;
+public:
+	// ServerExeption(const std::string & s) : msg(s) {}
+	// ServerExeption(const ServerExeption & copy) : msg(copy.msg)	{}
+	// // todo : add operator =
+	// virtual ~ServerExeption() {}
+	virtual const char* what() const throw ()
+	{
+		// return msg.c_str();
+		// return ("Child terminated before execve");
+		return ("CHILD TERMINATED BEFORE EXECVE");
+	}
+};
+
+
 
 /**
  * @brief a http/1.1 server working for one config
@@ -76,7 +94,7 @@ private:
 
 	bool	record_client_input (const int &i);
 
-	void	check_timed_out_client (const int i);
+	bool	check_timed_out_client (const int i);
 
 	void	remove_client (int i);
 
@@ -84,6 +102,9 @@ private:
 
 	// * debug
 
-	void	aff_fds();
+	void	aff_fds() const;
+
+	void	aff_clients() const;
 
 }; // * ________________________________________________________________________
+
