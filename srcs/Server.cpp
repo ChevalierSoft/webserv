@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/21 07:06:49 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/21 16:35:33 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -200,21 +200,23 @@ void			Server::remove_client (int i)
 	if (i > 0)
 	{
 		close(_fds[i].fd);
+		position_child_read_fd = _clients[_fds[i].fd].get_cgi_input_fd();
 		_clients[_fds[i].fd].clean_cgi();
 
-		position_child_read_fd = _clients[_fds[i].fd].get_cgi_input_fd();
 		if (position_child_read_fd != -1)
+		{
 			for (int j = 0; j < _fds.size(); ++j)
 			{
 				if (_fds[j].fd == position_child_read_fd)
 				{
 					std::cout << "removing child's fd [" << j << "] : " << _fds[j].fd << " from _fds." << std::endl;
-					_fds[position_child_read_fd].fd = -1;
-					_fds[position_child_read_fd].events = 0;
-					_fds[position_child_read_fd].revents = 0;
+					_fds[j].fd = -1;
+					_fds[j].events = 0;
+					_fds[j].revents = 0;
 					break ;
 				}
 			}
+		}
 		_clients.erase(_fds[i].fd);
 		_fds[i].fd = -1;
 		_fds[i].events = 0;
@@ -259,7 +261,7 @@ bool			Server::record_client_input (const int &i)
 	}
 	buffer[rc] = '\0';									// ? closing the char array
 
-	ft_print_memory((void *)buffer, rc);
+	// ft_print_memory((void *)buffer, rc);
 
 	// ? update client's _life_time
 	_clients[_fds[i].fd].update();
@@ -408,7 +410,10 @@ bool			Server::server_poll_loop ()
 			if (i == 0)
 				return (false);
 			else if (is_client_fd(_fds[i].fd))
+			{
 				remove_client(i);
+				--i;
+			}
 			else
 			{
 				_fds.erase(_fds.begin() + i);

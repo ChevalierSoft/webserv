@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/21 05:47:35 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/21 15:27:45 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -288,10 +288,15 @@ bool				ResponseGenerator::listen_cgi (Client & client) const
 
 	client._fast_forward = FF_GET_CGI;
 
-	std::cout << CYN <<"client.get_cgi_input_fd() : " << client.get_cgi_input_fd() <<RST<< std::endl;
+	std::cout << CYN << "client.get_cgi_input_fd() : " << client.get_cgi_input_fd() <<RST<< std::endl;
 
 	while (1)
 	{
+		if (WIFEXITED(client._child) && WEXITSTATUS(client._child) != 0)
+		{
+			get_error_file(client, 500);
+			return (true);
+		}
 		memset(buff, 0, CGI_BUFF_SIZE);
 		err = read(client._webserv_pipe[0], buff, CGI_BUFF_SIZE);
 		std::cout << "err : " << err << std::endl;
