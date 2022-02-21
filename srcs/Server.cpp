@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/21 16:35:33 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/21 18:56:16 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -118,9 +118,9 @@ int				Server::init (const Conf& c)
 		return (1);
 	}
 
-	rc = fcntl(_listen_sd, F_SETFL, O_NONBLOCK);
-	if (rc == -1)
-		return 38;
+	// rc = fcntl(_listen_sd, F_SETFL, O_NONBLOCK);
+	// if (rc == -1)
+	// 	return 38;
 
 	// ? Allow socket descriptor to be reuseable
 	rc = setsockopt(_listen_sd, SOL_SOCKET, SO_REUSEADDR,
@@ -196,7 +196,7 @@ void			Server::remove_client (int i)
 {
 	int		position_child_read_fd;
 
-	std::cout << "  remove_client " << i << std::endl;
+	// std::cout << "  remove_client " << i << std::endl;
 	if (i > 0)
 	{
 		close(_fds[i].fd);
@@ -248,31 +248,51 @@ bool			Server::record_client_input (const int &i)
 	bool	close_conn = 0;
 	int		rc;
 
+	usleep(100000);
+
 	std::cout << "record_client_input " << i << " " << _fds[i].fd << std::endl;
 
-	rc = recv(_fds[i].fd, buffer, sizeof(buffer) - 1, 0); // MSG_DONTWAIT | MSG_ERRQUEUE);	// ? errors number can be checked with the flag MSG_ERRQUEUE (man recv)
-
-	if (rc == -1 || rc == 0)	// ? error while reading or client closed the connection
-	{
-		std::cerr <<MAG<< "client closed the connection" <<RST<< std::endl;
-		_fds[i].events = 0;
-		_fds[i].revents = 0;
-		return (true);
-	}
-	buffer[rc] = '\0';									// ? closing the char array
-
-	// ft_print_memory((void *)buffer, rc);
-
-	// ? update client's _life_time
-	_clients[_fds[i].fd].update();
-
-	_clients[_fds[i].fd].add_input_buffer(buffer, rc);
-
-	// if (_clients[_fds[i].fd].is_request_parsed() == false) // ? no need here
-		_clients[_fds[i].fd].parse_response();
-	// ? If needed, this is where we could send 100 Continue
-
 	if (_clients[_fds[i].fd].is_request_parsed() == true)
+		return (true);
+
+	while (1)
+	{
+		memset(buffer, 0, REQUEST_BUFFER_SIZE);
+		rc = recv(_fds[i].fd, buffer, sizeof(buffer) - 1, 0); // MSG_DONTWAIT | MSG_ERRQUEUE);	// ? errors number can be checked with the flag MSG_ERRQUEUE (man recv)
+
+		std::cout << "rc : " << rc << std::endl;
+
+		if (rc == -1)	// ? error while reading or client closed the connection
+		{
+			std::cerr <<MAG<< "client closed the connection" <<RST<< std::endl;
+			_fds[i].fd = -1;
+			_fds[i].events = 0;
+			_fds[i].revents = 0;
+			return (true);
+		}
+		else if (rc == 0)
+			break ;	// ! tout est lu ?
+		
+
+		buffer[rc] = '\0';									// ? closing the char array
+		_clients[_fds[i].fd].update();
+		_clients[_fds[i].fd].add_input_buffer(buffer, rc);
+
+		ft_print_memory((void *)buffer, rc);
+
+		// ? update client's _life_time
+
+
+		// if (_clients[_fds[i].fd].is_request_parsed() == false) // ? no need here
+			_clients[_fds[i].fd].parse_response();
+		// ? If needed, this is where we could send 100 Continue
+
+		if (_clients[_fds[i].fd].is_request_parsed() == true)
+			break ;
+
+	}
+
+	// if (_clients[_fds[i].fd].is_request_parsed() == true)
 	{
 		__DEB("  is_request_parsed : true")
 		close_conn = this->_response_generator.generate(_clients[_fds[i].fd]);
@@ -291,7 +311,7 @@ bool			Server::record_client_input (const int &i)
  */
 bool			Server::check_timed_out_client (const int i)
 {	
-	std::cout << "check_timed_out_client [" << i << "] : " << _fds[i].fd << std::endl;
+	// std::cout << "check_timed_out_client [" << i << "] : " << _fds[i].fd << std::endl;
 
 	if (is_client_fd(_fds[i].fd) && _clients[_fds[i].fd].is_timed_out() == true)
 	{
@@ -308,10 +328,10 @@ bool			Server::is_client_fd (const int i) const
 
 	if (_clients.find(i) != _clients.end())
 	{
-		std::cout << MAG << "is_client_fd " << i << " is true" << RST << std::endl;
+		// std::cout << MAG << "is_client_fd " << i << " is true" << RST << std::endl;
 		return (true);
 	}
-	std::cout << MAG << "is_client_fd " << i << " is false" << RST << std::endl;
+	// std::cout << MAG << "is_client_fd " << i << " is false" << RST << std::endl;
 	return (false);
 }
 
@@ -356,12 +376,13 @@ bool			Server::server_poll_loop ()
 	if (rc == 0)
 	{
 		std::cout << "  poll() timed out." << std::endl;
-		aff_fds();
-		aff_clients();
+		// aff_fds();
+		// aff_clients();
 		for (int i = 0; i < _fds.size(); ++i)
 		{
 			if (is_client_fd(_fds[i].fd))
 			{
+				__DEB("here")
 				i -= check_timed_out_client(i);
 			}
 			else if (_fds[i].fd == -1)
@@ -370,17 +391,6 @@ bool			Server::server_poll_loop ()
 				--i;
 			}
 		}
-		// ? clean _fds of timed out fds, and return true to loop again.
-		// for (int i = 1; i <= _clients.size(); ++i)
-		// {
-		// 	if (_fds[i].fd == -1)
-		// 	{
-		// 		_fds.erase(_fds.begin() + i);
-		// 		--i;
-		// 	}
-		// 	else
-		// 		i -= check_timed_out_client(i);
-		// }
 		return (true);
 	}
 
@@ -391,7 +401,7 @@ bool			Server::server_poll_loop ()
 	{
 		if (_fds[i].fd == -1)
 		{
-			std::cout << "found _fds[i].fd == -1" << std::endl; 
+			// std::cout << "found _fds[i].fd == -1" << std::endl; 
 			_fds.erase(_fds.begin() + i);
 			--i;
 			continue ;
@@ -400,7 +410,7 @@ bool			Server::server_poll_loop ()
 		// ? if there is no event on this index the loop continues
 		if (_fds[i].revents == 0)
 		{
-			if (i != 0)	// ? not the listening socket
+			if (is_client_fd(_fds[i].fd))	// ? not the listening socket
 				i -= check_timed_out_client(i);
 			continue;
 		}
@@ -482,12 +492,12 @@ bool			Server::server_poll_loop ()
 			{
 				if (is_client_fd(_fds[i].fd))
 				{
-					__DEB("is_response_ready")
+					__DEB("  is_response_ready")
 
-					std::cout << CYN << "[" << i << "] : " << _fds[i].fd << RST<< std::endl;
-					std::cout << CYN <<"_clients[_fds[i].fd].get_cgi_input_fd() : " << _clients[_fds[i].fd].get_cgi_input_fd() <<RST<< std::endl;
+					std::cout << CYN << "  [" << i << "] : " << _fds[i].fd << RST<< std::endl;
+					std::cout << CYN <<"  _clients[_fds[i].fd].get_cgi_input_fd() : " << _clients[_fds[i].fd].get_cgi_input_fd() <<RST<< std::endl;
 					// std::cout << CYN <<"_clients[i]._webserv_pipe[0] : " << _clients[i]._webserv_pipe[0] <<RST<< std::endl;
-					aff_fds();
+					// aff_fds();
 
 					close_conn = _clients[_fds[i].fd].send_response(_fds[i].fd);
 
@@ -502,22 +512,25 @@ bool			Server::server_poll_loop ()
 						std::cout << YEL << "Error : target == _fds.size(). fd deleted before " << std::endl;
 						exit(188);
 					}
-					std::cout << CYN << "target_fd : " << target_fd << RST<< std::endl;
+					// std::cout << CYN << "target_fd : " << target_fd << RST<< std::endl;
 
-					_clients[_fds[i].fd].clean_cgi();
-					_clients[_fds[i].fd] = Client();
-					_fds[i].events = POLLIN;
-					_fds[i].revents = 0;
+					// ! need to find a way to keep the client connexion alive without infinite loop
+					remove_client(i);
 
-					_fds.erase(_fds.begin() + target_fd);
+					// _clients[_fds[i].fd].clean_cgi();
+					// _clients[_fds[i].fd] = Client();
+					// _fds[i].events = 0;
+					// _fds[i].revents = 0;
+					// _fds.erase(_fds.begin() + target_fd);
+
 					--i;
 
 				}
-				// else
-				// {
-				// 	std::cout << "non client getting POLLOUT" << std::endl;
-				// 	_fds.erase(_fds.begin() + i);
-				// }
+				else
+				{
+					std::cout << YEL << "non client getting POLLOUT" <<RST<< std::endl;
+					_fds.erase(_fds.begin() + i);
+				}
 			}
 			__DEB("end of loop")
 		}
