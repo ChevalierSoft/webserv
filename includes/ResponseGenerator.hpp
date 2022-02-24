@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/11 13:55:53 by ljurdant          #+#    #+#             */
-/*   Updated: 2022/02/24 05:51:47 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/24 10:10:47 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,6 +56,8 @@ public:
 	
 	void				listen_file (Client & client) const;
 
+	void				get_error_file (Client & client, int err) const;
+
 private:
 
 	std::string			set_file_content_type (const std::string & extention) const;
@@ -63,8 +65,6 @@ private:
 	std::string			set_header (int err, std::string ct, size_t size) const;
 
 	std::string			generic_error (int err) const;
-
-	void				get_error_file (Client & client, int err) const;
 
 	void				set_cgi_env (Client & client, std::string path, std::vector<std::string> & se, std::vector<char *> & ae) const;
 

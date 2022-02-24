@@ -6,14 +6,14 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/24 06:24:59 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/24 10:29:18 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "webserv.hpp"
 
 #ifndef __DEB
-# define __DEB(s) std::cerr << CYN << s << RST << std::endl;
+// # define __DEB(s) std::cerr << CYN << s << RST << std::endl;
 #endif
 
 /**
@@ -268,7 +268,9 @@ void				ResponseGenerator::start_cgi (Client & client, std::string cgi_url, std:
 	// TODO : clean memory / close pipes.
 	// TODO : send back a 500
 
-	std::cerr << CYN << "execve_failed" << std::endl;
+	throw (ServerExeption());
+
+	// std::cerr << CYN << "execve_failed" << std::endl;
 	exit(66);
 }
 
@@ -280,7 +282,7 @@ void				ResponseGenerator::listen_cgi (Client & client) const
 	char						buff[CGI_BUFF_SIZE];
 	int							cgi_header_size;
 
-	__DEB("listen_cgi")
+	// __DEB("listen_cgi")
 
 	client._fast_forward = FF_GET_CGI;
 
@@ -392,7 +394,7 @@ void				ResponseGenerator::cgi_handling (Client & client) const
 {
 	std::string		response;
 
-	__DEB("cgi_handling")
+	// __DEB("cgi_handling")
 
 	if (pipe(client._cgi_pipe))
 	{
@@ -612,7 +614,7 @@ bool				ResponseGenerator::generate (Client& client) const
 {
 	set_conf_index (client); //Setting conf index here
 
-	__DEB("generate")
+	// __DEB("generate")
 
 	int	error_code = client._request.request_error(_confs->at(client._request._conf_index));
 

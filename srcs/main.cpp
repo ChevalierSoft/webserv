@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/10 15:11:11 by ljurdant          #+#    #+#             */
-/*   Updated: 2022/02/20 09:08:27 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/24 10:52:37 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,8 @@ void	sig_join(int sig)
 {
 	signal(SIGINT, &sig_join);
 	signal(SIGQUIT, &sig_join);
+	// signal(SIGTERM, &sig_join);
+	// std::cerr << "     " << sig << std::endl;
 	return ;
 }
 
@@ -49,14 +51,15 @@ int main(int argc, char **argv)
 	{
 		signal(SIGINT, &sig_join);
 		signal(SIGQUIT, &sig_join);
+		// signal(SIGTERM, &sig_join);
 		pthread_join(threads[i], reinterpret_cast<void **>(&status));
 		if (*status)
 		{
-			std::cout << "exit code : " << RED << err <<RST << std::endl;
+			std::cerr << "exit code : " << RED << err <<RST << std::endl;
 			err = *status;
 		}
 		else
-			std::cout << GRN << "success" << RST << std::endl;
+			std::cerr << GRN << "success" << RST << std::endl;
 		delete status;
 	}
     return (err);

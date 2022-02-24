@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 04:55:39 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/24 05:57:59 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/24 08:21:36 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -98,7 +98,7 @@ private:
 
 	bool	check_timed_out_client (const int i);
 
-	void	remove_client (int i);
+	int		remove_client (int i);
 
 	void	squeeze_fds_array ();
 
