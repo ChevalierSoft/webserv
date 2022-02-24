@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/24 06:15:20 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/24 06:29:12 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -310,15 +310,11 @@ bool			Server::record_client_input (const int &i)
 			_listeners[_clients[_fds[i].fd].get_cgi_input_fd()] = 1;
 			break;
 		default:
-			int client_id = pipe_to_client(_fds[i].fd);
+			std::cout << "FF_READY" << std::endl;
 
-			if (client_id == -1)
-			{
-				__DEB("Error :  pipe_to_client returned -1")	// !
-				exit(405);
-			}
-			set_client_to_pollout(client_id);
-			std::cerr << "_clients[_fds[i].fd].get_performing_state() not WAINTING" << std::endl;
+			_fds[i].events = POLLOUT;
+			_fds[i].revents = POLLOUT;
+
 			break;
 		}
 	}

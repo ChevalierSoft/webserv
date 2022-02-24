@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/24 06:14:46 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/24 06:24:59 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -134,10 +134,7 @@ void				ResponseGenerator::get_error_file (Client & client, Conf::code_type err)
 			client._response += (s_file_content);
 		}
 		else
-		{
-			client._response.clear();
-			client._response += (generic_error(err));
-		}
+			client._response = generic_error(err);
 	}
 
 	client._fast_forward = FF_READY;
@@ -174,24 +171,9 @@ void				ResponseGenerator::listen_file (Client & client) const
 		}
 		client._response += std::string(a_tmp, err);
 	}
-	
 
-	// while (1)
-	// {
-	// 	if (client._input_file.good())
-	// 	{
-	// 		memset(a_tmp, 0, FILE_BUFF_SIZE);
-	// 		client._input_file.read(a_tmp, FILE_BUFF_SIZE - 1);
-	// 		client._response += std::string(a_tmp, client._input_file.gcount());
-	// 	}
-	// 	else
-	// 		break ;
-	// }
 	client._response = set_header(200, get_file_extention(get_file_name(client._request._path)), client._response.size()) + client._response;
 	client._response_ready = true;
-	// client._input_file.close();
-
-	// return (true);
 }
 
 void				ResponseGenerator::set_cgi_env (Client & client, std::string path, std::vector<std::string> & s_envs, std::vector<char *> & a_envs) const
