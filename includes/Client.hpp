@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 00:54:13 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/21 05:46:55 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/24 05:00:28 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,9 +23,10 @@ enum e_preforms
 {
 	FF_NOT_SET = 0,
 	FF_GET_FILE,
-	FF_SEND_TO_CGI,
 	FF_GET_CGI,
-	FF_WAITING_TO_BE_IN__FDS
+	FF_FILE_WAITING_TO_BE_IN__FDS,
+	FF_CGI_WAITING_TO_BE_IN__FDS,
+	FF_READY
 };
 
 /**

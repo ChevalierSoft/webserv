@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/21 05:35:33 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/24 06:15:10 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -157,10 +157,13 @@ bool		Client::send_response (int sd_out)
 
 void		Client::clean_cgi ()
 {
-	if (_child > 0)
+	if (_webserv_pipe[0] != -1)
 	{
 		close(_webserv_pipe[0]);
 		_webserv_pipe[0] = -1;
+	}
+	if (_child > 0)
+	{
 		close(_webserv_pipe[1]);
 		_webserv_pipe[1] = -1;
 		close(_cgi_pipe[0]);

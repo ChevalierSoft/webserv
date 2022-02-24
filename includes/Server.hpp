@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 04:55:39 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/21 06:42:57 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/24 05:57:59 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,7 @@ public:
 	}
 };
 
-
+// typedef void (*ScriptFunction)(::Client &) const;
 
 /**
  * @brief a http/1.1 server working for one config
@@ -44,16 +44,16 @@ class Server // * ______________________________________________________________
 {
 	/// * Variables ____________________________________________________________
 private:
-	int							_listen_sd;
-	std::vector<struct pollfd>	_fds;
-	std::map<int, Client>		_clients;
-	ResponseGenerator			_response_generator;
+	int								_listen_sd;
+	std::vector<struct pollfd>		_fds;
+	std::map<int, Client>			_clients;
+	ResponseGenerator				_response_generator;
 
-	// std::map<int, Client>		_cgi_listeners;
+	std::map<int, int>	_listeners;
 
 public:
-	Conf						_conf;
-	std::vector<Conf>			_confs;
+	Conf							_conf;
+	std::vector<Conf>				_confs;
 
 	/// * Constructors & Destructors ___________________________________________
 public:
@@ -81,6 +81,8 @@ public:
 
 private:
 	bool	socket_bind ();
+
+	void	set_client_to_pollout (int i);
 
 	bool	server_poll_loop ();
 

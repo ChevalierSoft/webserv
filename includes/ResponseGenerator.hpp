@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/11 13:55:53 by ljurdant          #+#    #+#             */
-/*   Updated: 2022/02/21 05:16:34 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/24 05:51:47 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,11 +52,11 @@ public:
 
 	void				set_confs(const std::vector<Conf> * confs);
 
-	bool				listen_cgi (Client & client) const;
+	void				listen_cgi (Client & client) const;
 	
-private:
+	void				listen_file (Client & client) const;
 
-	void				get_file_content (Client & client) const;
+private:
 
 	std::string			set_file_content_type (const std::string & extention) const;
 
@@ -72,7 +72,9 @@ private:
 
 	bool				cgi_send_body (Client & client) const;
 
-	void				cgi_handling (Client & client, std::string url, std::string path) const;
+	void				cgi_handling (Client & client) const;
+
+	void				file_handling (Client & client) const;
 
 	void				perform_method (Client & client) const;
 
