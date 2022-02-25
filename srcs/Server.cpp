@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/24 10:13:20 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/25 04:45:34 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -118,9 +118,9 @@ int				Server::init (const Conf& c)
 		return (1);
 	}
 
-	// rc = fcntl(_listen_sd, F_SETFL, O_NONBLOCK);
-	// if (rc == -1)
-	// 	return 38;
+	rc = fcntl(_listen_sd, F_SETFL, O_NONBLOCK);
+	if (rc == -1)
+		return 38;
 
 	// ? Allow socket descriptor to be reuseable
 	rc = setsockopt(_listen_sd, SOL_SOCKET, SO_REUSEADDR,
@@ -271,7 +271,7 @@ bool			Server::record_client_input (const int &i)
 		return (true);
 	}
 
-	while (1)
+	// while (1)
 	{
 		memset(buffer, 0, REQUEST_BUFFER_SIZE);
 		rc = recv(_fds[i].fd, buffer, sizeof(buffer) - 1, 0); // MSG_DONTWAIT | MSG_ERRQUEUE);	// ? errors number can be checked with the flag MSG_ERRQUEUE (man recv)
@@ -287,8 +287,8 @@ bool			Server::record_client_input (const int &i)
 			_fds[i].revents = 0;
 			return (true);
 		}
-		else if (rc == 0)
-			break ;	// ! tout est lu ?
+		// else if (rc == 0)
+			// break ;	// ! tout est lu ?
 
 		buffer[rc] = '\0';									// ? closing the char array
 		_clients[_fds[i].fd].update();
@@ -298,28 +298,29 @@ bool			Server::record_client_input (const int &i)
 
 		_clients[_fds[i].fd].parse_response();
 
-		if (_clients[_fds[i].fd].is_request_parsed() == true)
-			break ;
-
 	}
 
-	_response_generator.generate(_clients[_fds[i].fd]);
-
-	switch (_clients[_fds[i].fd].get_performing_state())
+	if (_clients[_fds[i].fd].is_request_parsed() == true)
 	{
-	case FF_FILE_WAITING_TO_BE_IN__FDS :
-		add_cgi_listener(i);
-		_listeners[_clients[_fds[i].fd].get_cgi_input_fd()] = 0;
-		break;
-	case FF_CGI_WAITING_TO_BE_IN__FDS :
-		add_cgi_listener(i);
-		_listeners[_clients[_fds[i].fd].get_cgi_input_fd()] = 1;
-		break;
-	default:
-		std::cout << "FF_READY" << std::endl;
-		_fds[i].events = POLLOUT;
-		_fds[i].revents = POLLOUT;
-		break;
+		_response_generator.generate(_clients[_fds[i].fd]);
+
+		switch (_clients[_fds[i].fd].get_performing_state())
+		{
+		case FF_FILE_WAITING_TO_BE_IN__FDS :
+			add_cgi_listener(i);
+			_listeners[_clients[_fds[i].fd].get_cgi_input_fd()] = 0;
+			break;
+		case FF_CGI_WAITING_TO_BE_IN__FDS :
+			add_cgi_listener(i);
+			_listeners[_clients[_fds[i].fd].get_cgi_input_fd()] = 1;
+			break;
+		default:
+			std::cout << "FF_READY" << std::endl;
+			_fds[i].events = POLLOUT;
+			_fds[i].revents = POLLOUT;
+			break;
+		}
+
 	}
 
 	return (false);
@@ -404,7 +405,10 @@ bool			Server::server_poll_loop ()
 	int					rc;
 	bool				need_cleaning = 0;
 
+
 	std::cout << "Waiting on poll()...\n";
+	aff_clients();
+	aff_fds();
 	rc = poll(&_fds.front(), _fds.size(), TIMEOUT);
 
 	if (rc < 0)
