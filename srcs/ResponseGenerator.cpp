@@ -6,14 +6,14 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/24 10:29:18 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/26 06:05:22 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "webserv.hpp"
 
 #ifndef __DEB
-// # define __DEB(s) std::cerr << CYN << s << RST << std::endl;
+# define __DEB(s) std::cerr << CYN << s << RST << std::endl;
 #endif
 
 /**
@@ -394,15 +394,17 @@ void				ResponseGenerator::cgi_handling (Client & client) const
 {
 	std::string		response;
 
-	// __DEB("cgi_handling")
+	__DEB("cgi_handling")
 
 	if (pipe(client._cgi_pipe))
 	{
+		__DEB("                    FIRST PIPE FAILED")
 		get_error_file(client, 500);
 		return ;
 	}
 	if (pipe(client._webserv_pipe))
 	{
+		__DEB("                    SECOND PIPE FAILED")
 		close(client._cgi_pipe[0]);
 		close(client._cgi_pipe[1]);
 		get_error_file(client, 500);
@@ -475,8 +477,12 @@ void				ResponseGenerator::cgi_handling (Client & client) const
 
 void				ResponseGenerator::file_handling (Client & client) const
 {
+	__DEB("file_handling")
 	client._webserv_pipe[0] = open((client._request._path).c_str(), O_RDONLY);
-	client._fast_forward = FF_FILE_WAITING_TO_BE_IN__FDS;
+	if (client._webserv_pipe[0] == -1)
+		get_error_file(client, 500);
+	else
+		client._fast_forward = FF_FILE_WAITING_TO_BE_IN__FDS;
 }
 
 

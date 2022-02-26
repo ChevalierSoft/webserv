@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/25 04:45:34 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/26 05:58:32 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -278,7 +278,7 @@ bool			Server::record_client_input (const int &i)
 
 		std::cout << "rc : " << rc << std::endl;
 
-		if (rc == -1)	// ? error while reading or client closed the connection
+		if (rc == -1 || rc == 0)	// ? error while reading or client closed the connection
 		{
 			std::cerr <<MAG<< "client closed the connection" <<RST<< std::endl;
 			close(_fds[i].fd);
@@ -316,6 +316,7 @@ bool			Server::record_client_input (const int &i)
 			break;
 		default:
 			std::cout << "FF_READY" << std::endl;
+			_listeners[_clients[_fds[i].fd].get_cgi_input_fd()] = 2;
 			_fds[i].events = POLLOUT;
 			_fds[i].revents = POLLOUT;
 			break;
@@ -531,8 +532,10 @@ bool			Server::server_poll_loop ()
 					// ? get full response
 					if (_listeners[_fds[i].fd] == 0)
 						this->_response_generator.listen_file(_clients[client_id]);
-					else
+					else if (_listeners[_fds[i].fd] == 1)
 						this->_response_generator.listen_cgi(_clients[client_id]);
+					else
+						continue ;
 
 					set_client_to_pollout(client_id);
 				}
@@ -548,29 +551,44 @@ bool			Server::server_poll_loop ()
 					std::cout << CYN <<"  _clients[_fds[i].fd].get_cgi_input_fd() : " << _clients[_fds[i].fd].get_cgi_input_fd() <<RST<< std::endl;
 					// aff_fds();
 
-					close_conn = _clients[_fds[i].fd].send_response(_fds[i].fd);
+					if (_clients[_fds[i].fd].send_response(_fds[i].fd))
+						i -= remove_client(i);
+					else
+					{
+						int	input_fd = _clients[_fds[i].fd].get_cgi_input_fd();
 
-					// int target_fd = 0;
-					// for (; target_fd < _fds.size(); ++target_fd)
-					// {
-					// 	if (_fds[target_fd].fd == _clients[_fds[i].fd].get_cgi_input_fd())
-					// 		break ;
-					// }
-					// if (target_fd == _fds.size())
-					// {
-					// 	std::cout << YEL << "Error : target == _fds.size(). fd deleted before " << std::endl;
-					// 	exit(188);
-					// }
-					// std::cout << CYN << "target_fd : " << target_fd << RST<< std::endl;
+						if (input_fd != -1)
+						{
+							int target_fd = 0;
+							for (; target_fd < _fds.size(); ++target_fd)
+							{
+								if (_fds[target_fd].fd == input_fd)
+									break ;
+							}
+							if (target_fd == _fds.size())
+							{
+								std::cout << YEL << "Error : target == _fds.size(). fd deleted before " << std::endl;
+								exit(188);
+							}
+							std::cout << CYN << "target_fd : " << target_fd << RST<< std::endl;
+
+							_clients[_fds[i].fd].clean_cgi();
+
+
+							_fds.erase(_fds.begin() + target_fd);
+							_listeners.erase(_fds[target_fd].fd);
+
+						}
+						_clients[_fds[i].fd] = Client();
+						_fds[i].events = POLLIN;
+						_fds[i].revents = 0;
+
+					}
+
+					
 
 					// ! need to find a way to keep the client connexion alive without infinite loop
-					i -= remove_client(i);
-
-					// _clients[_fds[i].fd].clean_cgi();
-					// _clients[_fds[i].fd] = Client();
-					// _fds[i].events = 0;
-					// _fds[i].revents = 0;
-					// _fds.erase(_fds.begin() + target_fd);
+					// i -= remove_client(i);
 				}
 				else
 				{
