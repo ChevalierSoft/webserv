@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/26 06:05:22 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/28 06:49:19 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -507,6 +507,7 @@ void				ResponseGenerator::perform_method (Client & client) const
 	if (client._request._redir != Route::redir_type())
 	{
 		client._response += (get_redirection(client._request._redir));
+		client._fast_forward = FF_READY;
 		client._response_ready = true;
 		return ;
 	}
