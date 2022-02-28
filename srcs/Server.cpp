@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/28 16:02:21 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/28 19:22:22 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -272,18 +272,21 @@ bool			Server::record_client_input (const int &i)
 	bool	close_conn = 0;
 	int		rc;
 
-	// usleep(100000);
+	// usleep(1000);
 
 	std::cout << "record_client_input " << i << " " << _fds[i].fd << std::endl;
 
 	if (_clients[_fds[i].fd].is_request_parsed() == true)
 	{
 		std::cout << "client's input already parsed" << std::endl;
+		// exit(80);
 		// remove_client(i);
 		if (_clients[_fds[i].fd].get_cgi_input_fd() != -1)
 		{
 			_listeners.erase(_clients[_fds[i].fd].get_cgi_input_fd());
 			close(_clients[_fds[i].fd].get_cgi_input_fd());
+			// _fds.erase(_fds.begin() + get_client_position(_clients[_fds[i].fd].get_cgi_input_fd()));
+
 			for (int k = 1; k < _fds.size(); ++k)
 			{
 				if (_fds[k].fd == _clients[_fds[i].fd].get_cgi_input_fd())
@@ -295,7 +298,7 @@ bool			Server::record_client_input (const int &i)
 		}
 		_clients[_fds[i].fd].clean_cgi();
 		_clients[_fds[i].fd] = Client();
-		return (true);
+		// return (true);
 	}
 
 	// while (1)
@@ -355,7 +358,7 @@ bool			Server::record_client_input (const int &i)
  * @brief Kick out a client if there _life_time is too long.
  */
 bool			Server::check_timed_out_client (const int i)
-{	
+{
 	std::cout << "check_timed_out_client [" << i << "] : " << _fds[i].fd << std::endl;
 
 	if (is_client_fd(_fds[i].fd) &&
@@ -390,6 +393,19 @@ int				Server::pipe_to_client (int fd)
 	return (-1);
 }
 
+int				Server::get_client_position (int client_key) const
+{
+	for (int k = 0; k < _fds.size(); ++k)
+	{
+		if (_fds[k].fd == client_key)
+			return (k);
+	}
+	
+	std::cout << "get_client_positione returned -1" << std::endl;
+	exit(92);
+
+	return (-1);
+}
 
 void			Server::set_client_to_pollout (int client_id)
 {
@@ -563,6 +579,11 @@ bool			Server::server_poll_loop ()
 						continue ;
 
 					set_client_to_pollout(client_id);
+
+					// _clients[client_id].send_response(client_id);
+					// _listeners.erase(client_id);
+					// i -= remove_client(get_client_position(client_id));
+
 				}
 			}
 			// if (is_client_fd(_fds[i].fd) && _clients[_fds[i].fd].is_response_ready())
@@ -575,6 +596,8 @@ bool			Server::server_poll_loop ()
 					std::cout << CYN << "  [" << i << "] : " << _fds[i].fd << RST<< std::endl;
 					std::cout << CYN <<"  _clients[_fds[i].fd].get_cgi_input_fd() : " << _clients[_fds[i].fd].get_cgi_input_fd() <<RST<< std::endl;
 					// aff_fds();
+
+
 
 					if (_clients[_fds[i].fd].send_response(_fds[i].fd))
 						i -= remove_client(i);
@@ -609,7 +632,7 @@ bool			Server::server_poll_loop ()
 
 					}
 
-					
+
 
 					// ! need to find a way to keep the client connexion alive without infinite loop
 					// i -= remove_client(i);

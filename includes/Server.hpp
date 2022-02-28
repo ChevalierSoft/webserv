@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 04:55:39 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/28 09:21:48 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/28 19:15:07 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 #include "webserv.hpp"
 
-# define BACK_LOG				123
+# define BACK_LOG				10
 # define REQUEST_BUFFER_SIZE	1024
 
 # define TIMEOUT				10 * 1000
@@ -101,6 +101,8 @@ private:
 	int		remove_client (int i);
 
 	void	squeeze_fds_array ();
+
+	int		get_client_position (int client_key) const;
 
 	// * debug
 
