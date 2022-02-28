@@ -1,6 +1,7 @@
 .vscode
 webserv
 *.sw[opmn]
+*.log
 
 *.dSYM
 
