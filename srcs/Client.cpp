@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/28 17:05:32 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/28 19:42:36 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -149,10 +149,10 @@ bool		Client::send_response (int sd_out)
 	if (rc < 0)
 	{
 		perror("  send() failed");
-		return (true);
+		return (false);
 	}
 	this->_response.clear();
-	return (false);
+	return (true);
 }
 
 void		Client::clean_cgi ()
@@ -164,7 +164,7 @@ void		Client::clean_cgi ()
 	}
 	if (_child > 0)
 	{
-		std::cout << "tue" << std::endl;
+		std::cout << "    tue " << _child << std::endl;
 		kill(_child, SIGTERM);
 		close(_webserv_pipe[1]);
 		_webserv_pipe[1] = -1;

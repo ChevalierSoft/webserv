@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/28 19:22:22 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/28 20:09:23 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -211,7 +211,7 @@ int				Server::remove_client (int i)
 	int		ret = 0;
 	int		j = 0;
 
-	std::cout << "  remove_client " << i << std::endl;
+	std::cout << "  remove_client " << _fds[i].fd << std::endl;
 	if (i > 0)
 	{
 		child_read_fd = _clients[_fds[i].fd].get_cgi_input_fd();
@@ -222,19 +222,20 @@ int				Server::remove_client (int i)
 			{
 				if (_fds[j].fd == child_read_fd)
 				{
-					std::cout << "removing child's fd [" << j << "] : " << _fds[j].fd << " from _fds." << std::endl;
+					std::cout << "  removing child's fd [" << j << "] : " << _fds[j].fd << " from _fds." << std::endl;
 					close(_fds[j].fd);
 					_fds[j].fd = -1;
 					_fds[j].events = 0;
 					_fds[j].revents = 0;
 					_listeners.erase(_fds[j].fd);
-					++ret;
+					if (j < i)
+						++ret;
 					break ;
 				}
 			}
 			if (j == _fds.size())
 			{
-				std::cout << "child fd not found" << std::endl;
+				std::cout << "  child fd not found" << std::endl;
 				exit(33);
 			}
 		}
@@ -279,8 +280,7 @@ bool			Server::record_client_input (const int &i)
 	if (_clients[_fds[i].fd].is_request_parsed() == true)
 	{
 		std::cout << "client's input already parsed" << std::endl;
-		// exit(80);
-		// remove_client(i);
+		exit(80);
 		if (_clients[_fds[i].fd].get_cgi_input_fd() != -1)
 		{
 			_listeners.erase(_clients[_fds[i].fd].get_cgi_input_fd());
@@ -298,6 +298,7 @@ bool			Server::record_client_input (const int &i)
 		}
 		_clients[_fds[i].fd].clean_cgi();
 		_clients[_fds[i].fd] = Client();
+		// remove_client(i);
 		// return (true);
 	}
 
@@ -533,7 +534,7 @@ bool			Server::server_poll_loop ()
 		// ? check if it's a new client
 		if (_fds[i].fd == _listen_sd)
 		{
-			if (_fds[i].events & POLLIN)
+			if (_fds[i].revents & POLLIN)
 				add_new_client();
 			else
 				return (false);
@@ -543,11 +544,15 @@ bool			Server::server_poll_loop ()
 		{
 			bool	close_conn = false;
 
-			if (_fds[i].events & POLLIN || _fds[i].events & POLLRDNORM  || _fds[i].events & POLLRDBAND || _fds[i].events & POLLPRI)
+			if (_fds[i].revents & POLLIN || _fds[i].revents & POLLRDNORM  || _fds[i].revents & POLLRDBAND || _fds[i].revents & POLLPRI)
 			{
 				if (is_client_fd(_fds[i].fd))
 				{
-					record_client_input(i);	// ? also adds a listener
+					if (_fds[i].revents & 0b000000000001)
+					{
+						std::cout << "POLLIN : " << POLLIN << std::endl;
+						record_client_input(i);	// ? also adds a listener
+					}
 				}
 				else	// ? it's a listener
 				{
@@ -587,7 +592,7 @@ bool			Server::server_poll_loop ()
 				}
 			}
 			// if (is_client_fd(_fds[i].fd) && _clients[_fds[i].fd].is_response_ready())
-			else if (_fds[i].events & POLLOUT)
+			else if (_fds[i].revents & POLLOUT)
 			{
 				if (is_client_fd(_fds[i].fd))
 				{
