@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/26 06:58:15 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/28 07:12:38 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -210,6 +210,7 @@ int				Server::remove_client (int i)
 				if (_fds[j].fd == child_read_fd)
 				{
 					std::cout << "removing child's fd [" << j << "] : " << _fds[j].fd << " from _fds." << std::endl;
+					close(_fds[j].fd);
 					_fds[j].fd = -1;
 					_fds[j].events = 0;
 					_fds[j].revents = 0;
@@ -226,7 +227,7 @@ int				Server::remove_client (int i)
 		}
 		close(_fds[i].fd);
 		_clients.erase(_fds[i].fd);
-		// _fds[i].fd = -1;
+		_fds[i].fd = -1;
 		_fds[i].events = POLLIN;
 		_fds[i].revents = 0;
 		++ret;
@@ -281,10 +282,12 @@ bool			Server::record_client_input (const int &i)
 		if (rc == -1 || rc == 0)	// ? error while reading or client closed the connection
 		{
 			std::cerr <<MAG<< "client closed the connection" <<RST<< std::endl;
-			close(_fds[i].fd);
-			_fds[i].fd = -1;
-			_fds[i].events = 0;
-			_fds[i].revents = 0;
+			
+			// close(_fds[i].fd);
+			// _fds[i].fd = -1;
+			// _fds[i].events = 0;
+			// _fds[i].revents = 0;
+			remove_client(i);
 			return (true);
 		}
 		// else if (rc == 0)
@@ -332,9 +335,10 @@ bool			Server::record_client_input (const int &i)
  */
 bool			Server::check_timed_out_client (const int i)
 {	
-	// std::cout << "check_timed_out_client [" << i << "] : " << _fds[i].fd << std::endl;
+	std::cout << "check_timed_out_client [" << i << "] : " << _fds[i].fd << std::endl;
 
-	if (is_client_fd(_fds[i].fd) && _clients[_fds[i].fd].is_timed_out() == true)
+	if (is_client_fd(_fds[i].fd) &&
+		(_clients[_fds[i].fd].is_timed_out() == true))
 	{
 		return (remove_client(i));
 	}
@@ -344,7 +348,7 @@ bool			Server::check_timed_out_client (const int i)
 
 bool			Server::is_client_fd (const int i) const
 {
-	// std::cout << CYN << "_clients.size : " << _clients.size() << RST << std::endl;
+	std::cout << CYN << "_clients.size : " << _clients.size() << RST << std::endl;
 
 	if (_clients.find(i) != _clients.end())
 	{
@@ -574,9 +578,8 @@ bool			Server::server_poll_loop ()
 
 							_clients[_fds[i].fd].clean_cgi();
 
-
-							_fds.erase(_fds.begin() + target_fd);
 							_listeners.erase(_fds[target_fd].fd);
+							_fds.erase(_fds.begin() + target_fd);
 
 						}
 						_clients[_fds[i].fd] = Client();
