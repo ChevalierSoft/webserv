@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/28 19:42:36 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/28 20:21:52 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -146,9 +146,10 @@ bool		Client::send_response (int sd_out)
 
 	std::cout << GRN << "  sending response" << RST << std::endl;
 	rc = send(sd_out, this->_response.c_str(), this->_response.size(), 0);
-	if (rc < 0)
+	if (rc <= 0)
 	{
 		perror("  send() failed");
+		exit(53);
 		return (false);
 	}
 	this->_response.clear();

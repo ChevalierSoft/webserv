@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/28 20:09:23 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/28 20:25:39 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -548,7 +548,7 @@ bool			Server::server_poll_loop ()
 			{
 				if (is_client_fd(_fds[i].fd))
 				{
-					if (_fds[i].revents & 0b000000000001)
+					if (_fds[i].revents & POLLIN)
 					{
 						std::cout << "POLLIN : " << POLLIN << std::endl;
 						record_client_input(i);	// ? also adds a listener
@@ -645,8 +645,10 @@ bool			Server::server_poll_loop ()
 				else
 				{
 					std::cout << YEL << "non client getting POLLOUT" <<RST<< std::endl;
+					exit(54);
+
 					int client_id = pipe_to_client(_fds[i].fd);
-					_response_generator.get_error_file(_clients[client_id], 502);
+					_response_generator.get_error_file(_clients[client_id], 500);
 					// _clients[client_id].send_response();
 
 					// remove_client(client_id);
@@ -660,6 +662,8 @@ bool			Server::server_poll_loop ()
 			else
 			{
 				std::cout << "not POLLIN and not POLLOUT" << std::endl;
+				std::cout << _fds[i].revents << std::endl;
+				exit(199);
 				if (is_client_fd(_fds[i].fd))
 				{
 					i -= remove_client(i);
