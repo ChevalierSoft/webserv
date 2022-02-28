@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/28 07:12:38 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/28 16:02:21 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -157,17 +157,18 @@ int				Server::init (const Conf& c)
  */
 bool			Server::add_new_client ()
 {
-	int					new_sd;
-	struct pollfd		tmp;
-	struct sockaddr_in	addr;
-	socklen_t			addr_size = sizeof(struct sockaddr_in);
+	int								new_sd;
+	struct pollfd					tmp;
+	struct sockaddr_in				addr;
+	socklen_t						addr_size = sizeof(struct sockaddr_in);
+	std::vector<pollfd>::iterator	it_used_before;
 
 	std::cout << "  Listening socket is readable\n";
 
 	new_sd = accept(_listen_sd, (struct sockaddr *)&addr, &addr_size);
 
-	// std::cout << "  New connection from : " << inet_ntoa(((addr)).sin_addr) << std::endl;
-	// std::cout << "  on port : " << htons((addr).sin_port) << std::endl;
+	// * std::cout << "  New connection from : " << inet_ntoa(((addr)).sin_addr) << std::endl;
+	// * std::cout << "  on port : " << htons((addr).sin_port) << std::endl;
 
 	if (new_sd < 0)
 	{
@@ -176,6 +177,18 @@ bool			Server::add_new_client ()
 	}
 
 	std::cout << YEL << "  New incoming connection on fd : " << RED << new_sd << RST << std::endl;
+
+	// ? in case the file descriptor was already in use waiting to send the response,
+	// ? and got invalid during that process. so we remove the previous iteration and add the new one
+	for (int k = 1; k < _fds.size(); ++k)
+	{
+		if (_fds[k].fd == new_sd)
+		{
+			std::cout << "CLIENT [" << k << "] " << _fds[k].fd << " IS BEING REPLACED" << std::endl;
+			remove_client(k);
+			break ;
+		}
+	}
 
 	tmp.fd = new_sd;
 	tmp.events = POLLIN;
@@ -266,9 +279,22 @@ bool			Server::record_client_input (const int &i)
 	if (_clients[_fds[i].fd].is_request_parsed() == true)
 	{
 		std::cout << "client's input already parsed" << std::endl;
-		// _fds[i].events = 0;
-		// _fds[i].revents = 0;
-		remove_client(i);
+		// remove_client(i);
+		if (_clients[_fds[i].fd].get_cgi_input_fd() != -1)
+		{
+			_listeners.erase(_clients[_fds[i].fd].get_cgi_input_fd());
+			close(_clients[_fds[i].fd].get_cgi_input_fd());
+			for (int k = 1; k < _fds.size(); ++k)
+			{
+				if (_fds[k].fd == _clients[_fds[i].fd].get_cgi_input_fd())
+				{
+					_fds.erase(_fds.begin() + k);
+					break ;
+				}
+			}
+		}
+		_clients[_fds[i].fd].clean_cgi();
+		_clients[_fds[i].fd] = Client();
 		return (true);
 	}
 
@@ -282,11 +308,6 @@ bool			Server::record_client_input (const int &i)
 		if (rc == -1 || rc == 0)	// ? error while reading or client closed the connection
 		{
 			std::cerr <<MAG<< "client closed the connection" <<RST<< std::endl;
-			
-			// close(_fds[i].fd);
-			// _fds[i].fd = -1;
-			// _fds[i].events = 0;
-			// _fds[i].revents = 0;
 			remove_client(i);
 			return (true);
 		}
@@ -348,7 +369,7 @@ bool			Server::check_timed_out_client (const int i)
 
 bool			Server::is_client_fd (const int i) const
 {
-	std::cout << CYN << "_clients.size : " << _clients.size() << RST << std::endl;
+	// std::cout << CYN << "_clients.size : " << _clients.size() << RST << std::endl;
 
 	if (_clients.find(i) != _clients.end())
 	{

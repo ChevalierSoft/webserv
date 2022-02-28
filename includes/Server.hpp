@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 04:55:39 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/24 08:21:36 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/02/28 09:21:48 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,7 +49,7 @@ private:
 	std::map<int, Client>			_clients;
 	ResponseGenerator				_response_generator;
 
-	std::map<int, int>	_listeners;
+	std::map<int, int>	_listeners;		// key : client id, value : function to trigger
 
 public:
 	Conf							_conf;
