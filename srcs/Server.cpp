@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/03/01 14:46:30 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/03/01 14:51:57 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -563,7 +563,7 @@ bool			Server::server_poll_loop ()
 					{
 						// std::cout << "  response ready" << std::endl;
 
-						if (_clients[_fds[i].fd].send_response(_fds[i].fd))
+						if (_clients[_fds[i].fd].send_response(_fds[i].fd) == false)
 							i -= remove_client(i);
 						else
 						{
