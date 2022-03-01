@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/03/01 12:21:16 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/03/01 14:01:07 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -268,7 +268,7 @@ void				ResponseGenerator::start_cgi (Client & client, std::string cgi_url, std:
 	// TODO : clean memory / close pipes.
 	// TODO : send back a 500
 
-	throw (ServerExeption());
+	// throw (ServerExeption());
 
 	// std::cerr << CYN << "execve_failed" << std::endl;
 	exit(66);
@@ -281,6 +281,7 @@ void				ResponseGenerator::listen_cgi (Client & client) const
 	std::string					page_header;
 	char						buff[CGI_BUFF_SIZE];
 	int							cgi_header_size;
+	bool						death_check = true;
 
 	// __DEB("listen_cgi")
 
@@ -290,6 +291,15 @@ void				ResponseGenerator::listen_cgi (Client & client) const
 
 	while (1)
 	{
+		if (death_check && waitpid(-1, &client._child, WNOHANG))
+		{
+			client._child = -1;
+			// close(client._webserv_pipe[0]);
+			close(client._webserv_pipe[1]);
+			close(client._cgi_pipe[0]);
+			close(client._cgi_pipe[1]);
+			death_check = false;
+		}
 		if (WIFEXITED(client._child) && WEXITSTATUS(client._child) != 0)
 		{
 			get_error_file(client, 500);
@@ -376,7 +386,7 @@ int		term_for_child = false;
 int*	g_w[2];
 int*	g_c[2];
 
-static inline
+static
 void	sig_child_term(int sig)
 {
 	std::cout << "ServerExeption" << std::endl;
@@ -452,7 +462,8 @@ void				ResponseGenerator::cgi_handling (Client & client) const
 	}
 	else if (!client._child)
 	{
-		signal(SIGTERM, &sig_child_term);
+		// signal(SIGTERM, &sig_child_term);
+		// signal(SIGKILL, &sig_child_term);
 		this->start_cgi(client, client._cgi->second, client._request._path);
 	}
 
