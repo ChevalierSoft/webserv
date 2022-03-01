@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 00:54:13 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/24 05:00:28 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/03/01 14:43:00 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,26 +80,26 @@ public:
 
 	/// * Member function ______________________________________________________
 
-	Client&	operator= (const Client& copy);
+	Client&		operator= (const Client& copy);
 
-	void	parse_response ();
+	void		parse_response ();
 
-	bool	send_response (int sd_out);
+	bool		send_response (int sd_out);
 
-	void	clean_cgi ();
+	void		clean_cgi ();
 
-	void	update ();
+	void		update ();
 
-	bool	is_timed_out () const;
+	bool		is_timed_out () const;
 
-	void	add_input_buffer (const char *buffer, int len);
+	void		add_input_buffer (const char *buffer, int len);
 
-	bool	is_request_parsed () const;
+	bool		is_request_parsed () const;
 
-	bool	is_response_ready () const;
+	bool		is_response_ready () const;
 
 	e_preforms	get_performing_state() const;
 
-	int		get_cgi_input_fd() const;
+	int			get_cgi_input_fd() const;
 
 }; // * ________________________________________________________________________

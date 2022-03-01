@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/03/01 13:20:29 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/03/01 14:46:30 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -132,7 +132,6 @@ int				Server::init (const Conf& c)
 		return (2);
 	}
 	// ? Set _listen_sd (and incoming accepted sockets from it) to be nonblocking
-	// rc = ioctl(_listen_sd, FIONBIO, (char *)&on);
 	rc = fcntl(_listen_sd, F_SETFL, O_NONBLOCK);
 	if (rc < 0)
 	{
@@ -144,8 +143,7 @@ int				Server::init (const Conf& c)
 	// ? Bind the socket
 	if (this->socket_bind() == false)
 		return (4);
-	
-	// std::cout << "ready to listen on port " << _conf._hosts.begin()->second << std::endl;
+
 	return (0);
 }
 
@@ -163,7 +161,7 @@ bool			Server::add_new_client ()
 	socklen_t						addr_size = sizeof(struct sockaddr_in);
 	std::vector<pollfd>::iterator	it_used_before;
 
-	std::cout << "  Listening socket is readable\n";
+	// std::cout << "  Listening socket is readable\n";
 
 	new_sd = accept(_listen_sd, (struct sockaddr *)&addr, &addr_size);
 
@@ -176,7 +174,7 @@ bool			Server::add_new_client ()
 		return (false);
 	}
 
-	std::cout << "  New incoming connection on fd : " << new_sd << std::endl;
+	// std::cout << "  New incoming connection on fd : " << new_sd << std::endl;
 
 	// ? in case the file descriptor was already in use waiting to send the response,
 	// ? and got invalid during that process. so we remove the previous iteration and add the new one
@@ -197,6 +195,8 @@ bool			Server::add_new_client ()
 
 	_clients[new_sd] = Client(&this->_conf, inet_ntoa((addr).sin_addr), ft_to_string(htons((addr).sin_port)));
 
+	// std::cout << "new client : " << std::endl;
+
 	return (true);
 }
 
@@ -212,7 +212,7 @@ int				Server::remove_client (int i)
 	int		j = 0;
 	bool	_listener_fd_found = false;
 
-	std::cout << "  remove_client " << _fds[i].fd << std::endl;
+	// std::cout << "  remove_client " << _fds[i].fd << std::endl;
 	if (i > 0)
 	{
 		child_read_fd = _clients[_fds[i].fd].get_cgi_input_fd();
@@ -223,7 +223,7 @@ int				Server::remove_client (int i)
 			{
 				if (_fds[j].fd == child_read_fd)
 				{
-					std::cout << "  removing child's fd [" << j << "] : " << _fds[j].fd << " from _fds." << std::endl;
+					// std::cout << "  removing child's fd [" << j << "] : " << _fds[j].fd << " from _fds." << std::endl;
 					_listener_fd_found = true;
 					close(_fds[j].fd);
 					_fds[j].fd = -1;
@@ -254,16 +254,15 @@ int				Server::remove_client (int i)
 
 void			Server::add_cgi_listener(const int i)
 {
-	std::cout << "  add_cgi_listener " << i << " " << _fds[i].fd << std::endl;
+	// std::cout << "  add_cgi_listener " << i << " " << _fds[i].fd << std::endl;
 	pollfd	tmp;
 
 	tmp.fd = _clients[_fds[i].fd].get_cgi_input_fd();
-	std::cout <<"  _clients[_fds[i].fd].get_cgi_input_fd() : " << _clients[_fds[i].fd].get_cgi_input_fd() << std::endl;
+	// std::cout <<"  _clients[_fds[i].fd].get_cgi_input_fd() : " << _clients[_fds[i].fd].get_cgi_input_fd() << std::endl;
 
 	tmp.events = POLLIN;
 	tmp.revents = 0;
 	_fds.push_back(tmp);
-	// _clients[_fds[i].fd].set_cgi_input_position(_fds.size() - 1);
 }
 
 #include "ft_print_memory.hpp"
@@ -276,13 +275,12 @@ bool			Server::record_client_input (const int &i)
 	bool	close_conn = 0;
 	int		rc;
 
-	// usleep(1000);
-
-	std::cout << "record_client_input " << i << " " << _fds[i].fd << std::endl;
+	// std::cout << "record_client_input " << i << " " << _fds[i].fd << std::endl;
 
 	if (_clients[_fds[i].fd].is_request_parsed() == true)
 	{
-		std::cout << "client's input already parsed" << std::endl;
+		// std::cout << "client's input already parsed" << std::endl;
+
 		// exit(80);
 		// if (_clients[_fds[i].fd].get_cgi_input_fd() != -1)
 		// {
@@ -308,9 +306,9 @@ bool			Server::record_client_input (const int &i)
 	// while (1)
 	{
 		memset(buffer, 0, REQUEST_BUFFER_SIZE);
-		rc = recv(_fds[i].fd, buffer, sizeof(buffer) - 1, 0); // MSG_DONTWAIT | MSG_ERRQUEUE);	// ? errors number can be checked with the flag MSG_ERRQUEUE (man recv)
+		rc = recv(_fds[i].fd, buffer, sizeof(buffer) - 1, 0);
 
-		std::cout << "rc : " << rc << std::endl;
+		// std::cout << "rc : " << rc << std::endl;
 
 		if (rc == -1 || rc == 0)	// ? error while reading or client closed the connection
 		{
@@ -346,11 +344,10 @@ bool			Server::record_client_input (const int &i)
 			_listeners[_clients[_fds[i].fd].get_cgi_input_fd()] = 1;
 			break;
 		default:
-			std::cout << "FF_READY" << std::endl;
+			// std::cout << "FF_READY" << std::endl;
 			_listeners[_clients[_fds[i].fd].get_cgi_input_fd()] = 2;
 			break;
 		}
-
 	}
 
 	return (false);
@@ -361,27 +358,18 @@ bool			Server::record_client_input (const int &i)
  */
 bool			Server::check_timed_out_client (const int i)
 {
-	std::cout << "check_timed_out_client [" << i << "] : " << _fds[i].fd << std::endl;
+	// std::cout << "check_timed_out_client [" << i << "] : " << _fds[i].fd << std::endl;
 
-	if (is_client_fd(_fds[i].fd) &&
-		(_clients[_fds[i].fd].is_timed_out() == true))
-	{
+	if (is_client_fd(_fds[i].fd) && _clients[_fds[i].fd].is_timed_out() == true)
 		return (remove_client(i));
-	}
 	return (0);
 }
 
 
 bool			Server::is_client_fd (const int i) const
 {
-	// std::cout << "_clients.size : " << _clients.size() << std::endl;
-
 	if (_clients.find(i) != _clients.end())
-	{
-		// std::cout << MAG << "is_client_fd " << i << " is true" << std::endl;
 		return (true);
-	}
-	// std::cout << MAG << "is_client_fd " << i << " is false" << std::endl;
 	return (false);
 }
 
@@ -403,7 +391,7 @@ int				Server::get_client_position (int client_key) const
 			return (k);
 	}
 	
-	std::cout << "get_client_positione returned -1" << std::endl;
+	std::cout << "get_client_position returned -1" << std::endl;
 	exit(92);
 
 	return (-1);
@@ -420,15 +408,14 @@ void			Server::set_client_event_to_flag (int client_id, int flag)
 	}
 	if (target_fd == _fds.size())
 	{
-		std::cout << "Error : client_id " << client_id << " not found in _fds" << std::endl;
+		// std::cout << "Error : client_id " << client_id << " not found in _fds" << std::endl;
 		aff_fds();
 		aff_clients();
 		exit(404);
 	}
-	std::cout << "client_id : " << client_id << " -> target_fd : " << target_fd << std::endl;
+	// std::cout << "client_id : " << client_id << " -> target_fd : " << target_fd << std::endl;
 
 	_fds[target_fd].events = flag;
-	// _fds[target_fd].revents = POLLOUT;
 }
 
 
@@ -450,11 +437,11 @@ bool			Server::server_poll_loop ()
 	bool				need_cleaning = 0;
 
 
-	std::cout << "Waiting on poll()...\n";
+	// std::cout << "Waiting on poll()...\n";
 	rc = poll(&_fds.front(), _fds.size(), TIMEOUT);
 
-	aff_clients();
-	aff_fds();
+	// aff_clients();
+	// aff_fds();
 	
 	if (rc < 0)
 	{
@@ -494,9 +481,9 @@ bool			Server::server_poll_loop ()
 
 		if (_fds[i].fd == -1)
 		{
-			std::cout << "found _fds[i].fd == -1" << std::endl;
-			// _fds.erase(_fds.begin() + i);
-			// --i;
+			// std::cout << "found _fds[i].fd == -1" << std::endl;
+			_fds.erase(_fds.begin() + i);
+			--i;
 			continue ;
 		}
 
@@ -510,28 +497,8 @@ bool			Server::server_poll_loop ()
 			continue;
 		}
 
-		// if (!(_fds[i].events & POLLIN) || _fds[i].events & POLLOUT)
-		// {
-		// 	std::cout << "!= POLLIN && != POLLOUT" << std::endl;
-		// 	std::cout << _fds[i].events << " " << _fds[i].revents << std::endl;
-		// 	exit(99);
-		// 	if (i == 0)
-		// 		return (false);
-		// 	else if (is_client_fd(_fds[i].fd))
-		// 	{
-		// 		i -= remove_client(i);
-		// 	}
-		// 	else
-		// 	{
-		// 		_fds.erase(_fds.begin() + i);
-		// 		--i;
-		// 	}
-		// 	continue ;
-		// }
-
-		std::cout << "poll triggered by : " << _fds[i].fd << std::endl;
-		// std::cout << "poll triggered by : [" << i << "] : " << _fds[i].fd << std::endl;
-		std::cout << "events : " << _fds[i].events << " | revents : " << _fds[i].revents << std::endl;
+		// std::cout << "poll triggered by : " << _fds[i].fd << std::endl;
+		// std::cout << "events : " << _fds[i].events << " | revents : " << _fds[i].revents << std::endl;
 
 		// ? check if it's a new client
 		if (_fds[i].fd == _listen_sd)
@@ -555,7 +522,7 @@ bool			Server::server_poll_loop ()
 				}
 				else	// ? it's a listener
 				{
-					std::cout << "not a client" << std::endl;
+					// std::cout << "not a client" << std::endl;
 					int client_id = pipe_to_client(_fds[i].fd);
 
 					if (client_id == -1)
@@ -583,24 +550,18 @@ bool			Server::server_poll_loop ()
 						;
 
 					set_client_event_to_flag(client_id, POLLOUT);
-
-					// _clients[client_id].send_response(client_id);
-					// _listeners.erase(client_id);
-					// i -= remove_client(get_client_position(client_id));
-					// --i;
-
 				}
 			}
 			else if (_fds[i].revents & POLLOUT)
 			{
 				if (is_client_fd(_fds[i].fd))
 				{
-					std::cout << "  [" << i << "] : " << _fds[i].fd << std::endl;
-					std::cout <<"  _clients[_fds[i].fd].get_cgi_input_fd() : " << _clients[_fds[i].fd].get_cgi_input_fd() << std::endl;
+					// std::cout << "  [" << i << "] : " << _fds[i].fd << std::endl;
+					// std::cout <<"  _clients[_fds[i].fd].get_cgi_input_fd() : " << _clients[_fds[i].fd].get_cgi_input_fd() << std::endl;
 
 					if (_clients[_fds[i].fd].is_response_ready())
 					{
-						std::cout << "  response ready" << std::endl;
+						// std::cout << "  response ready" << std::endl;
 
 						if (_clients[_fds[i].fd].send_response(_fds[i].fd))
 							i -= remove_client(i);
@@ -621,7 +582,7 @@ bool			Server::server_poll_loop ()
 									std::cout << "Error : target == _fds.size(). fd deleted before " << std::endl;
 									exit(188);
 								}
-								std::cout << "target_fd : " << target_fd << std::endl;
+								// std::cout << "target_fd : " << target_fd << std::endl;
 
 								_clients[_fds[i].fd].clean_cgi();
 
@@ -635,8 +596,8 @@ bool			Server::server_poll_loop ()
 						}
 
 					}
-					else
-						std::cout << "  response NOT ready" << std::endl;
+					// else
+						// std::cout << "  response NOT ready" << std::endl;
 				}
 				else
 				{
@@ -700,25 +661,10 @@ void			sig_handler(int sig)
 	return ;
 }
 
-void			aff_flag_values ()
-{
-	std::cout << "POLLIN : " << POLLIN << std::endl;
-	std::cout << "POLLPRI : " << POLLPRI << std::endl;
-	std::cout << "POLLOUT : " << POLLOUT << std::endl;
-	std::cout << "POLLRDHUP : " << POLLRDHUP << std::endl;
-	std::cout << "POLLERR : " << POLLERR << std::endl;
-	std::cout << "POLLHUP : " << POLLHUP << std::endl;
-	std::cout << "POLLNVAL : " << POLLNVAL << std::endl;
-	std::cout << "POLLRDNORM : " << POLLRDNORM << std::endl;
-	std::cout << "POLLRDBAND : " << POLLRDBAND << std::endl;
-	std::cout << "POLLWRNORM : " << POLLWRNORM << std::endl;
-	std::cout << "POLLWRBAND : " << POLLWRBAND << std::endl;
-}
-
 /**
  * @brief This function starts the Server
  * 
- * @return int returns 0 on success, else a error code is returned.
+ * @return int returns 0 on success, cant' fail.
  */
 int				Server::start ()
 {
@@ -727,7 +673,7 @@ int				Server::start ()
 
 	signal(SIGINT, &sig_handler);
 	signal(SIGQUIT, &sig_handler);
-	aff_flag_values();
+
 	// ? Set the listen back log (how many events at the same time)
 	err = listen(_listen_sd, BACK_LOG);
 	if (err < 0)
@@ -737,7 +683,7 @@ int				Server::start ()
 		return (5);
 	}
 
-	// ? Set up the initial listening socket
+	// ? Set the initial listening socket
 	tmp.fd = _listen_sd;
 	tmp.events = POLLIN;
 	tmp.revents = 4;
@@ -770,4 +716,19 @@ void			Server::aff_clients () const
 	std::cout << "nb clients : " << _clients.size() << std::endl;
 	for (auto cit = _clients.begin(); cit != _clients.end(); ++cit)
 		std::cout << cit->first << " : " << cit->second.get_cgi_input_fd() << std::endl;
+}
+
+void			aff_flag_values ()
+{
+	std::cout << "POLLIN : " << POLLIN << std::endl;
+	std::cout << "POLLPRI : " << POLLPRI << std::endl;
+	std::cout << "POLLOUT : " << POLLOUT << std::endl;
+	std::cout << "POLLRDHUP : " << POLLRDHUP << std::endl;
+	std::cout << "POLLERR : " << POLLERR << std::endl;
+	std::cout << "POLLHUP : " << POLLHUP << std::endl;
+	std::cout << "POLLNVAL : " << POLLNVAL << std::endl;
+	std::cout << "POLLRDNORM : " << POLLRDNORM << std::endl;
+	std::cout << "POLLRDBAND : " << POLLRDBAND << std::endl;
+	std::cout << "POLLWRNORM : " << POLLWRNORM << std::endl;
+	std::cout << "POLLWRBAND : " << POLLWRBAND << std::endl;
 }

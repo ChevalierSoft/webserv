@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/03/01 14:01:07 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/03/01 14:46:02 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -154,14 +154,14 @@ void				ResponseGenerator::listen_file (Client & client) const
 	char			a_tmp[FILE_BUFF_SIZE];
 	int				err;
 
-	std::cout << "    listen_file" << std::endl;
+	// std::cout << "    listen_file" << std::endl;
 
 	client._fast_forward = FF_GET_FILE;
 
 	while (1)
 	{
 		err = read(client._webserv_pipe[0], a_tmp, FILE_BUFF_SIZE);
-		std::cout << "err : " << err << std::endl;
+		// std::cout << "err : " << err << std::endl;
 		if (err < 0)
 			get_error_file(client, 500);
 		else if (err == 0 || err < FILE_BUFF_SIZE)
@@ -287,7 +287,7 @@ void				ResponseGenerator::listen_cgi (Client & client) const
 
 	client._fast_forward = FF_GET_CGI;
 
-	std::cout << "client.get_cgi_input_fd() : " << client.get_cgi_input_fd() << std::endl;
+	// std::cout << "client.get_cgi_input_fd() : " << client.get_cgi_input_fd() << std::endl;
 
 	while (1)
 	{
@@ -307,7 +307,7 @@ void				ResponseGenerator::listen_cgi (Client & client) const
 		}
 		memset(buff, 0, CGI_BUFF_SIZE);
 		err = read(client._webserv_pipe[0], buff, CGI_BUFF_SIZE);
-		std::cout << "err : " << err << std::endl;
+		// std::cout << "err : " << err << std::endl;
 		
 		if (err < 0)		// ? error while reading
 		{
@@ -405,7 +405,7 @@ void				ResponseGenerator::cgi_handling (Client & client) const
 {
 	std::string		response;
 
-	__DEB("cgi_handling")
+	// __DEB("cgi_handling")
 
 	if (pipe(client._cgi_pipe))
 	{
@@ -422,7 +422,7 @@ void				ResponseGenerator::cgi_handling (Client & client) const
 		return ;
 	}
 
-	std::cout << "cgi fd : " << client._webserv_pipe[0] << std::endl;
+	// std::cout << "cgi fd : " << client._webserv_pipe[0] << std::endl;
 
 	// ? set non blocking the read part of the pipe
 	if (fcntl(client._cgi_pipe[0], F_SETFL, O_NONBLOCK) < 0
@@ -467,7 +467,7 @@ void				ResponseGenerator::cgi_handling (Client & client) const
 		this->start_cgi(client, client._cgi->second, client._request._path);
 	}
 
-	std::cout << "    child : " << client._child << std::endl;
+	// std::cout << "    child : " << client._child << std::endl;
 
 	// close(client._webserv_pipe[1]);
 	// close(client._cgi_pipe[0]);

@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/03/01 14:06:33 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/03/01 14:38:10 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -144,7 +144,7 @@ bool		Client::send_response (int sd_out)
 {
 	int	rc;
 
-	std::cout << "    sending response" << std::endl;
+	// std::cout << "    sending response" << std::endl;
 	rc = send(sd_out, this->_response.c_str(), this->_response.size(), 0);
 	if (rc <= 0)
 	{
@@ -171,7 +171,7 @@ void		Client::clean_cgi ()
 		_cgi_pipe[0] = -1;
 		close(_cgi_pipe[1]);
 		_cgi_pipe[1] = -1;
-		std::cout << "    tue " << _child << std::endl;
+		// std::cout << "    tue " << _child << std::endl;
 		kill(_child, SIGTERM);
 		kill(_child, SIGKILL);
 		kill(_child, SIGINT);
@@ -185,7 +185,6 @@ void		Client::clean_cgi ()
 void		Client::update ()
 {
 	gettimeofday(&this->_life_time, NULL);
-	// _life_time = std::clock();
 }
 
 /**
@@ -199,14 +198,7 @@ bool		Client::is_timed_out () const
 	struct timeval	tv_now;
 	struct timezone	tv_zone;
 
-	// // TODO make this cleaner without gettimeofday
 	gettimeofday(&tv_now, &tv_zone);
-
-	// std::clock_t c_now = std::clock();
-	
-	// std::cout << (c_now - _life_time) / CLOCKS_PER_SEC << std::endl;
-
-	// if ((c_now - _life_time) / CLOCKS_PER_SEC > CLIENT_TIMEOUT)
 	if (tv_now.tv_sec - this->_life_time.tv_sec > CLIENT_TIMEOUT
 		|| (tv_now.tv_sec < this->_life_time.tv_sec && tv_now.tv_sec > CLIENT_TIMEOUT))
 		return (true);
