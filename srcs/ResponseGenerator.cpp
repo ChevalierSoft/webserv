@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/28 06:49:19 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/03/01 12:21:16 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -286,7 +286,7 @@ void				ResponseGenerator::listen_cgi (Client & client) const
 
 	client._fast_forward = FF_GET_CGI;
 
-	std::cout << CYN << "client.get_cgi_input_fd() : " << client.get_cgi_input_fd() <<RST<< std::endl;
+	std::cout << "client.get_cgi_input_fd() : " << client.get_cgi_input_fd() << std::endl;
 
 	while (1)
 	{
@@ -343,7 +343,7 @@ bool				ResponseGenerator::cgi_send_body (Client & client) const
 
 	if (client._request._method != "POST")
 	{
-		close(client._cgi_pipe[1]);
+		// close(client._cgi_pipe[1]);
 		client._body_sent = true;
 		return (false);
 	}
@@ -360,6 +360,7 @@ bool				ResponseGenerator::cgi_send_body (Client & client) const
 	}
 
 	close(client._cgi_pipe[1]);
+	client._cgi_pipe[1] = -1;
 
 	// TODO : if (cit == client._request.end_body())
 	// std::cerr << "body sent" << std::endl;
@@ -378,7 +379,7 @@ int*	g_c[2];
 static inline
 void	sig_child_term(int sig)
 {
-	std::cout << RED << "ServerExeption" << RST << std::endl;
+	std::cout << "ServerExeption" << std::endl;
 	close(*g_w[0]);
 	*g_w[0] = -1;
 	close(*g_w[1]);
@@ -411,7 +412,7 @@ void				ResponseGenerator::cgi_handling (Client & client) const
 		return ;
 	}
 
-	std::cout << RED << "cgi fd : " << client._webserv_pipe[0] << std::endl;
+	std::cout << "cgi fd : " << client._webserv_pipe[0] << std::endl;
 
 	// ? set non blocking the read part of the pipe
 	if (fcntl(client._cgi_pipe[0], F_SETFL, O_NONBLOCK) < 0
@@ -454,6 +455,8 @@ void				ResponseGenerator::cgi_handling (Client & client) const
 		signal(SIGTERM, &sig_child_term);
 		this->start_cgi(client, client._cgi->second, client._request._path);
 	}
+
+	std::cout << "    child : " << client._child << std::endl;
 
 	// close(client._webserv_pipe[1]);
 	// close(client._cgi_pipe[0]);

@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/28 20:21:52 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/03/01 12:25:37 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -144,11 +144,11 @@ bool		Client::send_response (int sd_out)
 {
 	int	rc;
 
-	std::cout << GRN << "  sending response" << RST << std::endl;
+	std::cout << "    sending response" << std::endl;
 	rc = send(sd_out, this->_response.c_str(), this->_response.size(), 0);
 	if (rc <= 0)
 	{
-		perror("  send() failed");
+		perror("    send() failed");
 		exit(53);
 		return (false);
 	}
@@ -167,13 +167,13 @@ void		Client::clean_cgi ()
 	{
 		std::cout << "    tue " << _child << std::endl;
 		kill(_child, SIGTERM);
+		_child = -1;
 		close(_webserv_pipe[1]);
 		_webserv_pipe[1] = -1;
 		close(_cgi_pipe[0]);
 		_cgi_pipe[0] = -1;
 		close(_cgi_pipe[1]);
 		_cgi_pipe[1] = -1;
-		_child = -1;
 	}
 }
 

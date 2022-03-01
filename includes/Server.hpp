@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 04:55:39 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/02/28 19:15:07 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/03/01 12:08:54 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,7 +82,7 @@ public:
 private:
 	bool	socket_bind ();
 
-	void	set_client_to_pollout (int i);
+	void	set_client_event_to_flag (int client_id, int flag);
 
 	bool	server_poll_loop ();
 
