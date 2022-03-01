@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/03/01 13:01:05 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/03/01 13:14:55 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -300,7 +300,7 @@ bool			Server::record_client_input (const int &i)
 		// 	}
 		// }
 		// _clients[_fds[i].fd].clean_cgi();
-		_clients[_fds[i].fd] = Client();
+		// _clients[_fds[i].fd] = Client();
 		remove_client(i);
 		return (true);
 	}
