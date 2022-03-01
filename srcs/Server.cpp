@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/03/01 13:14:55 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/03/01 13:20:29 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -601,9 +601,7 @@ bool			Server::server_poll_loop ()
 					if (_clients[_fds[i].fd].is_response_ready())
 					{
 						std::cout << "  response ready" << std::endl;
-						_clients[_fds[i].fd].send_response(_fds[i].fd);
-						i -= remove_client(i);
-/*
+
 						if (_clients[_fds[i].fd].send_response(_fds[i].fd))
 							i -= remove_client(i);
 						else
@@ -635,7 +633,7 @@ bool			Server::server_poll_loop ()
 							_fds[i].events = POLLIN;
 							_fds[i].revents = 0;
 						}
-*/
+
 					}
 					else
 						std::cout << "  response NOT ready" << std::endl;

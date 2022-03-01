@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/03/01 12:25:37 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/03/01 13:31:29 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -165,15 +165,16 @@ void		Client::clean_cgi ()
 	}
 	if (_child > 0)
 	{
-		std::cout << "    tue " << _child << std::endl;
-		kill(_child, SIGTERM);
-		_child = -1;
 		close(_webserv_pipe[1]);
 		_webserv_pipe[1] = -1;
 		close(_cgi_pipe[0]);
 		_cgi_pipe[0] = -1;
 		close(_cgi_pipe[1]);
 		_cgi_pipe[1] = -1;
+		std::cout << "    tue " << _child << std::endl;
+		// kill(_child, SIGTERM);
+		kill(_child, SIGKILL);
+		_child = -1;
 	}
 }
 
