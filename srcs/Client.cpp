@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/03/01 14:38:10 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/03/01 15:15:33 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,10 +17,9 @@
  * 
  */
 Client::Client ()
-: _response(""), _request_ready(false), _response_ready(false), _ip(), _port(), _body_sent(false),
+: _response(""), _request_ready(false), _response_ready(false), _ip(""), port(""), _body_sent(false),
 	_fast_forward(FF_NOT_SET), _request_parsed(false), _child(-1)
 {
-	_tmp_counter = 0;
 	gettimeofday(&_life_time, NULL);
 	_webserv_pipe[0] = -1;
 	_webserv_pipe[1] = -1;
@@ -33,10 +32,9 @@ Client::Client ()
  * 
  */
 Client::Client (const Conf* c, std::string ip, std::string port)
-: _response(""), _request_ready(false), _response_ready(false), _ip(ip), _port(port), _body_sent(false),
+: _response(""), _request_ready(false), _response_ready(false), _ip(ip), port(port), _body_sent(false),
 	_fast_forward(FF_NOT_SET), _request_parsed(false), _child(-1)
 {
-	_tmp_counter = 0;
 	gettimeofday(&_life_time, NULL);
 	_webserv_pipe[0] = -1;
 	_webserv_pipe[1] = -1;
@@ -79,14 +77,15 @@ Client&		Client::operator= (const Client& copy)
 		_request_ready = copy._request_ready;
 		_response_ready = copy._response_ready;
 		_life_time = copy._life_time;
-		_ip = copy._ip;
-		_port = copy._port;
+		if (copy._ip != "")
+		{
+			_ip = copy._ip;
+			port = copy.port;
+		}
 		_body_sent = copy._body_sent;
 		_fast_forward = copy._fast_forward;
 		_cgi = copy._cgi;
 		_child = copy._child;
-		// _input_file = copy._input_file;
-		_tmp_counter = copy._tmp_counter;
 		_request_parsed = copy._request_parsed;
 		_webserv_pipe[0] =  copy._webserv_pipe[0];
 		_webserv_pipe[1] =  copy._webserv_pipe[1];

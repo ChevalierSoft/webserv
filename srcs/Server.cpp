@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/03/01 14:51:57 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/03/01 15:16:15 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -195,7 +195,7 @@ bool			Server::add_new_client ()
 
 	_clients[new_sd] = Client(&this->_conf, inet_ntoa((addr).sin_addr), ft_to_string(htons((addr).sin_port)));
 
-	// std::cout << "new client : " << std::endl;
+	std::cout << "> " << inet_ntoa((addr).sin_addr) << ":" << ft_to_string(htons((addr).sin_port)) << std::endl;
 
 	return (true);
 }
@@ -212,6 +212,7 @@ int				Server::remove_client (int i)
 	int		j = 0;
 	bool	_listener_fd_found = false;
 
+	std::cout << "< " << _clients[_fds[i].fd]._ip << ":" << _clients[_fds[i].fd].port << std::endl;
 	// std::cout << "  remove_client " << _fds[i].fd << std::endl;
 	if (i > 0)
 	{
@@ -303,31 +304,23 @@ bool			Server::record_client_input (const int &i)
 		return (true);
 	}
 
-	// while (1)
+	memset(buffer, 0, REQUEST_BUFFER_SIZE);
+	rc = recv(_fds[i].fd, buffer, sizeof(buffer) - 1, 0);
+	// std::cout << "rc : " << rc << std::endl;
+
+	if (rc == -1 || rc == 0)	// ? error while reading or client closed the connection
 	{
-		memset(buffer, 0, REQUEST_BUFFER_SIZE);
-		rc = recv(_fds[i].fd, buffer, sizeof(buffer) - 1, 0);
-
-		// std::cout << "rc : " << rc << std::endl;
-
-		if (rc == -1 || rc == 0)	// ? error while reading or client closed the connection
-		{
-			std::cerr << "client closed the connection" << std::endl;
-			remove_client(i);
-			return (true);
-		}
-		// else if (rc == 0)
-			// break ;	// ! tout est lu ?
-
-		buffer[rc] = '\0';									// ? closing the char array
-		_clients[_fds[i].fd].update();
-		_clients[_fds[i].fd].add_input_buffer(buffer, rc);
-
-		// ft_print_memory((void *)buffer, rc);
-
-		_clients[_fds[i].fd].parse_response();
-
+		// std::cerr << "client closed the connection" << std::endl;
+		remove_client(i);
+		return (true);
 	}
+
+	buffer[rc] = '\0';									// ? closing the char array
+	_clients[_fds[i].fd].update();
+	_clients[_fds[i].fd].add_input_buffer(buffer, rc);
+
+	// ft_print_memory((void *)buffer, rc);
+	_clients[_fds[i].fd].parse_response();
 
 	if (_clients[_fds[i].fd].is_request_parsed() == true)
 	{
@@ -344,7 +337,6 @@ bool			Server::record_client_input (const int &i)
 			_listeners[_clients[_fds[i].fd].get_cgi_input_fd()] = 1;
 			break;
 		default:
-			// std::cout << "FF_READY" << std::endl;
 			_listeners[_clients[_fds[i].fd].get_cgi_input_fd()] = 2;
 			break;
 		}
@@ -439,7 +431,6 @@ bool			Server::server_poll_loop ()
 
 	// std::cout << "Waiting on poll()...\n";
 	rc = poll(&_fds.front(), _fds.size(), TIMEOUT);
-
 	// aff_clients();
 	// aff_fds();
 	
@@ -453,7 +444,7 @@ bool			Server::server_poll_loop ()
 	// ? Check to see if TIMEOUT is reached in poll
 	if (rc == 0)
 	{
-		std::cout << "  poll() timed out." << std::endl;
+		// std::cout << "  poll() timed out." << std::endl;
 		// aff_fds();
 		// aff_clients();
 		for (int i = 0; i < _fds.size(); ++i)
@@ -655,7 +646,7 @@ bool			Server::server_poll_loop ()
 	return (true);
 }
 
-void			sig_handler(int sig)
+void			sig_handler (int sig)
 {
 	run = false;
 	return ;

@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/03/01 14:46:02 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/03/01 15:15:30 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -204,7 +204,7 @@ void				ResponseGenerator::set_cgi_env (Client & client, std::string path, std::
 	s_envs.push_back("REDIRECT_STATUS=200");
 	s_envs.push_back("REQUEST_URI=" + client._request._path + "?" + client._request._get_query);
 	s_envs.push_back("REMOTE_ADDR=" + client._ip);
-	s_envs.push_back("REMOTE_PORT=" + client._port);
+	s_envs.push_back("REMOTE_PORT=" + client.port);
 	s_envs.push_back("SERVER_ADDR=" + this->_confs->at(client._request._conf_index)._hosts.begin()->first);
 	s_envs.push_back("SERVER_PORT=" + ft_to_string(this->_confs->at(client._request._conf_index)._hosts.begin()->second));
 	s_envs.push_back("REQUEST_SCHEME=http");
@@ -491,7 +491,7 @@ void				ResponseGenerator::cgi_handling (Client & client) const
 
 void				ResponseGenerator::file_handling (Client & client) const
 {
-	__DEB("file_handling")
+	// __DEB("file_handling")
 	client._webserv_pipe[0] = open((client._request._path).c_str(), O_RDONLY);
 	if (client._webserv_pipe[0] == -1)
 		get_error_file(client, 500);
