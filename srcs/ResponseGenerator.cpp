@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/03/01 15:15:30 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/03/02 09:39:27 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,6 +79,25 @@ std::string			ResponseGenerator::set_file_content_type (const std::string & exte
 	return (s_content_type);
 }
 
+std::string			cool_header ()
+{
+	std::string		ret("");
+	char			d_now[255];
+
+	// ? server name
+	ret = "server: 42|webserv\r\n";
+
+	// ? date
+	time_t		now = time(0);
+	tm			tm;
+	size_t		len;
+	gmtime_r(&now, &tm);
+	len = strftime(d_now, sizeof(d_now), "%a, %d %b %Y %H:%M:%S %Z", &tm);
+	ret	+= "date: " + std::string(d_now, len) + "\r\n";
+
+	return (ret);
+}
+
 std::string			ResponseGenerator::set_header (int err, std::string ext, size_t size) const
 {
 	std::string		s_header;
@@ -89,7 +108,8 @@ std::string			ResponseGenerator::set_header (int err, std::string ext, size_t si
 	}
 	else
 		s_header = "HTTP/1.1 " + ft_to_string(err) + " " + _ss_error_messages.find(err)->second + "\r\n";
-	s_header += "webser: 42\r\n";								// TODO : set a cool header
+
+	s_header += cool_header();
 	s_header += this->set_file_content_type(ext);
 	s_header += "Content-Length: ";
 	s_header += ft_to_string(size);
@@ -331,11 +351,9 @@ void				ResponseGenerator::listen_cgi (Client & client) const
 	
 	client._response_ready = true;
 
-	// close(client._webserv_pipe[0]);
-
 	// ? adding the first part of the header
 	page_header = "HTTP/1.1 200 OK\r\n";
-	page_header += "Server: Webserv 42\r\n";	// TODO : set a cool header
+	page_header += cool_header();
 	page_header += "Content-Length: ";
 	cgi_header_size = client._response.find("\r\n\r\n");
 	if (cgi_header_size == std::string::npos)
