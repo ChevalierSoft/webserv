@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/03/02 10:14:49 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/03/02 10:50:35 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,6 @@ Server::Server (const Conf& c)
  */
 Server::~Server ()
 {
-	std::cout << "~SERVER" << std::endl;
 	_clients.clear();
 	for (std::vector<struct pollfd>::iterator it = _fds.begin(); it != _fds.end(); ++it)
 	{
