@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/03/02 09:39:27 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/03/02 10:04:59 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -297,7 +297,6 @@ void				ResponseGenerator::start_cgi (Client & client, std::string cgi_url, std:
 void				ResponseGenerator::listen_cgi (Client & client) const
 {
 	int							err = 0;
-	int							wpid;
 	std::string					page_header;
 	char						buff[CGI_BUFF_SIZE];
 	int							cgi_header_size;
@@ -356,7 +355,7 @@ void				ResponseGenerator::listen_cgi (Client & client) const
 	page_header += cool_header();
 	page_header += "Content-Length: ";
 	cgi_header_size = client._response.find("\r\n\r\n");
-	if (cgi_header_size == std::string::npos)
+	if (cgi_header_size == -1)		// ? std::string::npos is c++11
 		page_header += "0\r\n";
 	else
 		page_header += ft_to_string(client._response.length() - (cgi_header_size + 4)) + "\r\n";
@@ -370,15 +369,10 @@ bool				ResponseGenerator::cgi_send_body (Client & client) const
 	int	err;
 
 	if (client._request._method != "POST")
-	{
-		// close(client._cgi_pipe[1]);
-		client._body_sent = true;
 		return (false);
-	}
 
 	// std::cerr << "sending body" << std::endl;
 
-	// TODO : when non blocking will be a thing, iterate piece by piece ?
 	for (std::vector<std::string>::const_iterator cit = client._request.begin_body();
 		cit != client._request.end_body(); ++cit)
 	{
@@ -390,14 +384,10 @@ bool				ResponseGenerator::cgi_send_body (Client & client) const
 	close(client._cgi_pipe[1]);
 	client._cgi_pipe[1] = -1;
 
-	// TODO : if (cit == client._request.end_body())
-	// std::cerr << "body sent" << std::endl;
-	client._body_sent = true;
-
 	return (false);
 }
 
-
+/*
 // ? this is ugly but it closes the child's io when it is kill by client closing the connexion
 int		term_for_child = false;
 
@@ -405,8 +395,9 @@ int*	g_w[2];
 int*	g_c[2];
 
 static
-void	sig_child_term(int sig)
+void	sig_child_term (int sig)
 {
+	(void)sig;
 	std::cout << "ServerExeption" << std::endl;
 	close(*g_w[0]);
 	*g_w[0] = -1;
@@ -418,6 +409,7 @@ void	sig_child_term(int sig)
 	*g_c[1] = -1;
 	throw (ServerExeption());
 }
+*/
 
 void				ResponseGenerator::cgi_handling (Client & client) const
 {
@@ -463,10 +455,10 @@ void				ResponseGenerator::cgi_handling (Client & client) const
 		return ;
 	}
 
-	g_w[0] = &client._webserv_pipe[0];
-	g_w[1] = &client._webserv_pipe[1];
-	g_c[0] = &client._cgi_pipe[0];
-	g_c[1] = &client._cgi_pipe[1];
+	// g_w[0] = &client._webserv_pipe[0];
+	// g_w[1] = &client._webserv_pipe[1];
+	// g_c[0] = &client._cgi_pipe[0];
+	// g_c[1] = &client._cgi_pipe[1];
 
 	client._child = fork();
 	if (client._child < 0)
@@ -490,15 +482,12 @@ void				ResponseGenerator::cgi_handling (Client & client) const
 	// close(client._webserv_pipe[1]);
 	// close(client._cgi_pipe[0]);
 
-	if (client._body_sent == false)
-	{
-		if (cgi_send_body(client))
-		{
-			get_error_file(client, 500);
-			return ;
-		}
-	}
 
+	if (cgi_send_body(client))
+	{
+		get_error_file(client, 500);
+		return ;
+	}
 
 	// listen_cgi(client, client._cgi->second);
 
@@ -709,7 +698,7 @@ void				ResponseGenerator::set_conf_index(Client &client) const {
 
 void 				ResponseGenerator::parse_request_route(Client &client) const{
 	const char					sep = '/';
-	int							found  = 0;
+	size_t						found  = 0;
 	std::string					file = std::string();
 	std::string					location;
 	Conf::route_list			routes(_confs->at(client._request._conf_index)._routes);

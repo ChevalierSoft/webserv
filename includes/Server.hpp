@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 04:55:39 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/03/01 12:08:54 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/03/02 10:08:58 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,19 +86,19 @@ private:
 
 	bool	server_poll_loop ();
 
-	bool	is_client_fd (const int i) const;
+	bool	is_client_fd (const size_t i) const;
 
 	bool	add_new_client ();
 
-	void	add_cgi_listener (const int i);
+	void	add_cgi_listener (const size_t i);
 
 	int		pipe_to_client (int fd);
 
-	bool	record_client_input (const int &i);
+	bool	record_client_input (const size_t &i);
 
-	bool	check_timed_out_client (const int i);
+	bool	check_timed_out_client (const size_t i);
 
-	int		remove_client (int i);
+	int		remove_client (size_t i);
 
 	void	squeeze_fds_array ();
 

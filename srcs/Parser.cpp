@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Parser.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ljurdant <ljurdant@student.42.fr>          +#+  +:+       +#+        */
+/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/11 13:56:49 by ljurdant          #+#    #+#             */
-/*   Updated: 2022/02/17 15:42:34 by ljurdant         ###   ########.fr       */
+/*   Updated: 2022/03/02 10:01:41 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -204,8 +204,6 @@ bool	is_whitespace (const char c) {
 }
 
 std::string	Parser::remove_whitespaces(std::string s) {
-	size_t      found;
-
 	std::string::iterator end_pos = std::remove_if(s.begin(), s.end(), is_whitespace);
 	s.erase(end_pos, s.end());
 	return (s);

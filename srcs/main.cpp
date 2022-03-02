@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/10 15:11:11 by ljurdant          #+#    #+#             */
-/*   Updated: 2022/02/24 10:52:37 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/03/02 10:01:27 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 
 void	sig_join(int sig)
 {
+	(void)sig;
 	signal(SIGINT, &sig_join);
 	signal(SIGQUIT, &sig_join);
 	// signal(SIGTERM, &sig_join);
@@ -47,7 +48,7 @@ int main(int argc, char **argv)
 		for (Parser::conf_list::iterator it = p._hosts.begin(); it != p._hosts.end(); it++)
 			pthread_create(&threads[it - p._hosts.begin()], NULL, routine, static_cast<void *>(get_confs(*it, p._confs)));
 	}
-	for (int i = 0; i < p._hosts.size(); i++)
+	for (size_t i = 0; i < p._hosts.size(); i++)
 	{
 		signal(SIGINT, &sig_join);
 		signal(SIGQUIT, &sig_join);

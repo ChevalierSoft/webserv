@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/03/01 15:16:15 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/03/02 10:14:49 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -178,7 +178,7 @@ bool			Server::add_new_client ()
 
 	// ? in case the file descriptor was already in use waiting to send the response,
 	// ? and got invalid during that process. so we remove the previous iteration and add the new one
-	for (int k = 1; k < _fds.size(); ++k)
+	for (std::vector<int>::size_type k = 1; k < _fds.size(); ++k)
 	{
 		if (_fds[k].fd == new_sd)
 		{
@@ -193,7 +193,7 @@ bool			Server::add_new_client ()
 	tmp.revents = 0;
 	_fds.push_back(tmp);
 
-	_clients[new_sd] = Client(&this->_conf, inet_ntoa((addr).sin_addr), ft_to_string(htons((addr).sin_port)));
+	_clients[new_sd] = Client(inet_ntoa((addr).sin_addr), ft_to_string(htons((addr).sin_port)));
 
 	std::cout << "> " << inet_ntoa((addr).sin_addr) << ":" << ft_to_string(htons((addr).sin_port)) << std::endl;
 
@@ -205,12 +205,12 @@ bool			Server::add_new_client ()
  * 
  * @param i Index from server_poll_loop's for loop.
  */
-int				Server::remove_client (int i)
+int				Server::remove_client (size_t i)
 {
-	int		child_read_fd;
-	int		ret = 0;
-	int		j = 0;
-	bool	_listener_fd_found = false;
+	int							child_read_fd;
+	int							ret = 0;
+	std::vector<int>::size_type	j = 0;
+	bool						_listener_fd_found = false;
 
 	std::cout << "< " << _clients[_fds[i].fd]._ip << ":" << _clients[_fds[i].fd].port << std::endl;
 	// std::cout << "  remove_client " << _fds[i].fd << std::endl;
@@ -253,7 +253,7 @@ int				Server::remove_client (int i)
 	return (ret);
 }
 
-void			Server::add_cgi_listener(const int i)
+void			Server::add_cgi_listener(const size_t i)
 {
 	// std::cout << "  add_cgi_listener " << i << " " << _fds[i].fd << std::endl;
 	pollfd	tmp;
@@ -270,10 +270,9 @@ void			Server::add_cgi_listener(const int i)
 
 void	*ft_print_memory(void *addr, size_t size);
 
-bool			Server::record_client_input (const int &i)
+bool			Server::record_client_input (const size_t &i)
 {
 	char	buffer[REQUEST_BUFFER_SIZE];
-	bool	close_conn = 0;
 	int		rc;
 
 	// std::cout << "record_client_input " << i << " " << _fds[i].fd << std::endl;
@@ -348,7 +347,7 @@ bool			Server::record_client_input (const int &i)
 /**
  * @brief Kick out a client if there _life_time is too long.
  */
-bool			Server::check_timed_out_client (const int i)
+bool			Server::check_timed_out_client (const size_t i)
 {
 	// std::cout << "check_timed_out_client [" << i << "] : " << _fds[i].fd << std::endl;
 
@@ -358,7 +357,7 @@ bool			Server::check_timed_out_client (const int i)
 }
 
 
-bool			Server::is_client_fd (const int i) const
+bool			Server::is_client_fd (const size_t i) const
 {
 	if (_clients.find(i) != _clients.end())
 		return (true);
@@ -377,7 +376,7 @@ int				Server::pipe_to_client (int fd)
 
 int				Server::get_client_position (int client_key) const
 {
-	for (int k = 0; k < _fds.size(); ++k)
+	for (std::vector<int>::size_type k = 0; k < _fds.size(); ++k)
 	{
 		if (_fds[k].fd == client_key)
 			return (k);
@@ -391,7 +390,7 @@ int				Server::get_client_position (int client_key) const
 
 void			Server::set_client_event_to_flag (int client_id, int flag)
 {
-	int target_fd = 0;
+	std::vector<int>::size_type	target_fd = 0;
 
 	for (; target_fd < _fds.size(); ++target_fd)
 	{
@@ -426,8 +425,6 @@ void			Server::set_client_event_to_flag (int client_id, int flag)
 bool			Server::server_poll_loop ()
 {
 	int					rc;
-	bool				need_cleaning = 0;
-
 
 	// std::cout << "Waiting on poll()...\n";
 	rc = poll(&_fds.front(), _fds.size(), TIMEOUT);
@@ -447,16 +444,16 @@ bool			Server::server_poll_loop ()
 		// std::cout << "  poll() timed out." << std::endl;
 		// aff_fds();
 		// aff_clients();
-		for (int i = 0; i < _fds.size(); ++i)
+		for (std::vector<int>::size_type k = 0; k < _fds.size(); ++k)
 		{
-			if (is_client_fd(_fds[i].fd))
+			if (is_client_fd(_fds[k].fd))
 			{
-				i -= check_timed_out_client(i);
+				k -= check_timed_out_client(k);
 			}
-			else if (_fds[i].fd == -1)
+			else if (_fds[k].fd == -1)
 			{
-				_fds.erase(_fds.begin() + i);
-				--i;
+				_fds.erase(_fds.begin() + k);
+				--k;
 			}
 		}
 		return (true);
@@ -465,7 +462,7 @@ bool			Server::server_poll_loop ()
 	// ? Loop through to find the descriptors that returned
 	// ? POLLIN and determine whether it's the listening
 	// ? or the active connection.
-	for (int i = 0; i < _fds.size(); ++i)
+	for (std::vector<int>::size_type i = 0; i < _fds.size(); ++i)
 	{
 		if (i < 0)
 			i = 0;
@@ -502,8 +499,6 @@ bool			Server::server_poll_loop ()
 		// ? else the event was triggered by a pollfd that is already in _fds
 		else
 		{
-			bool	close_conn = false;
-
 			if (_fds[i].revents & (POLLIN | POLLRDNORM | POLLRDBAND | POLLPRI))
 			{
 				if (is_client_fd(_fds[i].fd))
@@ -562,7 +557,7 @@ bool			Server::server_poll_loop ()
 
 							if (input_fd != -1)
 							{
-								int target_fd = 0;
+								std::vector<int>::size_type target_fd = 0;
 								for (; target_fd < _fds.size(); ++target_fd)
 								{
 									if (_fds[target_fd].fd == input_fd)
@@ -637,7 +632,7 @@ bool			Server::server_poll_loop ()
 		}
 	}
 
-	for (int i = 1; i < _fds.size(); ++i)
+	for (std::vector<int>::size_type i = 1; i < _fds.size(); ++i)
 	{
 		if (_fds[i].fd == -1)
 			_fds.erase(_fds.begin() + i);
@@ -648,6 +643,7 @@ bool			Server::server_poll_loop ()
 
 void			sig_handler (int sig)
 {
+	(void)sig;
 	run = false;
 	return ;
 }
@@ -698,14 +694,14 @@ int				Server::start ()
 void			Server::aff_fds () const
 {
 	std::cout << "nb fds : " << _fds.size() << std::endl;
-	for (int i = 0; i < _fds.size(); ++i)
+	for (std::vector<int>::size_type i = 0; i < _fds.size(); ++i)
 		std::cout << i << " : " << _fds[i].fd << " e("<< _fds[i].events << ") r(" <<_fds[i].revents<< ")"<< std::endl;
 }
 
 void			Server::aff_clients () const
 {
 	std::cout << "nb clients : " << _clients.size() << std::endl;
-	for (auto cit = _clients.begin(); cit != _clients.end(); ++cit)
+	for (std::map<int, Client>::const_iterator cit = _clients.begin(); cit != _clients.end(); ++cit)
 		std::cout << cit->first << " : " << cit->second.get_cgi_input_fd() << std::endl;
 }
 

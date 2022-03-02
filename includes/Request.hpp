@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
+/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/09 16:44:09 by lpellier          #+#    #+#             */
-/*   Updated: 2022/02/10 12:53:22 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/03/02 10:20:01 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,7 @@ protected:
 	std::string							_buffer; // internal buffer to keep track of packets
 	size_t								_line_index; // index that lets me know current line in request
 	size_t								_body_index; // index that lets me know if body is fully read (compare to Content-Length)
-	int									_content_length;
+	long								_content_length;
 
 public:
 	std::string							_method; // from header first line
@@ -76,7 +76,7 @@ public:
 
 	int							update_body();
 
-	int							get_first_line(size_t found_newline);
+	int							get_first_line();
 
 	it_header					begin_header();
 	it_header					end_header();

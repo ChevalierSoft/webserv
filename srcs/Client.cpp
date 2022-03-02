@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/03/01 15:15:33 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/03/02 09:57:57 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,8 +17,8 @@
  * 
  */
 Client::Client ()
-: _response(""), _request_ready(false), _response_ready(false), _ip(""), port(""), _body_sent(false),
-	_fast_forward(FF_NOT_SET), _request_parsed(false), _child(-1)
+: _response(""), _request_ready(false), _response_ready(false),
+	_fast_forward(FF_NOT_SET), _request_parsed(false), _child(-1), _ip(""), port("")
 {
 	gettimeofday(&_life_time, NULL);
 	_webserv_pipe[0] = -1;
@@ -31,9 +31,9 @@ Client::Client ()
  * @brief Construct a new Client:: Client object with it's conf
  * 
  */
-Client::Client (const Conf* c, std::string ip, std::string port)
-: _response(""), _request_ready(false), _response_ready(false), _ip(ip), port(port), _body_sent(false),
-	_fast_forward(FF_NOT_SET), _request_parsed(false), _child(-1)
+Client::Client (std::string ip, std::string port)
+: _response(""), _request_ready(false), _response_ready(false),
+	_fast_forward(FF_NOT_SET), _request_parsed(false), _child(-1), _ip(ip), port(port)
 {
 	gettimeofday(&_life_time, NULL);
 	_webserv_pipe[0] = -1;
@@ -76,13 +76,12 @@ Client&		Client::operator= (const Client& copy)
 		_response = copy._response;
 		_request_ready = copy._request_ready;
 		_response_ready = copy._response_ready;
-		_life_time = copy._life_time;
 		if (copy._ip != "")
 		{
+			_life_time = copy._life_time;
 			_ip = copy._ip;
 			port = copy.port;
 		}
-		_body_sent = copy._body_sent;
 		_fast_forward = copy._fast_forward;
 		_cgi = copy._cgi;
 		_child = copy._child;

@@ -6,14 +6,14 @@
 #    By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2021/04/12 12:55:09 by dait-atm          #+#    #+#              #
-#    Updated: 2022/02/21 07:07:16 by dait-atm         ###   ########.fr        #
+#    Updated: 2022/03/02 10:34:20 by dait-atm         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME		= webserv
 
 CC			= clang++
-FLAGS		= -I$(INC_DIR) -std=c++98 -g  -pthread #-fsanitize=address #-Wall -Wextra -Werror
+FLAGS		= -I$(INC_DIR) -std=c++98 -pthread -Wall -Wextra -Werror
 
 SRC_DIR 	= srcs/
 OBJ_DIR		= objs/

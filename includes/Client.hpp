@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 00:54:13 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/03/01 15:15:29 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/03/02 09:58:12 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,14 +49,13 @@ private:
 	bool							_request_ready;			// will stop the reading to send o_msg's content
 	bool							_response_ready;
 	struct timeval					_life_time;				// will be updated every event. after CLIENT_TIMEOUT the client is erased and the connection is closed
-	bool							_body_sent;
 	int								_webserv_pipe[2];
 	int								_cgi_pipe[2];
 	e_preforms						_fast_forward;
+	bool							_request_parsed;
 	pid_t							_child;
 	Route::cgi_list::const_iterator	_cgi;
 	std::ifstream					_input_file;
-	bool							_request_parsed;
 	std::vector<std::string>		s_envs;
 
 public:
@@ -69,8 +68,8 @@ public:
 	// ? (1) default. should not be used without beeing set
 	Client ();
 
-	// ? (2) with server's config, client ip and client port
-	Client  (const Conf* c, std::string ip, std::string port);
+	// ? (2) with client ip and client port
+	Client  (std::string ip, std::string port);
 
 	// ? (3) by copy
 	Client (const Client & copy);

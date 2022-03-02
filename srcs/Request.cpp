@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
+/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/09 14:56:13 by lpellier          #+#    #+#             */
-/*   Updated: 2022/02/10 16:26:44 by lpellier         ###   ########.fr       */
+/*   Updated: 2022/03/02 10:28:28 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -104,7 +104,7 @@ std::vector<std::string>	Request::split_values(std::string::const_iterator _begi
  */
 Request::value_type	Request::split_buffer(std::string str) {
 	Request::value_type	ret;
-	int found;
+	size_t found;
 
 	if ((found = str.find(":")) != str.npos)
 		ret = value_type(std::string(str.begin(), str.begin() + found), std::string(str.begin() + found + 2, str.end()));
@@ -168,7 +168,7 @@ int		Request::update_header() {
 
 	found_newline = _buffer.find("\r\n");
 	if (_line_index == 0 && found_newline != _buffer.npos && found_newline > 0)
-		return (get_first_line(found_newline));
+		return (get_first_line());
 	else if (found_newline != _buffer.npos && found_newline > 0) {
 		new_str = std::string(_buffer.begin(), _buffer.begin() + found_newline);
 		if (!valid_header(new_str)) {
@@ -215,16 +215,16 @@ void	Request::clear() {
  * @return 0 otherwise
  */
 int		Request::update_body() {
-	int			found_newline;
+	size_t		found_newline;
 	std::string	new_str;
 
 	found_newline = _buffer.find("\r\n");
 	if (_content_length != -1) {
-		if (_buffer.size() > _content_length) {
+		if (_buffer.size() > static_cast<size_t>(_content_length)) {
 			_error = DIFF_CONTENT_LENGTH;
 			return (2);
 		}
-		else if (_buffer.size() == _content_length) {
+		else if (_buffer.size() == static_cast<size_t>(_content_length)) {
 			new_str = std::string(_buffer.begin(), _buffer.begin() + _content_length);
 			_body.push_back(new_str);
 			_buffer.erase(new_str.size());
@@ -245,7 +245,7 @@ int		Request::update_body() {
 	return (0);
 }
 
-int			Request::get_first_line(size_t found_newline) {
+int			Request::get_first_line() {
 	while (_buffer.size() > 0 && std::isspace(_buffer.at(0)))
 		_buffer.erase(0, 1);
 	if (_buffer.find("GET") == 0)
@@ -391,7 +391,7 @@ int		Request::is_upload(const Conf & conf) {
 	size_t		found_bound = ct.find("boundary=");
 	struct stat	s;
 	
-	if (_method == "POST" && found_ct != -1 && found_bound != -1) {
+	if (_method == "POST" && found_ct != std::string::npos && found_bound != std::string::npos) {
 		if (conf._upload_path != std::string() && !stat(conf._upload_path.c_str(), &s)) {
 			if (s.st_mode & S_IFDIR && s.st_mode & S_IWOTH && s.st_mode & S_IXOTH)
 				return 0;
@@ -410,7 +410,7 @@ bool	Request::upload_to_server(const Conf & conf) {
 	std::string	boundary(find_header("Content-Type"));
 	size_t		found_bound = boundary.find("boundary=");
 	size_t		found_info;
-	size_t		content_length = _content_length;
+	// * size_t		content_length = _content_length;	// ?
 	
 	// ? Find boundary for the file contents
 	boundary.erase(0, found_bound + 9);
@@ -421,18 +421,18 @@ bool	Request::upload_to_server(const Conf & conf) {
 	else
 		return (false);
 	// ? Skip mime types and get filename
-	if (file_content.find("Content-Disposition") != -1 && (found_info = file_content.find("filename=")) != -1) {
+	if (file_content.find("Content-Disposition") != std::string::npos && (found_info = file_content.find("filename=")) != std::string::npos) {
 		filename = std::string(file_content, found_info + 10);
 		file_content.erase(0, found_info + 10);
 		found_info = filename.find("\"");
 		filename.erase(found_info, filename.size() - found_info);
 		file_content.erase(0, filename.size() + 3);
 	}
-	if (file_content.find("Content-Type") != -1 && (found_info = file_content.find("\r\n")) != -1) {
+	if (file_content.find("Content-Type") != std::string::npos && (found_info = file_content.find("\r\n")) != std::string::npos) {
 		file_content.erase(0, found_info + 4);
 	}
 	// ? Get file contents until final boundary with extra "--"
-	if ((found_info = file_content.find(boundary)) != -1) {
+	if ((found_info = file_content.find(boundary)) != std::string::npos) {
 		file_content.erase(found_info, boundary.size() + 4);
 	}
 	else

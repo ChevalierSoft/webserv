@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_print_memory.cpp                                :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ljurdant <ljurdant@student.42.fr>          +#+  +:+       +#+        */
+/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/11 13:55:06 by ljurdant          #+#    #+#             */
-/*   Updated: 2022/02/11 13:55:09 by ljurdant         ###   ########.fr       */
+/*   Updated: 2022/03/02 10:00:16 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,9 +15,9 @@
 static
 void	ft_pm_print_color(std::string &mem, const char *color, std::string content)
 {
-	mem += FTPM_BBLU;
-	mem += ".";
-	mem += FTPM_BBLK;
+	mem += color;
+	mem += content;
+	mem += color;
 }
 
 static

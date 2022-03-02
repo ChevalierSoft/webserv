@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Route.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ljurdant <ljurdant@student.42.fr>          +#+  +:+       +#+        */
+/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/11 13:57:02 by ljurdant          #+#    #+#             */
-/*   Updated: 2022/02/17 15:46:25 by ljurdant         ###   ########.fr       */
+/*   Updated: 2022/03/02 10:06:10 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,12 +15,12 @@
 Route::Route():
 _path(path_type()), 
 _methods(method_list()), 
+_default_file(std::string()),
 _dir_listing(-1), 
 _upload_path(path_type()), 
 _cgis(cgi_list()),
 _client_body_size(size_type()),
 _error_message(std::string()), 
-_default_file(std::string()),
 _err(0){
 
 }
