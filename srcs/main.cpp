@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/10 15:11:11 by ljurdant          #+#    #+#             */
-/*   Updated: 2022/03/02 10:01:27 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/03/02 10:48:18 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,8 +17,6 @@ void	sig_join(int sig)
 	(void)sig;
 	signal(SIGINT, &sig_join);
 	signal(SIGQUIT, &sig_join);
-	// signal(SIGTERM, &sig_join);
-	// std::cerr << "     " << sig << std::endl;
 	return ;
 }
 
@@ -26,7 +24,7 @@ int main(int argc, char **argv)
 {
 	int					*status;
 	int					err = 0;
-	std::string			conf_file("tst/conf/webserv.conf");
+	std::string			conf_file("resources/default.conf");
 	
 	if (argc == 2)
 		conf_file = argv[1];
@@ -44,7 +42,7 @@ int main(int argc, char **argv)
 	}
 	else
 	{
-		// ?? p._hosts -> one conf file per host:port
+		// ? p._hosts -> one conf file per host:port
 		for (Parser::conf_list::iterator it = p._hosts.begin(); it != p._hosts.end(); it++)
 			pthread_create(&threads[it - p._hosts.begin()], NULL, routine, static_cast<void *>(get_confs(*it, p._confs)));
 	}
@@ -52,7 +50,6 @@ int main(int argc, char **argv)
 	{
 		signal(SIGINT, &sig_join);
 		signal(SIGQUIT, &sig_join);
-		// signal(SIGTERM, &sig_join);
 		pthread_join(threads[i], reinterpret_cast<void **>(&status));
 		if (*status)
 		{
