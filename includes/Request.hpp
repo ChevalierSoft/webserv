@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ljurdant <ljurdant@student.42.fr>          +#+  +:+       +#+        */
+/*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/09 16:44:09 by lpellier          #+#    #+#             */
-/*   Updated: 2022/03/03 16:19:57 by ljurdant         ###   ########.fr       */
+/*   Updated: 2022/03/03 16:24:12 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,7 +53,7 @@ public:
 	
 	typedef std::pair<std::string, std::string>					value_type;
 	typedef std::map<std::string, std::string>::const_iterator	it_header;
-	typedef std::vector<std::string>::const_iterator							it_value;
+	typedef std::vector<std::string>::const_iterator			it_value;
 	
 	Request(void);
 	~Request(void);

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ljurdant <ljurdant@student.42.fr>          +#+  +:+       +#+        */
+/*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/09 14:56:13 by lpellier          #+#    #+#             */
-/*   Updated: 2022/03/03 16:20:12 by ljurdant         ###   ########.fr       */
+/*   Updated: 2022/03/03 16:25:17 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -115,27 +115,27 @@ bool		Request::valid_header(std::string str) {
 	std::string test = str;
 	size_t		found_info;
 
-	while (test.size() > 0 && std::isspace(test.at(0))) // skipping whitespaces
+	while (test.size() > 0 && std::isspace(test.at(0))) // ? skipping whitespaces
 		test.erase(0, 1);
-	while (test.size() > 0 && !std::isspace(test.at(0)) && test.at(0) != ':') // skipping key
+	while (test.size() > 0 && !std::isspace(test.at(0)) && test.at(0) != ':') // ? skipping key
 		test.erase(0, 1);
-	if ((found_info = test.find(":")) != 0) // if ':' is not attached to key, error
+	if ((found_info = test.find(":")) != 0) // ? if ':' is not attached to key, error
 		return false;
 	test.erase(0, 1);
-	while (test.size() > 0 && std::isspace(test.at(0))) // skipping whitespaces
+	while (test.size() > 0 && std::isspace(test.at(0))) // ? skipping whitespaces
 		test.erase(0, 1);
-	if (test.size() == 0) // if no value, error
+	if (test.size() == 0) // ? if no value, error
 		return false;
-	while (test.size() > 0 && !std::isspace(test.at(0))) // skipping value
+	while (test.size() > 0 && !std::isspace(test.at(0))) // ? skipping value
 		test.erase(0, 1);
-	while (!test.empty()) { // checking for multiple values preceded by a ','
+	while (!test.empty()) { // ? checking for multiple values preceded by a ','
 		if (test.size() > 0 && test.at(0) == ',')
 			test.erase(0, 1);
-		while (test.size() > 0 && std::isspace(test.at(0))) // skipping whitespaces
+		while (test.size() > 0 && std::isspace(test.at(0))) // ? skipping whitespaces
 			test.erase(0, 1);
-		if (test.size() == 0) // if no value, error
+		if (test.size() == 0) // ? if no value, error
 			return false;
-		while (test.size() > 0 && !std::isspace(test.at(0))) // skipping value
+		while (test.size() > 0 && !std::isspace(test.at(0))) // ? skipping value
 			test.erase(0, 1);
 	}
 	return true;
@@ -410,7 +410,6 @@ bool	Request::upload_to_server() {
 	std::string	boundary(find_header("Content-Type"));
 	size_t		found_bound = boundary.find("boundary=");
 	size_t		found_info;
-	// * size_t		content_length = _content_length;	// ?
 	
 	// ? Find boundary for the file contents
 	boundary.erase(0, found_bound + 9);
