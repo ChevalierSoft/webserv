@@ -6,7 +6,7 @@
 /*   By: ljurdant <ljurdant@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/03/03 14:35:14 by ljurdant         ###   ########.fr       */
+/*   Updated: 2022/03/03 14:41:08 by ljurdant         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -736,7 +736,7 @@ void 				ResponseGenerator::parse_request_route(Client &client) const{
 				if (*(client._request._path_raw.end() - 1) != '/')
 					client._request._redir = std::make_pair(301, client._request._path_raw+"/"+client._request._route._default_file);
 				else
-				client._request._redir = std::make_pair(301, client._request._path_raw+client._request._route._default_file);
+					client._request._redir = std::make_pair(301, client._request._path_raw+client._request._route._default_file);
 			}
 		}	
 	}
