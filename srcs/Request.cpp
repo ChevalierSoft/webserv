@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ljurdant <ljurdant@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/09 14:56:13 by lpellier          #+#    #+#             */
-/*   Updated: 2022/03/02 10:28:28 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/03/03 16:20:12 by ljurdant         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -385,14 +385,14 @@ bool	Request::not_printable(std::string str) {
 	return false;
 }
 
-int		Request::is_upload(const Conf & conf) {
+int		Request::is_upload() {
 	std::string	ct = find_header("Content-Type");
 	size_t		found_ct = ct.find("multipart/form-data");
 	size_t		found_bound = ct.find("boundary=");
 	struct stat	s;
 	
 	if (_method == "POST" && found_ct != std::string::npos && found_bound != std::string::npos) {
-		if (conf._upload_path != std::string() && !stat(conf._upload_path.c_str(), &s)) {
+		if (_route._upload_path != std::string() && !stat(_route._upload_path.c_str(), &s)) {
 			if (s.st_mode & S_IFDIR && s.st_mode & S_IWOTH && s.st_mode & S_IXOTH)
 				return 0;
 			else
@@ -404,7 +404,7 @@ int		Request::is_upload(const Conf & conf) {
 	return 3;
 }
 
-bool	Request::upload_to_server(const Conf & conf) {
+bool	Request::upload_to_server() {
 	std::string	filename("default_name");
 	std::string	file_content = *(_body.begin());
 	std::string	boundary(find_header("Content-Type"));
@@ -439,7 +439,7 @@ bool	Request::upload_to_server(const Conf & conf) {
 		return false;
 	file_content.erase(file_content.size() - 2, 2);
 
-	std::ofstream new_file((conf._upload_path + "/" + filename).c_str());
+	std::ofstream new_file((_route._upload_path + "/" + filename).c_str());
 	new_file << file_content;
 	new_file.close();
 	return (true);

@@ -6,7 +6,7 @@
 /*   By: ljurdant <ljurdant@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/03/03 14:41:08 by ljurdant         ###   ########.fr       */
+/*   Updated: 2022/03/03 16:20:48 by ljurdant         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -517,7 +517,7 @@ void				ResponseGenerator::perform_method (Client & client) const
 	int			upload_error = 3;
 
 
-	if (!(upload_error = client._request.is_upload(_confs->at(client._request._conf_index))) && client._request.upload_to_server(_confs->at(client._request._conf_index)))
+	if (!(upload_error = client._request.is_upload()) && client._request.upload_to_server())
 		return (get_error_file(client, 204)); // no content to output
 	else if (upload_error == 1) // if upload folder exists but doesnt have the rights to create a file
 		return (get_error_file(client, 404));
