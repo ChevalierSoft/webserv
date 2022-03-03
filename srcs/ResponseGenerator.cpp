@@ -6,7 +6,7 @@
 /*   By: ljurdant <ljurdant@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/03/03 16:23:21 by ljurdant         ###   ########.fr       */
+/*   Updated: 2022/03/03 16:59:24 by ljurdant         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -416,7 +416,12 @@ void				ResponseGenerator::cgi_handling (Client & client) const
 	std::string		response;
 
 	// __DEB("cgi_handling")
-
+	struct stat	s;
+	if (stat(client._cgi->second.c_str(), &s))
+	{
+		get_error_file(client, 500);
+		return ;
+	}		
 	if (pipe(client._cgi_pipe))
 	{
 		__DEB("                    FIRST PIPE FAILED")
