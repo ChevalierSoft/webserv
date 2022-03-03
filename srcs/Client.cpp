@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 04:37:45 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/03/03 05:06:05 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/03/03 16:19:27 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -142,8 +142,6 @@ bool		Client::send_response (int sd_out)
 {
 	int	rc;
 
-	// std::cout << "    sending response" << std::endl;
-	// std::cout << _response << std::endl;
 	rc = send(sd_out, this->_response.c_str(), this->_response.size(), 0);
 	if (rc <= 0)
 	{
