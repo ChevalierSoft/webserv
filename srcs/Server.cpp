@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/03/03 05:06:21 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/03/03 06:09:29 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -278,26 +278,6 @@ bool			Server::record_client_input (const size_t &i)
 
 	if (_clients[_fds[i].fd].is_request_parsed() == true)
 	{
-		// std::cout << "client's input already parsed" << std::endl;
-
-		// exit(80);
-		// if (_clients[_fds[i].fd].get_cgi_input_fd() != -1)
-		// {
-		// 	_listeners.erase(_clients[_fds[i].fd].get_cgi_input_fd());
-		// 	close(_clients[_fds[i].fd].get_cgi_input_fd());
-		// 	// _fds.erase(_fds.begin() + get_client_position(_clients[_fds[i].fd].get_cgi_input_fd()));
-
-		// 	for (int k = 1; k < _fds.size(); ++k)
-		// 	{
-		// 		if (_fds[k].fd == _clients[_fds[i].fd].get_cgi_input_fd())
-		// 		{
-		// 			_fds.erase(_fds.begin() + k);
-		// 			break ;
-		// 		}
-		// 	}
-		// }
-		// _clients[_fds[i].fd].clean_cgi();
-		// _clients[_fds[i].fd] = Client();
 		remove_client(i);
 		return (true);
 	}
@@ -351,7 +331,6 @@ bool			Server::record_client_input (const size_t &i)
 bool			Server::check_timed_out_client (const size_t i)
 {
 	// std::cout << "check_timed_out_client [" << i << "] : " << _fds[i].fd << std::endl;
-
 	if (is_client_fd(_fds[i].fd) && _clients[_fds[i].fd].is_timed_out() == true)
 		return (remove_client(i));
 	return (0);
@@ -661,7 +640,7 @@ int				Server::start ()
 	// ? Set the initial listening socket
 	tmp.fd = _listen_sd;
 	tmp.events = POLLIN;
-	tmp.revents = 4;
+	tmp.revents = 0;
 	_fds.push_back(tmp);
 
 	try
