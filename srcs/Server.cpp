@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/03/02 10:50:35 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/03/03 04:50:02 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -317,7 +317,7 @@ bool			Server::record_client_input (const size_t &i)
 	_clients[_fds[i].fd].update();
 	_clients[_fds[i].fd].add_input_buffer(buffer, rc);
 
-	// ft_print_memory((void *)buffer, rc);
+	ft_print_memory((void *)buffer, rc);
 	_clients[_fds[i].fd].parse_response();
 
 	if (_clients[_fds[i].fd].is_request_parsed() == true)
@@ -335,7 +335,9 @@ bool			Server::record_client_input (const size_t &i)
 			_listeners[_clients[_fds[i].fd].get_cgi_input_fd()] = 1;
 			break;
 		default:
+			__DEB("_listeners : 2")
 			_listeners[_clients[_fds[i].fd].get_cgi_input_fd()] = 2;
+			set_client_event_to_flag(_fds[i].fd, POLLOUT);
 			break;
 		}
 	}
@@ -425,10 +427,10 @@ bool			Server::server_poll_loop ()
 {
 	int					rc;
 
-	// std::cout << "Waiting on poll()...\n";
+	std::cout << "Waiting on poll()...\n";
 	rc = poll(&_fds.front(), _fds.size(), TIMEOUT);
-	// aff_clients();
-	// aff_fds();
+	aff_clients();
+	aff_fds();
 	
 	if (rc < 0)
 	{
@@ -547,8 +549,8 @@ bool			Server::server_poll_loop ()
 					if (_clients[_fds[i].fd].is_response_ready())
 					{
 						// std::cout << "  response ready" << std::endl;
-
-						if (_clients[_fds[i].fd].send_response(_fds[i].fd) == false)
+						if (_clients[_fds[i].fd].send_response(_fds[i].fd) == false
+							|| _clients[_fds[i].fd].get_performing_state() == FF_REDIRECT)
 							i -= remove_client(i);
 						else
 						{
@@ -568,21 +570,17 @@ bool			Server::server_poll_loop ()
 									exit(188);
 								}
 								// std::cout << "target_fd : " << target_fd << std::endl;
-
 								_clients[_fds[i].fd].clean_cgi();
-
-								_listeners.erase(_fds[target_fd].fd);
 								_fds.erase(_fds.begin() + target_fd);
-
 							}
+							_listeners.erase(_fds[i].fd);
 							_clients[_fds[i].fd] = Client();
 							_fds[i].events = POLLIN;
 							_fds[i].revents = 0;
 						}
-
 					}
 					// else
-						// std::cout << "  response NOT ready" << std::endl;
+					// 	std::cout << "  response NOT ready" << std::endl;
 				}
 				else
 				{

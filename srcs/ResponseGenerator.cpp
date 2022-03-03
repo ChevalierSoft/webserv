@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/03/02 10:04:59 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/03/03 04:47:29 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -528,7 +528,7 @@ void				ResponseGenerator::perform_method (Client & client) const
 	if (client._request._redir != Route::redir_type())
 	{
 		client._response += (get_redirection(client._request._redir));
-		client._fast_forward = FF_READY;
+		client._fast_forward = FF_REDIRECT;
 		client._response_ready = true;
 		return ;
 	}
@@ -642,14 +642,14 @@ bool				ResponseGenerator::generate (Client& client) const
 {
 	set_conf_index (client); //Setting conf index here
 
-	// __DEB("generate")
+	__DEB("generate")
 
 	int	error_code = client._request.request_error(_confs->at(client._request._conf_index));
 
 	if (error_code)
 	{
 		get_error_file(client, error_code);
-		return false;
+		return (false);
 	}
 	if (client._request_parsed == false)
 	{
@@ -658,14 +658,7 @@ bool				ResponseGenerator::generate (Client& client) const
 	}
 	// ? check which method should be called
 	if (is_method("GET", client._request) == 1 || is_method("POST", client._request) == 1)
-	{
-		// if (client._fast_forward == FF_NOT_SET)
-			this->perform_method(client);
-		// else if (client._fast_forward == FF_GET_FILE)
-		// 	listen_file(client);
-		// else if (client._fast_forward == FF_GET_CGI || client._fast_forward == FF_CGI_WAITING_TO_BE_IN__FDS)
-		// 	listen_cgi(client);
-	}
+		this->perform_method(client);
 	else if (is_method("DELETE", client._request) == 1)
 		this->perform_delete(client);
 	else if (is_method("GET", client._request) == 2 || is_method("POST", client._request) == 2|| is_method("DELETE", client._request) == 2)
