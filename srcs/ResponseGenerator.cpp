@@ -6,7 +6,7 @@
 /*   By: ljurdant <ljurdant@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/03/03 16:20:48 by ljurdant         ###   ########.fr       */
+/*   Updated: 2022/03/03 16:23:21 by ljurdant         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -533,8 +533,6 @@ void				ResponseGenerator::perform_method (Client & client) const
 		return ;
 	}
 
-	// std::cout << client._request._path << std::endl;
-
 	if (! stat((client._request._path).c_str(), &s))
 	{
 		if (s.st_mode & S_IFDIR)	// ? the requested path is a directory
@@ -561,10 +559,7 @@ void				ResponseGenerator::perform_method (Client & client) const
 				if (! client._input_file.good())
 					get_error_file(client, 403);
 				else
-				{
-					//listen_file(client);
 					file_handling(client);
-				}
 				client._input_file.close();
 			}
 		}
@@ -642,8 +637,7 @@ bool				ResponseGenerator::generate (Client& client) const
 {
 	int	error_code;
 
-	// __DEB("generate")
-	set_conf_index(client); //Setting conf index here
+	set_conf_index(client); // ? Setting conf index here
 
 	error_code = client._request.request_error(_confs->at(client._request._conf_index));
 	if (error_code)
@@ -697,7 +691,7 @@ void 				ResponseGenerator::parse_request_route(Client &client) const{
 	Conf::route_list			routes(_confs->at(client._request._conf_index)._routes);
 	
 	client._request._path_raw = client._request._path;
-	// Loop to find the route and set it to output request route
+	// ? Loop to find the route and set it to output request route
 
 	while (found <= client._request._path.size())
 	{
@@ -706,8 +700,6 @@ void 				ResponseGenerator::parse_request_route(Client &client) const{
 		for (Conf::route_list::iterator it = routes.begin(); it != routes.end(); it++)
 		{
 			location = client._request._path.substr(0,found);
-			// if (*(location.end() - 1) != '/')
-			// 	location+="/";
 			if (it->_path == location+"/")
 			{
 				client._request._route = *it;
@@ -719,14 +711,14 @@ void 				ResponseGenerator::parse_request_route(Client &client) const{
 		}
 		found++;
 	}
-	// once route is found, path is equal to the location + anything after the route name 
+	// ? once route is found, path is equal to the location + anything after the route name 
 	client._request._path = client._request._route._location+file;
-	// If file is directory, check for default file
+	// ? If file is directory, check for default file
 	if (is_directory(client._request._path))
 	{
 		if (*(client._request._path.end() - 1) != '/')
 			client._request._path+="/";
-		// Define redirection if there is a default file
+		// ? Define redirection if there is a default file
 		if (client._request._route._default_file != Route::file_type())
 		{
 			struct stat	s_file;
@@ -741,8 +733,7 @@ void 				ResponseGenerator::parse_request_route(Client &client) const{
 		}	
 	}
 
-	// If the inut_path is exactly the name of a route and this route has a redirection defined, add it
-
+	// ? If the input_path is exactly the name of a route and this route has a redirection defined, add it
 	if (client._request._route._redir != Route::redir_type() && client._request._path_raw == client._request._route._path)
 		client._request._redir = client._request._route._redir;
 }

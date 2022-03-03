@@ -6,7 +6,7 @@
 /*   By: ljurdant <ljurdant@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/11 13:56:00 by ljurdant          #+#    #+#             */
-/*   Updated: 2022/02/17 15:43:31 by ljurdant         ###   ########.fr       */
+/*   Updated: 2022/03/03 16:26:02 by ljurdant         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,6 @@ class Route {
 		cgi_list            _cgis;
 		size_type			_client_body_size;
 
-		// ? where is error type???????!!! <- flemme
 		std::string			_error_message;
 		bool				_err;
 

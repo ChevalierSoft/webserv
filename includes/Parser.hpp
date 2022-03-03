@@ -6,7 +6,7 @@
 /*   By: ljurdant <ljurdant@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/11 13:55:45 by ljurdant          #+#    #+#             */
-/*   Updated: 2022/02/11 13:55:47 by ljurdant         ###   ########.fr       */
+/*   Updated: 2022/03/03 16:25:54 by ljurdant         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,6 @@ class Parser {
         bool        two_indent(param_list params, std::string value);
         bool        three_indent(param_list params, std::string value);
 
-        // bool        is_whitespace (const char c);
         line_type   remove_whitespaces(line_type s);
 
         bool		set_error_message(std::string error_message);
