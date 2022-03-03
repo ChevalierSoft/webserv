@@ -6,7 +6,7 @@
 /*   By: ljurdant <ljurdant@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/03/03 16:59:24 by ljurdant         ###   ########.fr       */
+/*   Updated: 2022/03/03 17:01:56 by ljurdant         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -174,14 +174,11 @@ void				ResponseGenerator::listen_file (Client & client) const
 	char			a_tmp[FILE_BUFF_SIZE];
 	int				err;
 
-	// std::cout << "    listen_file" << std::endl;
-
 	client._fast_forward = FF_GET_FILE;
 
 	while (1)
 	{
 		err = read(client._webserv_pipe[0], a_tmp, FILE_BUFF_SIZE);
-		// std::cout << "err : " << err << std::endl;
 		if (err < 0)
 			get_error_file(client, 500);
 		else if (err == 0 || err < FILE_BUFF_SIZE)
@@ -198,7 +195,6 @@ void				ResponseGenerator::listen_file (Client & client) const
 
 void				ResponseGenerator::set_cgi_env (Client & client, std::string path, std::vector<std::string> & s_envs, std::vector<char *> & a_envs) const
 {
-	// TODO : this could be interesting to add env passed to main()
 	char	cwd[PATH_MAX];
 	
 	getcwd(cwd, sizeof(cwd));
@@ -211,9 +207,7 @@ void				ResponseGenerator::set_cgi_env (Client & client, std::string path, std::
 		s_envs.push_back("CONTENT_TYPE=" + client._request.find_header("Content-Type"));
 	}
 	else
-	{
 		s_envs.push_back("CONTENT_LENGTH=0");
-	}
 
 	s_envs.push_back("GATEWAY_INTERFACE=CGI/1.1");
 	s_envs.push_back("REQUEST_METHOD=" + client._request._method);
@@ -235,8 +229,6 @@ void				ResponseGenerator::set_cgi_env (Client & client, std::string path, std::
 	s_envs.push_back("REQUEST_SCHEME=http");
 	s_envs.push_back("PATH_TRANSLATED=" + client._request._path);
 	s_envs.push_back("PATH_INFO=" + client._request._path);
-	// s_envs.push_back("CONTEXT_PREFIX=/`-bin/");
-	// CONTEXT_DOCUMENT_ROOT= // ? add a complete link
 	s_envs.push_back("AUTH_TYPE=BASIC");	// ? not needed
 
 	// ? this adds request's headers to env
@@ -285,12 +277,6 @@ void				ResponseGenerator::start_cgi (Client & client, std::string cgi_url, std:
 
 	execve(exe[0], exe, a_envs.data());
 
-	// TODO : clean memory / close pipes.
-	// TODO : send back a 500
-
-	// throw (ServerExeption());
-
-	// std::cerr << CYN << "execve_failed" << std::endl;
 	exit(66);
 }
 
@@ -302,18 +288,13 @@ void				ResponseGenerator::listen_cgi (Client & client) const
 	int							cgi_header_size;
 	bool						death_check = true;
 
-	// __DEB("listen_cgi")
-
 	client._fast_forward = FF_GET_CGI;
-
-	// std::cout << "client.get_cgi_input_fd() : " << client.get_cgi_input_fd() << std::endl;
 
 	while (1)
 	{
 		if (death_check && waitpid(-1, &client._child, WNOHANG))
 		{
 			client._child = -1;
-			// close(client._webserv_pipe[0]);
 			close(client._webserv_pipe[1]);
 			close(client._cgi_pipe[0]);
 			close(client._cgi_pipe[1]);
@@ -326,7 +307,6 @@ void				ResponseGenerator::listen_cgi (Client & client) const
 		}
 		memset(buff, 0, CGI_BUFF_SIZE);
 		err = read(client._webserv_pipe[0], buff, CGI_BUFF_SIZE);
-		// std::cout << "err : " << err << std::endl;
 		
 		if (err < 0)		// ? error while reading
 		{
@@ -342,12 +322,6 @@ void				ResponseGenerator::listen_cgi (Client & client) const
 		client._response += std::string(buff, err);
 	}
 
-	// if (WIFEXITED(client._child) && WEXITSTATUS(client._child) == 66)
-	// {
-	// 	get_error_file(client, 500);
-	// 	return ;
-	// }
-	
 	client._response_ready = true;
 
 	// ? adding the first part of the header
@@ -355,7 +329,7 @@ void				ResponseGenerator::listen_cgi (Client & client) const
 	page_header += cool_header();
 	page_header += "Content-Length: ";
 	cgi_header_size = client._response.find("\r\n\r\n");
-	if (cgi_header_size == -1)		// ? std::string::npos is c++11
+	if (cgi_header_size == -1)
 		page_header += "0\r\n";
 	else
 		page_header += ft_to_string(client._response.length() - (cgi_header_size + 4)) + "\r\n";
@@ -371,8 +345,6 @@ bool				ResponseGenerator::cgi_send_body (Client & client) const
 	if (client._request._method != "POST")
 		return (false);
 
-	// std::cerr << "sending body" << std::endl;
-
 	for (std::vector<std::string>::const_iterator cit = client._request.begin_body();
 		cit != client._request.end_body(); ++cit)
 	{
@@ -386,30 +358,6 @@ bool				ResponseGenerator::cgi_send_body (Client & client) const
 
 	return (false);
 }
-
-/*
-// ? this is ugly but it closes the child's io when it is kill by client closing the connexion
-int		term_for_child = false;
-
-int*	g_w[2];
-int*	g_c[2];
-
-static
-void	sig_child_term (int sig)
-{
-	(void)sig;
-	std::cout << "ServerExeption" << std::endl;
-	close(*g_w[0]);
-	*g_w[0] = -1;
-	close(*g_w[1]);
-	*g_w[1] = -1;
-	close(*g_c[0]);
-	*g_c[0] = -1;
-	close(*g_c[1]);
-	*g_c[1] = -1;
-	throw (ServerExeption());
-}
-*/
 
 void				ResponseGenerator::cgi_handling (Client & client) const
 {
@@ -437,8 +385,6 @@ void				ResponseGenerator::cgi_handling (Client & client) const
 		return ;
 	}
 
-	// std::cout << "cgi fd : " << client._webserv_pipe[0] << std::endl;
-
 	// ? set non blocking the read part of the pipe
 	if (fcntl(client._cgi_pipe[0], F_SETFL, O_NONBLOCK) < 0
 		|| fcntl(client._webserv_pipe[1], F_SETFL, O_NONBLOCK) < 0)
@@ -460,11 +406,6 @@ void				ResponseGenerator::cgi_handling (Client & client) const
 		return ;
 	}
 
-	// g_w[0] = &client._webserv_pipe[0];
-	// g_w[1] = &client._webserv_pipe[1];
-	// g_c[0] = &client._cgi_pipe[0];
-	// g_c[1] = &client._cgi_pipe[1];
-
 	client._child = fork();
 	if (client._child < 0)
 	{
@@ -476,25 +417,13 @@ void				ResponseGenerator::cgi_handling (Client & client) const
 		return ;
 	}
 	else if (!client._child)
-	{
-		// signal(SIGTERM, &sig_child_term);
-		// signal(SIGKILL, &sig_child_term);
 		this->start_cgi(client, client._cgi->second, client._request._path);
-	}
-
-	// std::cout << "    child : " << client._child << std::endl;
-
-	// close(client._webserv_pipe[1]);
-	// close(client._cgi_pipe[0]);
-
 
 	if (cgi_send_body(client))
 	{
 		get_error_file(client, 500);
 		return ;
 	}
-
-	// listen_cgi(client, client._cgi->second);
 
 	client._fast_forward = FF_CGI_WAITING_TO_BE_IN__FDS;
 
@@ -503,7 +432,6 @@ void				ResponseGenerator::cgi_handling (Client & client) const
 
 void				ResponseGenerator::file_handling (Client & client) const
 {
-	// __DEB("file_handling")
 	client._webserv_pipe[0] = open((client._request._path).c_str(), O_RDONLY);
 	if (client._webserv_pipe[0] == -1)
 		get_error_file(client, 500);
@@ -542,8 +470,7 @@ void				ResponseGenerator::perform_method (Client & client) const
 	{
 		if (s.st_mode & S_IFDIR)	// ? the requested path is a directory
 		{
-			// __DEB("S_IFDIR")
-			if (client._request._route._dir_listing) // check if directory listing is on
+			if (client._request._route._dir_listing) // ? check if directory listing is on
 			{
 				client._response += (directory_listing(client._request._path_raw, client._request._path));
 				client._response_ready = true;
@@ -553,7 +480,6 @@ void				ResponseGenerator::perform_method (Client & client) const
 		}
 		else if (s.st_mode & S_IFREG)	// ? the requested path is a file
 		{
-			// __DEB("S_IFREG")
 			client._cgi = client._request._route._cgis.find(get_file_extention((client._request._path)));
 			if (client._cgi != client._request._route._cgis.end())
 				cgi_handling(client);

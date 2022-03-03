@@ -6,7 +6,7 @@
 #    By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2021/04/12 12:55:09 by dait-atm          #+#    #+#              #
-#    Updated: 2022/03/02 10:34:20 by dait-atm         ###   ########.fr        #
+#    Updated: 2022/03/03 15:57:55 by dait-atm         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -25,16 +25,15 @@ SRCS_FILES	= \
 Client.cpp \
 Conf.cpp \
 directory_listing.cpp \
-ft_print_memory.cpp \
 main.cpp \
 Parser.cpp \
 ResponseGenerator.cpp \
+Request.cpp \
 Route.cpp \
 Server.cpp \
-Request.cpp \
 set_content_types.cpp \
-utils.cpp\
-threads.cpp
+threads.cpp \
+utils.cpp
 
 all: $(NAME)
 

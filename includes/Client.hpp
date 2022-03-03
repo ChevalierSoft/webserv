@@ -6,14 +6,13 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/07 00:54:13 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/03/03 04:46:18 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/03/03 16:09:32 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
 #include "webserv.hpp"
-#include <ctime>		// std::clock, CLOCKS_PER_SEC
 
 #define CLIENT_TIMEOUT 10 		// time (s) after which the client connection will be closed if there is no event
 

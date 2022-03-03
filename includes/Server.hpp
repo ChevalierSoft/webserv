@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 04:55:39 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/03/02 10:08:58 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/03/03 15:55:14 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,16 +21,9 @@
 
 class ServerExeption : public std::exception
 {
-	// std::string	msg;
 public:
-	// ServerExeption(const std::string & s) : msg(s) {}
-	// ServerExeption(const ServerExeption & copy) : msg(copy.msg)	{}
-	// // todo : add operator =
-	// virtual ~ServerExeption() {}
 	virtual const char* what() const throw ()
 	{
-		// return msg.c_str();
-		// return ("Child terminated before execve");
 		return ("CHILD TERMINATED BEFORE EXECVE");
 	}
 };
@@ -49,7 +42,7 @@ private:
 	std::map<int, Client>			_clients;
 	ResponseGenerator				_response_generator;
 
-	std::map<int, int>	_listeners;		// key : client id, value : function to trigger
+	std::map<int, int>				_listeners;		// ? key : client id, value : function to trigger
 
 public:
 	Conf							_conf;
