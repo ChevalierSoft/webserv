@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
+/*   By: lpellier <lpellier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/09 14:56:13 by lpellier          #+#    #+#             */
-/*   Updated: 2022/03/02 10:28:28 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/03/03 16:25:17 by lpellier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -115,27 +115,27 @@ bool		Request::valid_header(std::string str) {
 	std::string test = str;
 	size_t		found_info;
 
-	while (test.size() > 0 && std::isspace(test.at(0))) // skipping whitespaces
+	while (test.size() > 0 && std::isspace(test.at(0))) // ? skipping whitespaces
 		test.erase(0, 1);
-	while (test.size() > 0 && !std::isspace(test.at(0)) && test.at(0) != ':') // skipping key
+	while (test.size() > 0 && !std::isspace(test.at(0)) && test.at(0) != ':') // ? skipping key
 		test.erase(0, 1);
-	if ((found_info = test.find(":")) != 0) // if ':' is not attached to key, error
+	if ((found_info = test.find(":")) != 0) // ? if ':' is not attached to key, error
 		return false;
 	test.erase(0, 1);
-	while (test.size() > 0 && std::isspace(test.at(0))) // skipping whitespaces
+	while (test.size() > 0 && std::isspace(test.at(0))) // ? skipping whitespaces
 		test.erase(0, 1);
-	if (test.size() == 0) // if no value, error
+	if (test.size() == 0) // ? if no value, error
 		return false;
-	while (test.size() > 0 && !std::isspace(test.at(0))) // skipping value
+	while (test.size() > 0 && !std::isspace(test.at(0))) // ? skipping value
 		test.erase(0, 1);
-	while (!test.empty()) { // checking for multiple values preceded by a ','
+	while (!test.empty()) { // ? checking for multiple values preceded by a ','
 		if (test.size() > 0 && test.at(0) == ',')
 			test.erase(0, 1);
-		while (test.size() > 0 && std::isspace(test.at(0))) // skipping whitespaces
+		while (test.size() > 0 && std::isspace(test.at(0))) // ? skipping whitespaces
 			test.erase(0, 1);
-		if (test.size() == 0) // if no value, error
+		if (test.size() == 0) // ? if no value, error
 			return false;
-		while (test.size() > 0 && !std::isspace(test.at(0))) // skipping value
+		while (test.size() > 0 && !std::isspace(test.at(0))) // ? skipping value
 			test.erase(0, 1);
 	}
 	return true;
@@ -385,14 +385,14 @@ bool	Request::not_printable(std::string str) {
 	return false;
 }
 
-int		Request::is_upload(const Conf & conf) {
+int		Request::is_upload() {
 	std::string	ct = find_header("Content-Type");
 	size_t		found_ct = ct.find("multipart/form-data");
 	size_t		found_bound = ct.find("boundary=");
 	struct stat	s;
 	
 	if (_method == "POST" && found_ct != std::string::npos && found_bound != std::string::npos) {
-		if (conf._upload_path != std::string() && !stat(conf._upload_path.c_str(), &s)) {
+		if (_route._upload_path != std::string() && !stat(_route._upload_path.c_str(), &s)) {
 			if (s.st_mode & S_IFDIR && s.st_mode & S_IWOTH && s.st_mode & S_IXOTH)
 				return 0;
 			else
@@ -404,13 +404,12 @@ int		Request::is_upload(const Conf & conf) {
 	return 3;
 }
 
-bool	Request::upload_to_server(const Conf & conf) {
+bool	Request::upload_to_server() {
 	std::string	filename("default_name");
 	std::string	file_content = *(_body.begin());
 	std::string	boundary(find_header("Content-Type"));
 	size_t		found_bound = boundary.find("boundary=");
 	size_t		found_info;
-	// * size_t		content_length = _content_length;	// ?
 	
 	// ? Find boundary for the file contents
 	boundary.erase(0, found_bound + 9);
@@ -439,7 +438,7 @@ bool	Request::upload_to_server(const Conf & conf) {
 		return false;
 	file_content.erase(file_content.size() - 2, 2);
 
-	std::ofstream new_file((conf._upload_path + "/" + filename).c_str());
+	std::ofstream new_file((_route._upload_path + "/" + filename).c_str());
 	new_file << file_content;
 	new_file.close();
 	return (true);

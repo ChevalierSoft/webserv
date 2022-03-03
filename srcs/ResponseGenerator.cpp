@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/03/03 16:33:56 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/03/03 16:40:12 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -443,7 +443,7 @@ void				ResponseGenerator::perform_method (Client & client) const
 	int			upload_error = 3;
 
 
-	if (!(upload_error = client._request.is_upload(_confs->at(client._request._conf_index))) && client._request.upload_to_server(_confs->at(client._request._conf_index)))
+	if (!(upload_error = client._request.is_upload()) && client._request.upload_to_server())
 		return (get_error_file(client, 204)); // no content to output
 	else if (upload_error == 1) // if upload folder exists but doesnt have the rights to create a file
 		return (get_error_file(client, 404));
@@ -561,7 +561,7 @@ bool				ResponseGenerator::generate (Client& client) const
 {
 	int	error_code;
 
-	set_conf_index(client); //? Setting conf index here
+	set_conf_index(client); // ? Setting conf index here
 
 	error_code = client._request.request_error(_confs->at(client._request._conf_index));
 	if (error_code)
@@ -615,7 +615,7 @@ void 				ResponseGenerator::parse_request_route(Client &client) const{
 	Conf::route_list			routes(_confs->at(client._request._conf_index)._routes);
 	
 	client._request._path_raw = client._request._path;
-	// Loop to find the route and set it to output request route
+	// ? Loop to find the route and set it to output request route
 
 	while (found <= client._request._path.size())
 	{
@@ -624,8 +624,6 @@ void 				ResponseGenerator::parse_request_route(Client &client) const{
 		for (Conf::route_list::iterator it = routes.begin(); it != routes.end(); it++)
 		{
 			location = client._request._path.substr(0,found);
-			// if (*(location.end() - 1) != '/')
-			// 	location+="/";
 			if (it->_path == location+"/")
 			{
 				client._request._route = *it;
@@ -637,25 +635,29 @@ void 				ResponseGenerator::parse_request_route(Client &client) const{
 		}
 		found++;
 	}
-	// once route is found, path is equal to the location + anything after the route name 
+	// ? once route is found, path is equal to the location + anything after the route name 
 	client._request._path = client._request._route._location+file;
-	// If file is directory, check for default file
+	// ? If file is directory, check for default file
 	if (is_directory(client._request._path))
 	{
 		if (*(client._request._path.end() - 1) != '/')
 			client._request._path+="/";
-		// Define redirection if there is a default file
+		// ? Define redirection if there is a default file
 		if (client._request._route._default_file != Route::file_type())
 		{
-			if (*(client._request._path_raw.end() - 1) != '/')
-				client._request._redir = std::make_pair(301, client._request._path_raw+"/"+client._request._route._default_file);
-			else
-				client._request._redir = std::make_pair(301, client._request._path_raw+client._request._route._default_file);
+			struct stat	s_file;
+			std::string default_path = client._request._path + client._request._route._default_file;
+			if (! stat((default_path).c_str(), &s_file))
+			{
+				if (*(client._request._path_raw.end() - 1) != '/')
+					client._request._redir = std::make_pair(301, client._request._path_raw+"/"+client._request._route._default_file);
+				else
+					client._request._redir = std::make_pair(301, client._request._path_raw+client._request._route._default_file);
+			}
 		}	
 	}
 
-	// If the inut_path is exactly the name of a route and this route has a redirection defined, add it
-
+	// ? If the input_path is exactly the name of a route and this route has a redirection defined, add it
 	if (client._request._route._redir != Route::redir_type() && client._request._path_raw == client._request._route._path)
 		client._request._redir = client._request._route._redir;
 }
