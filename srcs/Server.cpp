@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/03/03 16:52:49 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/03/03 17:32:33 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -565,14 +565,4 @@ int				Server::start ()
 	_clients.clear();
 
 	return (0);
-}
-
-void			Server::aff_fds () const
-{
-	for (std::vector<int>::size_type i = 0; i < _fds.size(); ++i)
-}
-
-void			Server::aff_clients () const
-{
-	for (std::map<int, Client>::const_iterator cit = _clients.begin(); cit != _clients.end(); ++cit)
 }

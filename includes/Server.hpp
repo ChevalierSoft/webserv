@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 04:55:39 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/03/03 15:55:14 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/03/03 17:32:39 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,12 +96,6 @@ private:
 	void	squeeze_fds_array ();
 
 	int		get_client_position (int client_key) const;
-
-	// * debug
-
-	void	aff_fds() const;
-
-	void	aff_clients() const;
 
 }; // * ________________________________________________________________________
 
