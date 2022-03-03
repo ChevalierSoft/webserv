@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/21 11:28:08 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/03/03 04:47:29 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/03/03 05:04:53 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -640,12 +640,12 @@ int					ResponseGenerator::is_method(std::string method, Request const &rq) cons
 
 bool				ResponseGenerator::generate (Client& client) const
 {
-	set_conf_index (client); //Setting conf index here
+	int	error_code;
 
-	__DEB("generate")
+	// __DEB("generate")
+	set_conf_index(client); //Setting conf index here
 
-	int	error_code = client._request.request_error(_confs->at(client._request._conf_index));
-
+	error_code = client._request.request_error(_confs->at(client._request._conf_index));
 	if (error_code)
 	{
 		get_error_file(client, error_code);

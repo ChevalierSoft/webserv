@@ -6,7 +6,7 @@
 /*   By: dait-atm <dait-atm@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/03 06:25:14 by dait-atm          #+#    #+#             */
-/*   Updated: 2022/03/03 04:50:02 by dait-atm         ###   ########.fr       */
+/*   Updated: 2022/03/03 05:06:21 by dait-atm         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -317,7 +317,7 @@ bool			Server::record_client_input (const size_t &i)
 	_clients[_fds[i].fd].update();
 	_clients[_fds[i].fd].add_input_buffer(buffer, rc);
 
-	ft_print_memory((void *)buffer, rc);
+	// ft_print_memory((void *)buffer, rc);
 	_clients[_fds[i].fd].parse_response();
 
 	if (_clients[_fds[i].fd].is_request_parsed() == true)
@@ -335,7 +335,7 @@ bool			Server::record_client_input (const size_t &i)
 			_listeners[_clients[_fds[i].fd].get_cgi_input_fd()] = 1;
 			break;
 		default:
-			__DEB("_listeners : 2")
+			// __DEB("_listeners : 2")
 			_listeners[_clients[_fds[i].fd].get_cgi_input_fd()] = 2;
 			set_client_event_to_flag(_fds[i].fd, POLLOUT);
 			break;
@@ -427,10 +427,10 @@ bool			Server::server_poll_loop ()
 {
 	int					rc;
 
-	std::cout << "Waiting on poll()...\n";
+	// std::cout << "Waiting on poll()...\n";
 	rc = poll(&_fds.front(), _fds.size(), TIMEOUT);
-	aff_clients();
-	aff_fds();
+	// aff_clients();
+	// aff_fds();
 	
 	if (rc < 0)
 	{
@@ -465,9 +465,6 @@ bool			Server::server_poll_loop ()
 	// ? or the active connection.
 	for (std::vector<int>::size_type i = 0; i < _fds.size(); ++i)
 	{
-		if (i < 0)
-			i = 0;
-
 		if (_fds[i].fd == -1)
 		{
 			// std::cout << "found _fds[i].fd == -1" << std::endl;
@@ -627,12 +624,6 @@ bool			Server::server_poll_loop ()
 				*/
 			}
 		}
-	}
-
-	for (std::vector<int>::size_type i = 1; i < _fds.size(); ++i)
-	{
-		if (_fds[i].fd == -1)
-			_fds.erase(_fds.begin() + i);
 	}
 
 	return (true);
